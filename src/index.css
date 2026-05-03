@@ -123,9 +123,70 @@ html, body, #root {
   z-index: 1;
 }
 
+.line-list section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.line-list section h3 > span:first-child {
+  flex: 1;
+}
+
 .line-list section h3 .count {
   color: #999;
   font-weight: 500;
+  font-size: 10px;
+}
+
+.line-list section h3 .group-actions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.line-list section h3 .group-actions button {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.line-list section h3 .group-actions button:hover {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+.line-list section .empty {
+  padding: 8px 12px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.line-selector .box-toggle {
+  padding: 6px 10px;
+  border: 1px solid #1976d2;
+  background: #fff;
+  color: #1976d2;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.line-selector .box-toggle:hover {
+  background: #e3f2fd;
+}
+
+.line-selector .box-toggle.on {
+  background: #1976d2;
+  color: #fff;
 }
 
 .line-list ul {
@@ -339,6 +400,48 @@ html, body, #root {
   font-size: 10px;
   color: #888;
   line-height: 1.3;
+}
+
+.box-select-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.box-select-rect {
+  position: absolute;
+  border: 2px dashed #1976d2;
+  background: rgba(25, 118, 210, 0.15);
+  pointer-events: none;
+}
+
+.box-select-rect.deselect {
+  border-color: #c62828;
+  background: rgba(198, 40, 40, 0.15);
+}
+
+.box-select-hint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.box-select-hint kbd {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  margin: 0 2px;
 }
 
 .status-overlay {

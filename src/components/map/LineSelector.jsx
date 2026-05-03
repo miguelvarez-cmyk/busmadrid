@@ -3,11 +3,9 @@ import {
   useMapStore,
   useSelectedRouteIds,
   useHoveredRouteId,
+  useBoxSelectMode,
 } from '../../store/useMapStore.js';
-
-function isNightLine(shortName) {
-  return /^N/i.test(shortName);
-}
+import { groupRoutes, GROUP_LABELS, GROUP_ORDER } from '../../utils/routeGroups.js';
 
 export default function LineSelector({ routesMeta }) {
   const selected = useSelectedRouteIds();
@@ -17,6 +15,8 @@ export default function LineSelector({ routesMeta }) {
   const selectAllRoutes = useMapStore((s) => s.selectAllRoutes);
   const clearRoutes = useMapStore((s) => s.clearRoutes);
   const setHoveredRouteId = useMapStore((s) => s.setHoveredRouteId);
+  const boxSelectMode = useBoxSelectMode();
+  const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState(false);
@@ -24,15 +24,20 @@ export default function LineSelector({ routesMeta }) {
 
   const allIds = useMemo(() => routesMeta.map((r) => r.id), [routesMeta]);
 
-  const { day, night, visibleOrder } = useMemo(() => {
+  const { groups, visibleOrder } = useMemo(() => {
     const q = query.trim().toLowerCase();
     const matches = (r) =>
       !q ||
       r.shortName.toLowerCase().includes(q) ||
       r.longName.toLowerCase().includes(q);
-    const day = routesMeta.filter((r) => !isNightLine(r.shortName) && matches(r));
-    const night = routesMeta.filter((r) => isNightLine(r.shortName) && matches(r));
-    return { day, night, visibleOrder: [...day, ...night].map((r) => r.id) };
+    const all = groupRoutes(routesMeta);
+    const groups = {};
+    const order = [];
+    for (const key of GROUP_ORDER) {
+      groups[key] = all[key].filter(matches);
+      for (const r of groups[key]) order.push(r.id);
+    }
+    return { groups, visibleOrder: order };
   }, [routesMeta, query]);
 
   const handleClick = (e, id) => {
@@ -50,6 +55,8 @@ export default function LineSelector({ routesMeta }) {
       anchorRef.current = id;
     }
   };
+
+  const groupSelectAll = (ids, value) => setRangeSelection(ids, value);
 
   const renderItem = (r) => {
     const isOn = selected.has(r.id);
@@ -102,21 +109,44 @@ export default function LineSelector({ routesMeta }) {
               <button onClick={() => selectAllRoutes(allIds)}>Todas</button>
               <button onClick={clearRoutes}>Ninguna</button>
             </div>
+            <button
+              className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
+              onClick={() => setBoxSelectMode(!boxSelectMode)}
+              title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
+            >
+              {boxSelectMode ? '◼ Salir del modo área' : '▭ Selección por área'}
+            </button>
             <div className="status">
               {selected.size} de {routesMeta.length} líneas visibles
-              <span className="hint"> · Shift+clic para rango</span>
+              <span className="hint"> · Shift+clic = rango</span>
             </div>
           </div>
 
           <div className="line-list">
-            <section>
-              <h3>Diurnas <span className="count">({day.length})</span></h3>
-              <ul>{day.map(renderItem)}</ul>
-            </section>
-            <section>
-              <h3>Nocturnas <span className="count">({night.length})</span></h3>
-              <ul>{night.map(renderItem)}</ul>
-            </section>
+            {GROUP_ORDER.map((key) => {
+              const items = groups[key];
+              const ids = items.map((r) => r.id);
+              const selectedInGroup = ids.filter((id) => selected.has(id)).length;
+              return (
+                <section key={key}>
+                  <h3>
+                    <span>{GROUP_LABELS[key]}</span>
+                    <span className="count">
+                      {selectedInGroup}/{items.length}
+                    </span>
+                    <span className="group-actions">
+                      <button onClick={() => groupSelectAll(ids, true)}>+</button>
+                      <button onClick={() => groupSelectAll(ids, false)}>−</button>
+                    </span>
+                  </h3>
+                  {items.length === 0 ? (
+                    <div className="empty">—</div>
+                  ) : (
+                    <ul>{items.map(renderItem)}</ul>
+                  )}
+                </section>
+              );
+            })}
           </div>
         </>
       )}

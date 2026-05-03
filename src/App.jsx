@@ -12,12 +12,14 @@ import {
   useHoveredRouteId,
   useColorMode,
   useTimeFilter,
+  useBoxSelectMode,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import { createRoutesLayer, createHighlightLayer } from './layers/createRoutesLayer.js';
 import { computeOfferRange, tripsPerHour } from './utils/service.js';
 import LineSelector from './components/map/LineSelector.jsx';
 import OfferControls from './components/map/OfferControls.jsx';
+import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 
 export default function App() {
   const viewState = useViewState();
@@ -28,6 +30,7 @@ export default function App() {
   const selectAllRoutes = useMapStore((s) => s.selectAllRoutes);
   const colorMode = useColorMode();
   const timeFilter = useTimeFilter();
+  const boxSelectMode = useBoxSelectMode();
   const { routesGeojson, routesMeta, serviceMetrics, loading, error } = useGTFSData();
 
   useEffect(() => {
@@ -97,11 +100,13 @@ export default function App() {
       <DeckGL
         viewState={viewState}
         onViewStateChange={({ viewState: next }) => setViewState(next)}
-        controller
+        controller={!boxSelectMode}
         layers={layers}
       >
         <Map mapStyle={MAP_STYLE} reuseMaps />
       </DeckGL>
+
+      <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
 
       {routesMeta && <LineSelector routesMeta={routesMeta} />}
       {serviceMetrics && <OfferControls offerRange={offerRange} />}

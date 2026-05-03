@@ -29,16 +29,18 @@ export const useMapStore = create((set) => ({
   hoveredRouteId: null,
   setHoveredRouteId: (id) => set({ hoveredRouteId: id }),
 
-  // Modo de coloreado: "route" (color GTFS) | "offer" (rojo->verde por exp/h)
   colorMode: 'route',
   setColorMode: (mode) => set({ colorMode: mode }),
 
-  // Filtro temporal para modo "offer"
-  dayOfWeek: 0, // 0=lunes ... 6=domingo
+  dayOfWeek: 0,
   startHour: 7,
   endHour: 10,
   setDayOfWeek: (d) => set({ dayOfWeek: d }),
   setHourRange: (startHour, endHour) => set({ startHour, endHour }),
+
+  // Modo de selección por área (recuadro)
+  boxSelectMode: false,
+  setBoxSelectMode: (v) => set({ boxSelectMode: v }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
@@ -52,3 +54,4 @@ export const useTimeFilter = () =>
     startHour: s.startHour,
     endHour: s.endHour,
   }));
+export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
