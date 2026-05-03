@@ -402,6 +402,36 @@ html, body, #root {
   line-height: 1.3;
 }
 
+.layer-toggles {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1a1a1a;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  z-index: 11;
+}
+
+.layer-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.layer-toggles .muted {
+  color: #888;
+  font-size: 11px;
+}
+
+.hover-info.stop {
+  bottom: 60px;
+  background: rgba(255, 255, 255, 0.97);
+}
+
 .box-select-overlay {
   position: absolute;
   inset: 0;

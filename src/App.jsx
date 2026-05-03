@@ -13,9 +13,12 @@ import {
   useColorMode,
   useTimeFilter,
   useBoxSelectMode,
+  useShowStops,
+  useHoveredStop,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import { createRoutesLayer, createHighlightLayer } from './layers/createRoutesLayer.js';
+import { createStopsLayer } from './layers/createStopsLayer.js';
 import { computeOfferRange, tripsPerHour } from './utils/service.js';
 import LineSelector from './components/map/LineSelector.jsx';
 import OfferControls from './components/map/OfferControls.jsx';
@@ -31,7 +34,12 @@ export default function App() {
   const colorMode = useColorMode();
   const timeFilter = useTimeFilter();
   const boxSelectMode = useBoxSelectMode();
-  const { routesGeojson, routesMeta, serviceMetrics, loading, error } = useGTFSData();
+  const showStops = useShowStops();
+  const setShowStops = useMapStore((s) => s.setShowStops);
+  const hoveredStop = useHoveredStop();
+  const setHoveredStop = useMapStore((s) => s.setHoveredStop);
+  const { routesGeojson, routesMeta, serviceMetrics, stopsGeojson, loading, error } =
+    useGTFSData();
 
   useEffect(() => {
     if (routesMeta && selectedRouteIds.size === 0) {
@@ -64,6 +72,12 @@ export default function App() {
           offerRange,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
+        createStopsLayer({
+          geojson: stopsGeojson,
+          selectedRouteIds,
+          visible: showStops,
+          onHover: setHoveredStop,
+        }),
       ].filter(Boolean),
     [
       routesGeojson,
@@ -74,6 +88,9 @@ export default function App() {
       serviceMetrics,
       timeFilter,
       offerRange,
+      stopsGeojson,
+      showStops,
+      setHoveredStop,
     ]
   );
 
@@ -111,6 +128,21 @@ export default function App() {
       {routesMeta && <LineSelector routesMeta={routesMeta} />}
       {serviceMetrics && <OfferControls offerRange={offerRange} />}
 
+      <div className="layer-toggles">
+        <label>
+          <input
+            type="checkbox"
+            checked={showStops}
+            onChange={(e) => setShowStops(e.target.checked)}
+            disabled={!stopsGeojson}
+          />
+          <span>Mostrar paradas</span>
+          {stopsGeojson && (
+            <span className="muted"> ({stopsGeojson.features.length})</span>
+          )}
+        </label>
+      </div>
+
       {hoveredFeature && (
         <div className="hover-info">
           <span
@@ -122,6 +154,14 @@ export default function App() {
           {hoveredOffer !== null && (
             <span className="offer">{hoveredOffer.toFixed(1)} exp/h</span>
           )}
+        </div>
+      )}
+
+      {hoveredStop && (
+        <div className="hover-info stop">
+          <b>Parada {hoveredStop.properties.stop_code || hoveredStop.properties.stop_id}</b>
+          <span className="long">{hoveredStop.properties.stop_name}</span>
+          <span className="offer">{hoveredStop.properties.routes.length} líneas</span>
         </div>
       )}
 

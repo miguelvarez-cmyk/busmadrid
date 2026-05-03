@@ -41,6 +41,12 @@ export const useMapStore = create((set) => ({
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
+
+  showStops: false,
+  setShowStops: (v) => set({ showStops: v }),
+
+  hoveredStop: null,
+  setHoveredStop: (s) => set({ hoveredStop: s }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
@@ -55,3 +61,5 @@ export const useTimeFilter = () =>
     endHour: s.endHour,
   }));
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
+export const useShowStops = () => useMapStore((s) => s.showStops);
+export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);

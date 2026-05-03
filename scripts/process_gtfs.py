@@ -2,10 +2,8 @@
 Procesa el feed GTFS de la EMT en data/raw/GTFS/ y genera:
   - public/data/routes.geojson  (FeatureCollection con MultiLineString por línea)
   - public/data/routes_meta.json (lista compacta para el menú: id, nombre, color, modo)
-
-Cada feature de routes.geojson agrega todos los shapes únicos asociados a una línea
-(ambos sentidos) en un MultiLineString. Las propiedades incluyen route_id,
-route_short_name, route_long_name, route_color, route_type.
+  - public/data/stops.geojson   (FeatureCollection con Point por parada,
+                                 incluye lista de route_ids que pasan por ella)
 """
 from __future__ import annotations
 
@@ -119,6 +117,56 @@ def build_meta(routes: pd.DataFrame, route_to_shapes: dict[str, list[str]]) -> l
     return meta
 
 
+def build_stops_geojson() -> dict:
+    """Genera FeatureCollection de paradas con la lista de route_ids que pasan por ella."""
+    print("Cargando stops...")
+    stops = pd.read_csv(
+        GTFS_DIR / "stops.txt",
+        usecols=["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon"],
+        dtype={"stop_id": str, "stop_code": str, "stop_name": str},
+    )
+    print(f"  {len(stops)} paradas")
+
+    print("Cruzando stop_times con trips para obtener líneas por parada...")
+    trips = pd.read_csv(
+        GTFS_DIR / "trips.txt",
+        usecols=["trip_id", "route_id"],
+        dtype={"trip_id": str, "route_id": str},
+    )
+    trip_to_route = dict(zip(trips["trip_id"], trips["route_id"]))
+
+    stop_to_routes: dict[str, set[str]] = {}
+    for chunk in pd.read_csv(
+        GTFS_DIR / "stop_times.txt",
+        usecols=["trip_id", "stop_id"],
+        dtype=str,
+        chunksize=500_000,
+    ):
+        for tid, sid in zip(chunk["trip_id"], chunk["stop_id"]):
+            r = trip_to_route.get(tid)
+            if r is None:
+                continue
+            stop_to_routes.setdefault(sid, set()).add(r)
+
+    features = []
+    for _, s in stops.iterrows():
+        sid = s["stop_id"]
+        routes = sorted(stop_to_routes.get(sid, set()))
+        if not routes:
+            continue
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [float(s["stop_lon"]), float(s["stop_lat"])]},
+            "properties": {
+                "stop_id": sid,
+                "stop_code": s["stop_code"] if pd.notna(s["stop_code"]) else "",
+                "stop_name": s["stop_name"],
+                "routes": routes,
+            },
+        })
+    return {"type": "FeatureCollection", "features": features}
+
+
 def main() -> None:
     require_files()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,7 +183,7 @@ def main() -> None:
     routes = load_routes()
     print(f"  {len(routes)} líneas en routes.txt")
 
-    print("Construyendo GeoJSON...")
+    print("Construyendo GeoJSON de líneas...")
     geojson = build_geojson(routes, route_to_shapes, shapes)
     meta = build_meta(routes, route_to_shapes)
 
@@ -148,6 +196,15 @@ def main() -> None:
 
     print(f"OK -> {geojson_path.relative_to(ROOT)} ({geojson_path.stat().st_size / 1e6:.1f} MB)")
     print(f"OK -> {meta_path.relative_to(ROOT)} ({len(meta)} líneas)")
+
+    stops_geojson = build_stops_geojson()
+    stops_path = OUT_DIR / "stops.geojson"
+    with stops_path.open("w", encoding="utf-8") as f:
+        json.dump(stops_geojson, f, ensure_ascii=False, separators=(",", ":"))
+    print(
+        f"OK -> {stops_path.relative_to(ROOT)} "
+        f"({stops_path.stat().st_size / 1e6:.2f} MB, {len(stops_geojson['features'])} paradas)"
+    )
 
 
 if __name__ == "__main__":
