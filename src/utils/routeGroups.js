@@ -1,31 +1,66 @@
 /**
- * Clasifica una línea EMT en uno de tres grupos según su shortName:
- *   - 'night'   → empieza por N (nocturnas/búhos)
- *   - 'regular' → puramente numérica (1, 27, 150...)
- *   - 'special' → cualquier otra (C1, E1, S10, M1, T31...)
+ * Clasificación de líneas EMT siguiendo la taxonomía de la Wikipedia
+ * (es.wikipedia.org/wiki/Anexo:Líneas_de_la_EMT_Madrid).
+ *
+ * Categorías presentes en el feed actual:
+ *   regular     — numéricas (excepto 001/002) + circulares C03/C1/C2
+ *   express     — E, E1–E5
+ *   university  — U, A, F, G, H (Ciudad Universitaria)
+ *   special     — SE*, T*, M*, H1, BR1, 001, 002
+ *   metro       — S*, SC* (sustitutivas de metro)
+ *   night       — N*, NC* (búhos)
+ *
+ * El orden de los regex importa: casos específicos (H1, 001, 002) deben
+ * comprobarse antes que sus generalizaciones (H, dígito).
  */
 export function classifyRoute(shortName) {
-  if (/^N/i.test(shortName)) return 'night';
-  if (/^\d+$/.test(shortName)) return 'regular';
+  const s = (shortName || '').toUpperCase();
+  if (/^NC/.test(s)) return 'night';
+  if (/^N\d/.test(s) || s === 'N') return 'night';
+  if (/^SC/.test(s)) return 'metro';
+  if (/^SE/.test(s)) return 'special';
+  if (/^S\d/.test(s)) return 'metro';
+  if (/^M\d/.test(s)) return 'special';
+  if (/^C\d/.test(s)) return 'regular';
+  if (/^E\d?$/.test(s) || /^E\d/.test(s)) return 'express';
+  if (/^U/.test(s)) return 'university';
+  if (/^[AFG]$/.test(s)) return 'university';
+  if (s === 'H1') return 'special';
+  if (/^H/.test(s)) return 'university';
+  if (/^T\d/.test(s)) return 'special';
+  if (/^BR/.test(s)) return 'special';
+  if (s === '001' || s === '002') return 'special';
+  if (/^\d/.test(s)) return 'regular';
   return 'special';
 }
 
 export const GROUP_LABELS = {
-  regular: 'Diarias normales',
-  special: 'Diarias especiales',
-  night: 'Nocturnas',
+  regular:    'Diurnas regulares',
+  express:    'Exprés (E)',
+  university: 'Universitarias (U, A, F, G, H)',
+  special:    'Servicios especiales (SE, T, M, H1, BR, 001, 002)',
+  metro:      'Sustitutivas metro (S, SC)',
+  night:      'Nocturnas (N, NC)',
 };
 
-export const GROUP_ORDER = ['regular', 'special', 'night'];
+export const GROUP_ORDER = [
+  'regular',
+  'express',
+  'university',
+  'special',
+  'metro',
+  'night',
+];
 
 export function groupRoutes(routesMeta) {
-  const groups = { regular: [], special: [], night: [] };
+  const groups = Object.fromEntries(GROUP_ORDER.map((k) => [k, []]));
   for (const r of routesMeta) groups[classifyRoute(r.shortName)].push(r);
 
   const sortKey = (r) => {
-    const m = r.shortName.match(/^([A-Za-z]*)(\d+)/);
-    if (m) return [m[1].toUpperCase(), parseInt(m[2], 10), r.shortName];
-    return ['ZZZ', 0, r.shortName];
+    const m = r.shortName.match(/^([A-Za-z]*)(\d+)?/);
+    const prefix = (m && m[1] ? m[1] : '').toUpperCase();
+    const num = m && m[2] ? parseInt(m[2], 10) : 0;
+    return [prefix, num, r.shortName];
   };
   for (const g of Object.values(groups)) {
     g.sort((a, b) => {

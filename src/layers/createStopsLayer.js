@@ -1,12 +1,12 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
 
-export function createStopsLayer({ geojson, selectedRouteIds, onHover, visible }) {
+export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible }) {
   if (!geojson || !visible) return null;
 
   const data = geojson.features.filter((f) => {
     const routes = f.properties.routes;
     for (let i = 0; i < routes.length; i++) {
-      if (selectedRouteIds.has(routes[i])) return true;
+      if (visibleRouteIds.has(routes[i])) return true;
     }
     return false;
   });

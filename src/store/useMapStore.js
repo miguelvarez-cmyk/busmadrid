@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { INITIAL_VIEW_STATE } from '../config/mapConfig.js';
+import { INITIAL_VIEW_STATE, DEFAULT_BASEMAP } from '../config/mapConfig.js';
 
 export const useMapStore = create((set) => ({
   viewState: INITIAL_VIEW_STATE,
@@ -38,12 +38,23 @@ export const useMapStore = create((set) => ({
   setDayOfWeek: (d) => set({ dayOfWeek: d }),
   setHourRange: (startHour, endHour) => set({ startHour, endHour }),
 
+  // Filtros activos según el modo de coloreado
+  freqFilter: [0, 60],     // minutos; freq fuera del rango oculta la línea
+  speedFilter: null,       // [min, max] km/h; null hasta cargar route_speed
+  demandFilter: null,      // [min, max] viajeros/día; null hasta cargar route_demand
+  setFreqFilter: (range) => set({ freqFilter: range }),
+  setSpeedFilter: (range) => set({ speedFilter: range }),
+  setDemandFilter: (range) => set({ demandFilter: range }),
+
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
 
   showStops: false,
   setShowStops: (v) => set({ showStops: v }),
+
+  basemap: DEFAULT_BASEMAP,
+  setBasemap: (id) => set({ basemap: id }),
 
   hoveredStop: null,
   setHoveredStop: (s) => set({ hoveredStop: s }),
@@ -60,6 +71,10 @@ export const useTimeFilter = () =>
     startHour: s.startHour,
     endHour: s.endHour,
   }));
+export const useFreqFilter = () => useMapStore((s) => s.freqFilter);
+export const useSpeedFilter = () => useMapStore((s) => s.speedFilter);
+export const useDemandFilter = () => useMapStore((s) => s.demandFilter);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
+export const useBasemap = () => useMapStore((s) => s.basemap);

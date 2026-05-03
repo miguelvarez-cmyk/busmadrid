@@ -1,22 +1,26 @@
 """
-Calcula la oferta (expediciones por hora) por línea y día de la semana a partir
-de routes.txt, trips.txt, stop_times.txt y calendar.txt del feed de la EMT.
+Calcula la oferta por línea y día de la semana a partir de routes.txt,
+trips.txt, stop_times.txt y calendar.txt del feed de la EMT.
 
-Modelo (verificado contra el feed EMT real):
-  - Cada trip_id en trips.txt representa UNA expedición individual (un viaje
-    de un bus). El campo block_id identifica el bus físico que la realiza.
-  - frequencies.txt no es fiable como fuente de conteo: para algunas líneas la
-    ventana cubre 1 hora con headway "informativo", pero para otras (p.ej. S10)
-    la ventana cubre todo el día con un único start_time, lo que infla el conteo
-    si se interpreta como patrón GTFS estándar.
-  - La hora de salida real de cada trip está siempre en stop_times.txt, en el
-    departure_time del stop con stop_sequence == 1.
-  - Cada service_id (LA, LJ, SA, FE, VV) se mapea a sus días de la semana
-    (calendar.txt). Los trips se replican en cada día activo.
+Modelo:
+  - Cada trip_id representa una expedición individual con un sentido
+    (direction_id 0 o 1). La hora de salida es el departure_time del stop
+    con stop_sequence == 1.
+  - Acumulamos por (route, direction, dow, hour). De ahí el frontend deriva
+    la frecuencia real percibida en una parada: en cada sentido, la frecuencia
+    es 60/exp_h_de_ese_sentido; para una parada con los dos sentidos se hace
+    la media de las dos frecuencias.
 
 Salida: public/data/service_metrics.json
   {
-    "byRoute": { "<route_id>": { "0": [24], ..., "6": [24] } },  # exp/hora por dow
+    "byRoute": {
+      "<route_id>": {
+        "0": { "0": [24], "1": [24] },  # dow=0 (lunes), por direction_id
+        ...
+        "6": { ... }
+      },
+      ...
+    },
     "globalMax": int,
     "dayNames": ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"]
   }
@@ -56,12 +60,14 @@ def main() -> None:
     print("Cargando trips...")
     trips = pd.read_csv(
         GTFS_DIR / "trips.txt",
-        usecols=["route_id", "service_id", "trip_id"],
+        usecols=["route_id", "service_id", "trip_id", "direction_id"],
         dtype=str,
     )
+    trips["direction_id"] = trips["direction_id"].fillna("0")
     print(f"  {len(trips)} trips")
     trip_to_route = dict(zip(trips["trip_id"], trips["route_id"]))
     trip_to_service = dict(zip(trips["trip_id"], trips["service_id"]))
+    trip_to_dir = dict(zip(trips["trip_id"], trips["direction_id"]))
 
     svc_dows = service_to_dows()
     print(f"  services: {svc_dows}")
@@ -85,15 +91,22 @@ def main() -> None:
     if missing:
         print(f"  aviso: {len(missing)} trips sin stop_sequence==1 (se ignoran)")
 
-    # byRoute[route_id][dow][hour] = nº expediciones
-    byRoute: dict[str, list[list[int]]] = defaultdict(
-        lambda: [[0] * 24 for _ in range(7)]
-    )
+    # byRoute[route_id][dow][direction][hour] = nº expediciones
+    def _empty_route():
+        return [
+            {"0": [0] * 24, "1": [0] * 24}
+            for _ in range(7)
+        ]
 
-    print("Acumulando expediciones por línea/día/hora...")
+    byRoute: dict[str, list[dict[str, list[int]]]] = defaultdict(_empty_route)
+
+    print("Acumulando expediciones por línea/sentido/día/hora...")
     for trip_id, dep in first_dep.items():
         route_id = trip_to_route.get(trip_id)
         service_id = trip_to_service.get(trip_id)
+        direction = trip_to_dir.get(trip_id, "0")
+        if direction not in ("0", "1"):
+            direction = "0"
         if not route_id or not service_id:
             continue
         dows = svc_dows.get(service_id, [])
@@ -101,17 +114,20 @@ def main() -> None:
             continue
         h = (parse_gtfs_time(dep) // 3600) % 24
         for dow in dows:
-            byRoute[route_id][dow][h] += 1
+            byRoute[route_id][dow][direction][h] += 1
 
     global_max = 0
     for matrix in byRoute.values():
-        for row_arr in matrix:
-            m = max(row_arr)
-            if m > global_max:
-                global_max = m
+        for day in matrix:
+            for arr in day.values():
+                m = max(arr)
+                if m > global_max:
+                    global_max = m
 
     out = {
-        "byRoute": {rid: {str(d): mat[d] for d in range(7)} for rid, mat in byRoute.items()},
+        "byRoute": {
+            rid: {str(d): mat[d] for d in range(7)} for rid, mat in byRoute.items()
+        },
         "globalMax": global_max,
         "dayNames": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
     }

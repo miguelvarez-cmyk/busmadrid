@@ -278,7 +278,7 @@ html, body, #root {
   font-weight: 600;
 }
 
-.offer-controls {
+.viz-controls {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -292,37 +292,56 @@ html, body, #root {
   overflow: hidden;
 }
 
-.offer-controls header {
+.viz-controls header {
   padding: 10px 12px;
   border-bottom: 1px solid #e5e5e5;
   background: #f7f7f9;
-}
-
-.offer-controls .toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
   font-weight: 600;
 }
 
-.offer-controls .body {
+.viz-controls .modes {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.viz-controls .modes button {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: #fff;
+  border-right: 1px solid #eee;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+
+.viz-controls .modes button:last-child {
+  border-right: none;
+}
+
+.viz-controls .modes button:hover {
+  background: #f0f0f0;
+}
+
+.viz-controls .modes button.active {
+  background: #1976d2;
+  color: #fff;
+}
+
+.viz-controls .body {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.offer-controls.off .body {
-  opacity: 0.55;
-}
-
-.offer-controls .row {
+.viz-controls .row {
   display: flex;
   gap: 4px;
 }
 
-.offer-controls .days button {
+.viz-controls .days button {
   flex: 1;
   padding: 6px 0;
   border: 1px solid #ccc;
@@ -333,34 +352,30 @@ html, body, #root {
   font-weight: 500;
 }
 
-.offer-controls .days button.active {
+.viz-controls .days button.active {
   background: #1976d2;
   color: #fff;
   border-color: #1976d2;
 }
 
-.offer-controls .days button:disabled {
-  cursor: not-allowed;
-}
-
-.offer-controls .hours {
+.viz-controls .hours {
   gap: 12px;
 }
 
-.offer-controls .hour-input {
+.viz-controls .hour-input {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.offer-controls .hour-input label {
+.viz-controls .hour-input label {
   font-size: 11px;
   color: #666;
   text-transform: uppercase;
 }
 
-.offer-controls .hour-input input {
+.viz-controls .hour-input input {
   width: 100%;
   padding: 5px 6px;
   border: 1px solid #ccc;
@@ -369,12 +384,12 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-.offer-controls .hour-input span {
+.viz-controls .hour-input span {
   font-size: 11px;
   color: #888;
 }
 
-.offer-controls .legend {
+.viz-controls .legend {
   border-top: 1px solid #eee;
   padding-top: 8px;
   display: flex;
@@ -382,13 +397,13 @@ html, body, #root {
   gap: 4px;
 }
 
-.offer-controls .legend .bar {
+.viz-controls .legend .bar {
   height: 10px;
   border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.offer-controls .legend .ticks {
+.viz-controls .legend .ticks {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
@@ -396,10 +411,187 @@ html, body, #root {
   font-weight: 600;
 }
 
-.offer-controls .legend .caption {
-  font-size: 10px;
-  color: #888;
+.viz-controls .legend .caption {
+  font-size: 11px;
+  color: #666;
   line-height: 1.3;
+}
+
+.viz-controls .legend .caption.muted {
+  color: #aaa;
+  font-size: 10px;
+}
+
+.viz-controls .legend.categorical ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+}
+
+.viz-controls .legend.categorical li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.viz-controls .legend.categorical .swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex: 0 0 auto;
+}
+
+.viz-controls .filter-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+.viz-controls .filter-title {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.viz-controls .filter-title .muted {
+  color: #999;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.histogram {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hist-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 24px;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.hist-row.dim {
+  opacity: 0.35;
+}
+
+.hist-label {
+  color: #555;
+  text-align: right;
+}
+
+.hist-bar-wrap {
+  height: 10px;
+  background: #f1f1f1;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hist-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.15s ease;
+}
+
+.hist-count {
+  color: #444;
+  font-weight: 600;
+  text-align: right;
+}
+
+.range-slider {
+  position: relative;
+  height: 28px;
+  margin-top: 6px;
+}
+
+.range-slider .track {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+
+.range-slider .track-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #1976d2;
+  border-radius: 2px;
+}
+
+.range-slider input[type='range'] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+  margin: 0;
+}
+
+.range-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #1976d2;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.range-slider input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #1976d2;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.range-slider input[type='range']::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.range-slider input[type='range']::-moz-range-track {
+  background: transparent;
+}
+
+.range-slider .labels {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #1976d2;
+  font-weight: 600;
 }
 
 .layer-toggles {
@@ -413,6 +605,9 @@ html, body, #root {
   font-size: 13px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   z-index: 11;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .layer-toggles label {
@@ -425,6 +620,36 @@ html, body, #root {
 .layer-toggles .muted {
   color: #888;
   font-size: 11px;
+}
+
+.basemap-switch {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.basemap-switch button {
+  padding: 5px 10px;
+  border: none;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  border-right: 1px solid #ccc;
+  color: #333;
+}
+
+.basemap-switch button:last-child {
+  border-right: none;
+}
+
+.basemap-switch button:hover {
+  background: #f0f0f0;
+}
+
+.basemap-switch button.active {
+  background: #1976d2;
+  color: #fff;
 }
 
 .hover-info.stop {

@@ -3,7 +3,7 @@ import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { MAP_STYLE } from './config/mapConfig.js';
+import { BASEMAPS, BASEMAP_ORDER } from './config/mapConfig.js';
 import {
   useMapStore,
   useViewState,
@@ -15,13 +15,21 @@ import {
   useBoxSelectMode,
   useShowStops,
   useHoveredStop,
+  useBasemap,
+  useFreqFilter,
+  useSpeedFilter,
+  useDemandFilter,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
-import { createRoutesLayer, createHighlightLayer } from './layers/createRoutesLayer.js';
+import {
+  createRoutesLayer,
+  createHighlightLayer,
+  applyModeFilter,
+} from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
-import { computeOfferRange, tripsPerHour } from './utils/service.js';
+import { bestFrequencyMinutes } from './utils/service.js';
 import LineSelector from './components/map/LineSelector.jsx';
-import OfferControls from './components/map/OfferControls.jsx';
+import VisualizationControls from './components/map/VisualizationControls.jsx';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 
 export default function App() {
@@ -38,8 +46,23 @@ export default function App() {
   const setShowStops = useMapStore((s) => s.setShowStops);
   const hoveredStop = useHoveredStop();
   const setHoveredStop = useMapStore((s) => s.setHoveredStop);
-  const { routesGeojson, routesMeta, serviceMetrics, stopsGeojson, loading, error } =
-    useGTFSData();
+  const basemap = useBasemap();
+  const setBasemap = useMapStore((s) => s.setBasemap);
+  const freqFilter = useFreqFilter();
+  const speedFilter = useSpeedFilter();
+  const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
+  const demandFilter = useDemandFilter();
+  const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const {
+    routesGeojson,
+    routesMeta,
+    serviceMetrics,
+    stopsGeojson,
+    routeSpeed,
+    routeDemand,
+    loading,
+    error,
+  } = useGTFSData();
 
   useEffect(() => {
     if (routesMeta && selectedRouteIds.size === 0) {
@@ -47,16 +70,42 @@ export default function App() {
     }
   }, [routesMeta, selectedRouteIds.size, selectAllRoutes]);
 
-  const offerRange = useMemo(
+  useEffect(() => {
+    if (routeSpeed && !speedFilter) {
+      setSpeedFilter([Math.floor(routeSpeed.min), Math.ceil(routeSpeed.max)]);
+    }
+  }, [routeSpeed, speedFilter, setSpeedFilter]);
+
+  useEffect(() => {
+    if (routeDemand && !demandFilter) {
+      setDemandFilter([0, routeDemand.max]);
+    }
+  }, [routeDemand, demandFilter, setDemandFilter]);
+
+  const visibleRouteIds = useMemo(
     () =>
-      computeOfferRange(
+      applyModeFilter({
+        routeIds: selectedRouteIds,
+        colorMode,
         serviceMetrics,
-        selectedRouteIds,
-        timeFilter.dayOfWeek,
-        timeFilter.startHour,
-        timeFilter.endHour
-      ),
-    [serviceMetrics, selectedRouteIds, timeFilter]
+        routeSpeed,
+        routeDemand,
+        timeFilter,
+        freqFilter,
+        speedFilter,
+        demandFilter,
+      }),
+    [
+      selectedRouteIds,
+      colorMode,
+      serviceMetrics,
+      routeSpeed,
+      routeDemand,
+      timeFilter,
+      freqFilter,
+      speedFilter,
+      demandFilter,
+    ]
   );
 
   const layers = useMemo(
@@ -64,30 +113,32 @@ export default function App() {
       [
         createRoutesLayer({
           geojson: routesGeojson,
-          selectedRouteIds,
+          visibleRouteIds,
           onHover: setHoveredRouteId,
           colorMode,
           serviceMetrics,
+          routeSpeed,
+          routeDemand,
           timeFilter,
-          offerRange,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         createStopsLayer({
           geojson: stopsGeojson,
-          selectedRouteIds,
+          visibleRouteIds,
           visible: showStops,
           onHover: setHoveredStop,
         }),
       ].filter(Boolean),
     [
       routesGeojson,
-      selectedRouteIds,
+      visibleRouteIds,
       hoveredRouteId,
       setHoveredRouteId,
       colorMode,
       serviceMetrics,
+      routeSpeed,
+      routeDemand,
       timeFilter,
-      offerRange,
       stopsGeojson,
       showStops,
       setHoveredStop,
@@ -101,9 +152,9 @@ export default function App() {
     );
   }, [hoveredRouteId, routesGeojson]);
 
-  const hoveredOffer = useMemo(() => {
+  const hoveredFreqMin = useMemo(() => {
     if (!hoveredFeature || colorMode !== 'offer' || !serviceMetrics) return null;
-    return tripsPerHour(
+    return bestFrequencyMinutes(
       serviceMetrics,
       hoveredFeature.properties.route_id,
       timeFilter.dayOfWeek,
@@ -111,6 +162,16 @@ export default function App() {
       timeFilter.endHour
     );
   }, [hoveredFeature, colorMode, serviceMetrics, timeFilter]);
+
+  const hoveredSpeed = useMemo(() => {
+    if (!hoveredFeature || colorMode !== 'speed' || !routeSpeed) return null;
+    return routeSpeed.byRoute[hoveredFeature.properties.route_id] ?? null;
+  }, [hoveredFeature, colorMode, routeSpeed]);
+
+  const hoveredDemand = useMemo(() => {
+    if (!hoveredFeature || colorMode !== 'demand' || !routeDemand) return null;
+    return routeDemand.byRoute[hoveredFeature.properties.route_id] ?? null;
+  }, [hoveredFeature, colorMode, routeDemand]);
 
   return (
     <div className="app">
@@ -120,15 +181,36 @@ export default function App() {
         controller={!boxSelectMode}
         layers={layers}
       >
-        <Map mapStyle={MAP_STYLE} reuseMaps />
+        <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
       </DeckGL>
 
       <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
 
       {routesMeta && <LineSelector routesMeta={routesMeta} />}
-      {serviceMetrics && <OfferControls offerRange={offerRange} />}
+      {(serviceMetrics || routeSpeed || routeDemand) && (
+        <VisualizationControls
+          routeSpeed={routeSpeed}
+          routeDemand={routeDemand}
+          serviceMetrics={serviceMetrics}
+          selectedRouteIds={selectedRouteIds}
+          visibleRouteIds={visibleRouteIds}
+        />
+      )}
 
-      <div className="layer-toggles">
+      <div className={`layer-toggles ${basemap === 'satellite' ? 'on-dark' : ''}`}>
+        <div className="basemap-switch" role="radiogroup" aria-label="Mapa base">
+          {BASEMAP_ORDER.map((id) => (
+            <button
+              key={id}
+              role="radio"
+              aria-checked={basemap === id}
+              className={basemap === id ? 'active' : ''}
+              onClick={() => setBasemap(id)}
+            >
+              {BASEMAPS[id].label}
+            </button>
+          ))}
+        </div>
         <label>
           <input
             type="checkbox"
@@ -151,8 +233,20 @@ export default function App() {
           />
           <b>Línea {hoveredFeature.properties.route_short_name}</b>
           <span className="long">{hoveredFeature.properties.route_long_name}</span>
-          {hoveredOffer !== null && (
-            <span className="offer">{hoveredOffer.toFixed(1)} exp/h</span>
+          {hoveredFreqMin !== null && (
+            <span className="offer">
+              {isFinite(hoveredFreqMin)
+                ? `cada ${hoveredFreqMin.toFixed(1)} min`
+                : 'no opera'}
+            </span>
+          )}
+          {hoveredSpeed && (
+            <span className="offer">{hoveredSpeed.speedKmh.toFixed(1)} km/h</span>
+          )}
+          {hoveredDemand && (
+            <span className="offer">
+              {hoveredDemand.dailyAvg.toLocaleString('es-ES')} viajeros/día
+            </span>
           )}
         </div>
       )}
