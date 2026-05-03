@@ -1,0 +1,67 @@
+# Dependencias
+node_modules/
+.pnp/
+.pnp.js
+
+# Build / output de Vite
+dist/
+dist-ssr/
+build/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+*.log
+
+# Caches
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Cobertura de tests
+coverage/
+*.lcov
+
+# Datos GTFS crudos (suelen ser pesados — descargar bajo demanda)
+data/raw/*
+!data/raw/.gitkeep
+
+# Datos procesados grandes
+data/processed/*.geojson
+data/processed/*.json
+!data/processed/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Temporales
+*.tmp
+*.bak
