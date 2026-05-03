@@ -52,6 +52,11 @@ data/processed/*.geojson
 data/processed/*.json
 !data/processed/.gitkeep
 
+# Salidas servidas a Vite (regenerar con scripts/process_gtfs.py)
+public/data/*.geojson
+public/data/*.json
+!public/data/.gitkeep
+
 # Python
 __pycache__/
 *.py[cod]

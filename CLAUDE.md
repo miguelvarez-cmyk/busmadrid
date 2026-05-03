@@ -49,12 +49,11 @@ visualizador_GTFS_Madrid/
    python scripts/process_gtfs.py
    ```
 
-   Genera en `data/processed/`:
-   - `stops.geojson` — paradas (Point)
-   - `routes.geojson` — recorridos agregados por línea (MultiLineString, derivados de `shapes.txt`)
-   - `routes_meta.json` — metadatos por línea (id, nombre, modo, color)
+   Genera en `public/data/` (servidos por Vite en `/data/`):
+   - `routes.geojson` — recorridos agregados por línea (MultiLineString por route, ambos sentidos)
+   - `routes_meta.json` — lista compacta `{id, shortName, longName, color, type}` para el menú de selección
 
-4. El frontend carga estos archivos vía `fetch` desde `/data/processed/` (Vite los sirve si están dentro de `public/` o se referencian con import).
+4. El frontend hace `fetch('/data/routes.geojson')` y `fetch('/data/routes_meta.json')` desde [src/utils/useGTFSData.js](src/utils/useGTFSData.js).
 
 > Si añades un nuevo paso de procesamiento, créalo como script aparte en `scripts/` con un nombre descriptivo (`build_frequencies.py`, `extract_vehicles.py`…) y documenta la entrada/salida arriba del archivo.
 
