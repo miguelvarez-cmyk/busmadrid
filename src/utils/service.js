@@ -244,3 +244,86 @@ export function passesDemandFilter(demand, routeId, filter) {
   const [fMin, fMax] = filter;
   return entry.dailyAvg >= fMin && entry.dailyAvg <= fMax;
 }
+
+/**
+ * Rampa rojo → amarillo → verde para tamaño de flota. Usa el rango global
+ * (min, max) precalculado por compute_fleet.py para mantener una escala
+ * estable cuando el usuario cambia la selección o el tipo de día.
+ */
+export function fleetColor(buses, min, max) {
+  if (buses == null || buses <= 0) return NO_SERVICE_COLOR;
+  if (max <= min) return [60, 220, 80];
+  const t = Math.max(0, Math.min(1, (buses - min) / (max - min)));
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [220, Math.round(60 + 180 * k), 50];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+}
+
+export function fleetForRoute(fleet, routeId, dayType) {
+  const entry = fleet?.byRoute?.[routeId];
+  if (!entry) return null;
+  const v = entry[dayType];
+  return v && v > 0 ? v : null;
+}
+
+export function fleetColorForRoute(fleet, routeId, dayType) {
+  if (!fleet) return NO_SERVICE_COLOR;
+  const v = fleetForRoute(fleet, routeId, dayType);
+  if (v == null) return NO_SERVICE_COLOR;
+  return fleetColor(v, fleet.min, fleet.max);
+}
+
+/**
+ * Buckets de flota de tamaño fijo (3 buses cada uno) entre min y max globales.
+ * Incluye un bucket extra "Sin datos" para líneas sin flota en el tipo de día.
+ */
+export function fleetHistogram(fleet, routeIds, dayType, filter) {
+  if (!fleet) return [];
+  const step = 3;
+  const lo = Math.floor(fleet.min / step) * step;
+  const hi = Math.ceil((fleet.max + 0.001) / step) * step;
+  const nBuckets = Math.max(1, Math.round((hi - lo) / step));
+  const counts = new Array(nBuckets).fill(0);
+  let noData = 0;
+
+  for (const id of routeIds) {
+    const v = fleetForRoute(fleet, id, dayType);
+    if (v == null) {
+      noData += 1;
+      continue;
+    }
+    const idx = Math.min(nBuckets - 1, Math.floor((v - lo) / step));
+    if (idx >= 0) counts[idx] += 1;
+  }
+
+  const [fMin, fMax] = filter;
+  const buckets = counts.map((count, i) => {
+    const bLo = lo + i * step;
+    const bHi = bLo + step;
+    const mid = bLo + step / 2;
+    return {
+      label: `${bLo}–${bHi}`,
+      count,
+      color: fleetColor(mid, fleet.min, fleet.max),
+      inRange: bHi > fMin && bLo <= fMax,
+    };
+  });
+  buckets.push({
+    label: 'Sin datos',
+    count: noData,
+    color: NO_SERVICE_COLOR,
+    inRange: fMin <= 0,
+  });
+  return buckets;
+}
+
+export function passesFleetFilter(fleet, routeId, dayType, filter) {
+  if (!fleet) return true;
+  const v = fleetForRoute(fleet, routeId, dayType);
+  const [fMin, fMax] = filter;
+  if (v == null) return fMin <= 0;
+  return v >= fMin && v <= fMax;
+}

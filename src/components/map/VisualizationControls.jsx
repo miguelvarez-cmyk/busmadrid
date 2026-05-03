@@ -6,6 +6,8 @@ import {
   useFreqFilter,
   useSpeedFilter,
   useDemandFilter,
+  useFleetFilter,
+  useFleetDayType,
 } from '../../store/useMapStore.js';
 import {
   FREQUENCY_CATEGORIES,
@@ -13,6 +15,7 @@ import {
   frequencyHistogram,
   speedHistogram,
   demandHistogram,
+  fleetHistogram,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -24,6 +27,13 @@ const MODES = [
   { id: 'offer', label: 'Frecuencia' },
   { id: 'speed', label: 'Velocidad' },
   { id: 'demand', label: 'Usuarios' },
+  { id: 'fleet', label: 'Flota' },
+];
+
+const FLEET_DAY_TYPES = [
+  { id: 'LA', label: 'Laborable' },
+  { id: 'SA', label: 'Sábado' },
+  { id: 'FE', label: 'Festivo' },
 ];
 
 function formatPax(v) {
@@ -38,6 +48,7 @@ function formatHour(h) {
 export default function VisualizationControls({
   routeSpeed,
   routeDemand,
+  routeFleet,
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
@@ -53,6 +64,10 @@ export default function VisualizationControls({
   const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const fleetFilter = useFleetFilter();
+  const setFleetFilter = useMapStore((s) => s.setFleetFilter);
+  const fleetDayType = useFleetDayType();
+  const setFleetDayType = useMapStore((s) => s.setFleetDayType);
 
   const handleStart = (e) => {
     const v = Number(e.target.value);
@@ -101,6 +116,14 @@ export default function VisualizationControls({
           )
         : [],
     [colorMode, routeDemand, demandFilter]
+  );
+
+  const fleetBuckets = useMemo(
+    () =>
+      colorMode === 'fleet' && routeFleet && fleetFilter
+        ? fleetHistogram(routeFleet, selectedRouteIds, fleetDayType, fleetFilter)
+        : [],
+    [colorMode, routeFleet, selectedRouteIds, fleetDayType, fleetFilter]
   );
 
   return (
@@ -223,6 +246,46 @@ export default function VisualizationControls({
               rango {routeDemand.min}–
               {routeDemand.max.toLocaleString('es-ES')}. Escala de color
               logarítmica.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {colorMode === 'fleet' && routeFleet && fleetFilter && (
+        <div className="body">
+          <div className="row days">
+            {FLEET_DAY_TYPES.map((d) => (
+              <button
+                key={d.id}
+                className={fleetDayType === d.id ? 'active' : ''}
+                onClick={() => setFleetDayType(d.id)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Distribución de flota (buses en hora punta)</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={fleetBuckets} />
+            <RangeSlider
+              min={0}
+              max={routeFleet.max}
+              step={1}
+              value={fleetFilter}
+              onChange={setFleetFilter}
+              format={(v) => `${v} bus`}
+            />
+            <div className="caption muted">
+              Flota = máximo de coches en circulación a lo largo del día,
+              promediado entre fechas del mismo tipo. Rojo = flota pequeña,
+              verde = flota grande. El rango {routeFleet.min}–{routeFleet.max}
+              {' '}cubre {Object.keys(routeFleet.byRoute).length} líneas.
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ export function useGTFSData() {
   const [stopsGeojson, setStopsGeojson] = useState(null);
   const [routeSpeed, setRouteSpeed] = useState(null);
   const [routeDemand, setRouteDemand] = useState(null);
+  const [routeFleet, setRouteFleet] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -18,8 +19,9 @@ export function useGTFSData() {
       fetch('/data/stops.geojson').then((r) => r.json()),
       fetch('/data/route_speed.json').then((r) => r.json()),
       fetch('/data/route_demand.json').then((r) => r.json()),
+      fetch('/data/route_fleet.json').then((r) => r.json()),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -27,6 +29,7 @@ export function useGTFSData() {
         setStopsGeojson(stops);
         setRouteSpeed(speed);
         setRouteDemand(demand);
+        setRouteFleet(fleet);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -41,6 +44,7 @@ export function useGTFSData() {
     stopsGeojson,
     routeSpeed,
     routeDemand,
+    routeFleet,
     error,
     loading: !routesGeojson && !error,
   };

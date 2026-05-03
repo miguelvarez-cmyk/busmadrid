@@ -19,6 +19,8 @@ import {
   useFreqFilter,
   useSpeedFilter,
   useDemandFilter,
+  useFleetFilter,
+  useFleetDayType,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -27,7 +29,7 @@ import {
   applyModeFilter,
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
-import { bestFrequencyMinutes } from './utils/service.js';
+import { bestFrequencyMinutes, fleetForRoute } from './utils/service.js';
 import LineSelector from './components/map/LineSelector.jsx';
 import VisualizationControls from './components/map/VisualizationControls.jsx';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
@@ -53,6 +55,9 @@ export default function App() {
   const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const fleetFilter = useFleetFilter();
+  const setFleetFilter = useMapStore((s) => s.setFleetFilter);
+  const fleetDayType = useFleetDayType();
   const {
     routesGeojson,
     routesMeta,
@@ -60,6 +65,7 @@ export default function App() {
     stopsGeojson,
     routeSpeed,
     routeDemand,
+    routeFleet,
     loading,
     error,
   } = useGTFSData();
@@ -82,6 +88,12 @@ export default function App() {
     }
   }, [routeDemand, demandFilter, setDemandFilter]);
 
+  useEffect(() => {
+    if (routeFleet && !fleetFilter) {
+      setFleetFilter([0, routeFleet.max]);
+    }
+  }, [routeFleet, fleetFilter, setFleetFilter]);
+
   const visibleRouteIds = useMemo(
     () =>
       applyModeFilter({
@@ -90,10 +102,13 @@ export default function App() {
         serviceMetrics,
         routeSpeed,
         routeDemand,
+        routeFleet,
         timeFilter,
         freqFilter,
         speedFilter,
         demandFilter,
+        fleetFilter,
+        fleetDayType,
       }),
     [
       selectedRouteIds,
@@ -101,10 +116,13 @@ export default function App() {
       serviceMetrics,
       routeSpeed,
       routeDemand,
+      routeFleet,
       timeFilter,
       freqFilter,
       speedFilter,
       demandFilter,
+      fleetFilter,
+      fleetDayType,
     ]
   );
 
@@ -119,7 +137,9 @@ export default function App() {
           serviceMetrics,
           routeSpeed,
           routeDemand,
+          routeFleet,
           timeFilter,
+          fleetDayType,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         createStopsLayer({
@@ -138,7 +158,9 @@ export default function App() {
       serviceMetrics,
       routeSpeed,
       routeDemand,
+      routeFleet,
       timeFilter,
+      fleetDayType,
       stopsGeojson,
       showStops,
       setHoveredStop,
@@ -173,6 +195,11 @@ export default function App() {
     return routeDemand.byRoute[hoveredFeature.properties.route_id] ?? null;
   }, [hoveredFeature, colorMode, routeDemand]);
 
+  const hoveredFleet = useMemo(() => {
+    if (!hoveredFeature || colorMode !== 'fleet' || !routeFleet) return null;
+    return fleetForRoute(routeFleet, hoveredFeature.properties.route_id, fleetDayType);
+  }, [hoveredFeature, colorMode, routeFleet, fleetDayType]);
+
   return (
     <div className="app">
       <DeckGL
@@ -187,10 +214,11 @@ export default function App() {
       <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
 
       {routesMeta && <LineSelector routesMeta={routesMeta} />}
-      {(serviceMetrics || routeSpeed || routeDemand) && (
+      {(serviceMetrics || routeSpeed || routeDemand || routeFleet) && (
         <VisualizationControls
           routeSpeed={routeSpeed}
           routeDemand={routeDemand}
+          routeFleet={routeFleet}
           serviceMetrics={serviceMetrics}
           selectedRouteIds={selectedRouteIds}
           visibleRouteIds={visibleRouteIds}
@@ -247,6 +275,9 @@ export default function App() {
             <span className="offer">
               {hoveredDemand.dailyAvg.toLocaleString('es-ES')} viajeros/día
             </span>
+          )}
+          {hoveredFleet != null && (
+            <span className="offer">{hoveredFleet} buses ({fleetDayType})</span>
           )}
         </div>
       )}

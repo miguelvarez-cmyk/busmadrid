@@ -4,9 +4,11 @@ import {
   frequencyColorForRoute,
   speedColorForRoute,
   demandColorForRoute,
+  fleetColorForRoute,
   passesFrequencyFilter,
   passesSpeedFilter,
   passesDemandFilter,
+  passesFleetFilter,
 } from '../utils/service.js';
 
 /**
@@ -19,10 +21,13 @@ export function applyModeFilter({
   serviceMetrics,
   routeSpeed,
   routeDemand,
+  routeFleet,
   timeFilter,
   freqFilter,
   speedFilter,
   demandFilter,
+  fleetFilter,
+  fleetDayType,
 }) {
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
@@ -54,6 +59,13 @@ export function applyModeFilter({
     }
     return out;
   }
+  if (colorMode === 'fleet' && routeFleet && fleetFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesFleetFilter(routeFleet, id, fleetDayType, fleetFilter)) out.add(id);
+    }
+    return out;
+  }
   return routeIds;
 }
 
@@ -65,7 +77,9 @@ export function createRoutesLayer({
   serviceMetrics,
   routeSpeed,
   routeDemand,
+  routeFleet,
   timeFilter,
+  fleetDayType,
 }) {
   if (!geojson) return null;
 
@@ -98,6 +112,11 @@ export function createRoutesLayer({
       ...demandColorForRoute(routeDemand, f.properties.route_id),
       230,
     ];
+  } else if (colorMode === 'fleet' && routeFleet) {
+    getLineColor = (f) => [
+      ...fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType),
+      230,
+    ];
   } else {
     getLineColor = (f) => [...hexToRgb(f.properties.route_color), 220];
   }
@@ -118,6 +137,7 @@ export function createRoutesLayer({
         timeFilter.dayOfWeek,
         timeFilter.startHour,
         timeFilter.endHour,
+        fleetDayType,
       ],
     },
   });
