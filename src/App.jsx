@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -109,6 +109,10 @@ export default function App() {
       setTortuosityFilter([1, hi]);
     }
   }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
+
+  const [layersCollapsed, setLayersCollapsed] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  );
 
   const visibleRouteIds = useMemo(
     () =>
@@ -254,32 +258,52 @@ export default function App() {
         />
       )}
 
-      <div className={`layer-toggles ${basemap === 'satellite' ? 'on-dark' : ''}`}>
-        <div className="basemap-switch" role="radiogroup" aria-label="Mapa base">
-          {BASEMAP_ORDER.map((id) => (
-            <button
-              key={id}
-              role="radio"
-              aria-checked={basemap === id}
-              className={basemap === id ? 'active' : ''}
-              onClick={() => setBasemap(id)}
-            >
-              {BASEMAPS[id].label}
-            </button>
-          ))}
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            checked={showStops}
-            onChange={(e) => setShowStops(e.target.checked)}
-            disabled={!stopsGeojson}
-          />
-          <span>Mostrar paradas</span>
-          {stopsGeojson && (
-            <span className="muted"> ({stopsGeojson.features.length})</span>
-          )}
-        </label>
+      <div
+        className={`layer-toggles ${basemap === 'satellite' ? 'on-dark' : ''} ${
+          layersCollapsed ? 'collapsed' : ''
+        }`}
+      >
+        <header>
+          <span className="title">Capas</span>
+          <button
+            type="button"
+            className="collapse"
+            onClick={() => setLayersCollapsed((c) => !c)}
+            aria-label={layersCollapsed ? 'Expandir' : 'Colapsar'}
+            aria-expanded={!layersCollapsed}
+          >
+            {layersCollapsed ? '▸' : '▾'}
+          </button>
+        </header>
+        {!layersCollapsed && (
+          <>
+            <div className="basemap-switch" role="radiogroup" aria-label="Mapa base">
+              {BASEMAP_ORDER.map((id) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={basemap === id}
+                  className={basemap === id ? 'active' : ''}
+                  onClick={() => setBasemap(id)}
+                >
+                  {BASEMAPS[id].label}
+                </button>
+              ))}
+            </div>
+            <label>
+              <input
+                type="checkbox"
+                checked={showStops}
+                onChange={(e) => setShowStops(e.target.checked)}
+                disabled={!stopsGeojson}
+              />
+              <span>Mostrar paradas</span>
+              {stopsGeojson && (
+                <span className="muted"> ({stopsGeojson.features.length})</span>
+              )}
+            </label>
+          </>
+        )}
       </div>
 
       {hoveredFeature && (

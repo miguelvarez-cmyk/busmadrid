@@ -716,8 +716,57 @@ html, body, #root {
   background: rgba(180, 30, 30, 0.92);
 }
 
-/* ===== Responsive: tablets y móviles ===== */
+/* ===== Estado colapsado (todas las pantallas) ===== */
 
+.line-selector.collapsed,
+.viz-controls.collapsed,
+.layer-toggles.collapsed {
+  overflow: hidden;
+}
+.line-selector.collapsed,
+.viz-controls.collapsed {
+  max-height: 56px;
+}
+.line-selector.collapsed header,
+.viz-controls.collapsed header {
+  border-bottom: none;
+}
+
+/* layer-toggles: header como cabecera de los demás paneles */
+.layer-toggles header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -8px -12px 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #f7f7f9;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px 6px 0 0;
+}
+.layer-toggles.collapsed header {
+  margin: -8px -12px;
+  border-bottom: none;
+}
+.layer-toggles header .collapse,
+.line-selector header .collapse,
+.viz-controls header .collapse {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Mejoras táctiles */
+button {
+  touch-action: manipulation;
+}
+
+/* ===== Tablets (≤900 px) ===== */
 @media (max-width: 900px) {
   .line-selector {
     width: 300px;
@@ -727,8 +776,9 @@ html, body, #root {
   }
 }
 
+/* ===== Móviles (≤720 px) ===== */
 @media (max-width: 720px) {
-  /* Inputs ≥ 16 px para evitar el zoom automático en iOS Safari */
+  /* Inputs ≥ 16 px para evitar zoom automático en iOS Safari */
   .line-selector input[type='text'],
   .viz-controls .hour-input input {
     font-size: 16px;
@@ -736,7 +786,6 @@ html, body, #root {
 
   /* Targets táctiles más cómodos */
   .line-selector .bulk button,
-  .line-selector .box-toggle,
   .basemap-switch button,
   .layer-toggles label,
   .viz-controls .modes button,
@@ -744,92 +793,101 @@ html, body, #root {
   .line-list label {
     min-height: 40px;
   }
+  .line-selector header .collapse,
+  .viz-controls header .collapse,
+  .layer-toggles header .collapse {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
 
-  /* LineSelector: panel superior, ancho completo, colapsable */
+  /* ----- LineSelector ----- */
+  /* Expandido: full-width superior, encima del mapa y por encima de cualquier
+     otro overlay para que el botón de colapsar sea siempre accesible. */
   .line-selector {
     top: 8px;
     left: 8px;
     right: 8px;
     width: auto;
-    max-height: 60vh;
-    font-size: 13px;
+    max-height: 55vh;
+    z-index: 30;
   }
+  /* Colapsado: pastilla pequeña en la esquina superior izquierda. */
   .line-selector.collapsed {
+    right: auto;
     width: auto;
+    max-width: 160px;
     max-height: none;
+    z-index: 12;
   }
 
-  /* VizControls: panel inferior tipo bottom-sheet */
+  /* ----- VizControls ----- */
+  /* Expandido: bottom-sheet ancho completo, encima del resto. */
   .viz-controls {
     top: auto;
     bottom: 8px;
     left: 8px;
     right: 8px;
     width: auto;
-    max-height: 70vh;
+    max-height: 60vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    z-index: 30;
   }
+  /* Colapsado: pastilla pequeña en la esquina inferior derecha. */
   .viz-controls.collapsed {
+    left: auto;
+    width: auto;
+    max-width: 200px;
     max-height: none;
+    z-index: 12;
   }
 
-  /* Cuando ambos paneles están abiertos en móvil, dejar paso entre ellos
-     limitando alturas — el usuario puede colapsar el otro para ver todo */
-  .viz-controls header,
-  .line-selector header {
-    padding: 12px;
-  }
-  .viz-controls header .collapse,
-  .line-selector header .collapse {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-
-  /* Modos: dos filas de tres si no caben en una */
+  /* Modos: dos filas de tres */
   .viz-controls .modes {
     flex-wrap: wrap;
   }
   .viz-controls .modes button {
-    flex: 1 1 33%;
-    min-width: 33%;
+    flex: 1 1 33.333%;
+    min-width: 33.333%;
     border-bottom: 1px solid #eee;
   }
 
-  /* Capas/basemap arriba a la derecha cuando los paneles ocupan abajo */
+  /* ----- Layer toggles ----- */
+  /* Por defecto en la esquina inferior izquierda como pastilla. */
   .layer-toggles {
-    bottom: auto;
-    top: 8px;
-    right: 8px;
-    left: auto;
-    padding: 6px 10px;
-    font-size: 12px;
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    right: auto;
+    z-index: 11;
+    max-width: calc(100vw - 16px);
   }
-  .basemap-switch button {
-    padding: 6px 10px;
-    font-size: 12px;
+  .layer-toggles.collapsed {
+    padding: 0;
+  }
+  .layer-toggles.collapsed header {
+    margin: 0;
+    padding: 8px 14px;
   }
 
-  /* Hover info: barra superior, sin solaparse con LineSelector */
+  /* ----- Hover info: arriba pero por debajo de paneles expandidos ----- */
   .hover-info {
     bottom: auto;
-    top: 8px;
+    top: 56px;
     left: 8px;
     right: 8px;
     max-width: none;
     font-size: 12px;
+    z-index: 14;
   }
   .hover-info.stop {
-    bottom: auto;
-    top: 56px;
+    top: 100px;
   }
 
   /* Selección por área no es práctica con dedo: ocultar */
   .box-select-overlay,
-  .box-select-hint {
-    display: none;
-  }
+  .box-select-hint,
   .line-selector .box-toggle {
     display: none;
   }
@@ -860,26 +918,8 @@ html, body, #root {
   }
 }
 
-/* Estado colapsado: solo cabecera visible (todas las pantallas) */
-.line-selector.collapsed,
-.viz-controls.collapsed {
-  max-height: 56px;
-  overflow: hidden;
-}
-.line-selector.collapsed header,
-.viz-controls.collapsed header {
-  border-bottom: none;
-}
-
-/* Mejoras generales de accesibilidad táctil */
-button {
-  touch-action: manipulation;
-}
-
 @media (hover: none) {
-  /* En dispositivos sin hover, ocultar tooltips de hover de líneas (no son
-     accionables con dedo) y reservar la barra superior solo para selección
-     por tap */
+  /* Sin hover (táctil): los tooltips de línea no son accionables. */
   .hover-info:not(.stop) {
     display: none;
   }
