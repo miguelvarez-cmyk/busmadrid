@@ -5,10 +5,12 @@ import {
   speedColorForRoute,
   demandColorForRoute,
   fleetColorForRoute,
+  tortuosityColorForRoute,
   passesFrequencyFilter,
   passesSpeedFilter,
   passesDemandFilter,
   passesFleetFilter,
+  passesTortuosityFilter,
 } from '../utils/service.js';
 
 /**
@@ -22,12 +24,14 @@ export function applyModeFilter({
   routeSpeed,
   routeDemand,
   routeFleet,
+  routeTortuosity,
   timeFilter,
   freqFilter,
   speedFilter,
   demandFilter,
   fleetFilter,
   fleetDayType,
+  tortuosityFilter,
 }) {
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
@@ -66,6 +70,13 @@ export function applyModeFilter({
     }
     return out;
   }
+  if (colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesTortuosityFilter(routeTortuosity, id, tortuosityFilter)) out.add(id);
+    }
+    return out;
+  }
   return routeIds;
 }
 
@@ -78,6 +89,7 @@ export function createRoutesLayer({
   routeSpeed,
   routeDemand,
   routeFleet,
+  routeTortuosity,
   timeFilter,
   fleetDayType,
 }) {
@@ -115,6 +127,11 @@ export function createRoutesLayer({
   } else if (colorMode === 'fleet' && routeFleet) {
     getLineColor = (f) => [
       ...fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType),
+      230,
+    ];
+  } else if (colorMode === 'tortuosity' && routeTortuosity) {
+    getLineColor = (f) => [
+      ...tortuosityColorForRoute(routeTortuosity, f.properties.route_id),
       230,
     ];
   } else {

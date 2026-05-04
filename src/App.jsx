@@ -21,6 +21,7 @@ import {
   useDemandFilter,
   useFleetFilter,
   useFleetDayType,
+  useTortuosityFilter,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -29,7 +30,7 @@ import {
   applyModeFilter,
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
-import { bestFrequencyMinutes, fleetForRoute } from './utils/service.js';
+import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute } from './utils/service.js';
 import LineSelector from './components/map/LineSelector.jsx';
 import VisualizationControls from './components/map/VisualizationControls.jsx';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
@@ -58,6 +59,8 @@ export default function App() {
   const fleetFilter = useFleetFilter();
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
+  const tortuosityFilter = useTortuosityFilter();
+  const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
   const {
     routesGeojson,
     routesMeta,
@@ -66,6 +69,7 @@ export default function App() {
     routeSpeed,
     routeDemand,
     routeFleet,
+    routeTortuosity,
     loading,
     error,
   } = useGTFSData();
@@ -83,16 +87,28 @@ export default function App() {
   }, [routeSpeed, speedFilter, setSpeedFilter]);
 
   useEffect(() => {
-    if (routeDemand && !demandFilter) {
-      setDemandFilter([0, routeDemand.max]);
+    if (routeDemand && routesMeta && !demandFilter) {
+      const inGtfs = new Set(routesMeta.map((r) => r.id));
+      let max = 0;
+      for (const [id, entry] of Object.entries(routeDemand.byRoute)) {
+        if (inGtfs.has(id) && entry.dailyAvg > max) max = entry.dailyAvg;
+      }
+      setDemandFilter([0, max || routeDemand.max]);
     }
-  }, [routeDemand, demandFilter, setDemandFilter]);
+  }, [routeDemand, routesMeta, demandFilter, setDemandFilter]);
 
   useEffect(() => {
     if (routeFleet && !fleetFilter) {
       setFleetFilter([0, routeFleet.max]);
     }
   }, [routeFleet, fleetFilter, setFleetFilter]);
+
+  useEffect(() => {
+    if (routeTortuosity && !tortuosityFilter) {
+      const hi = Math.max(3, Math.ceil(routeTortuosity.max * 10) / 10);
+      setTortuosityFilter([1, hi]);
+    }
+  }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
 
   const visibleRouteIds = useMemo(
     () =>
@@ -103,12 +119,14 @@ export default function App() {
         routeSpeed,
         routeDemand,
         routeFleet,
+        routeTortuosity,
         timeFilter,
         freqFilter,
         speedFilter,
         demandFilter,
         fleetFilter,
         fleetDayType,
+        tortuosityFilter,
       }),
     [
       selectedRouteIds,
@@ -117,12 +135,14 @@ export default function App() {
       routeSpeed,
       routeDemand,
       routeFleet,
+      routeTortuosity,
       timeFilter,
       freqFilter,
       speedFilter,
       demandFilter,
       fleetFilter,
       fleetDayType,
+      tortuosityFilter,
     ]
   );
 
@@ -138,6 +158,7 @@ export default function App() {
           routeSpeed,
           routeDemand,
           routeFleet,
+          routeTortuosity,
           timeFilter,
           fleetDayType,
         }),
@@ -159,6 +180,7 @@ export default function App() {
       routeSpeed,
       routeDemand,
       routeFleet,
+      routeTortuosity,
       timeFilter,
       fleetDayType,
       stopsGeojson,
@@ -200,6 +222,11 @@ export default function App() {
     return fleetForRoute(routeFleet, hoveredFeature.properties.route_id, fleetDayType);
   }, [hoveredFeature, colorMode, routeFleet, fleetDayType]);
 
+  const hoveredTortuosity = useMemo(() => {
+    if (!hoveredFeature || colorMode !== 'tortuosity' || !routeTortuosity) return null;
+    return tortuosityForRoute(routeTortuosity, hoveredFeature.properties.route_id);
+  }, [hoveredFeature, colorMode, routeTortuosity]);
+
   return (
     <div className="app">
       <DeckGL
@@ -214,11 +241,13 @@ export default function App() {
       <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
 
       {routesMeta && <LineSelector routesMeta={routesMeta} />}
-      {(serviceMetrics || routeSpeed || routeDemand || routeFleet) && (
+      {(serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity) && (
         <VisualizationControls
           routeSpeed={routeSpeed}
           routeDemand={routeDemand}
           routeFleet={routeFleet}
+          routeTortuosity={routeTortuosity}
+          routesMeta={routesMeta}
           serviceMetrics={serviceMetrics}
           selectedRouteIds={selectedRouteIds}
           visibleRouteIds={visibleRouteIds}
@@ -278,6 +307,9 @@ export default function App() {
           )}
           {hoveredFleet != null && (
             <span className="offer">{hoveredFleet} buses ({fleetDayType})</span>
+          )}
+          {hoveredTortuosity != null && (
+            <span className="offer">tortuosidad {hoveredTortuosity.toFixed(2)}</span>
           )}
         </div>
       )}

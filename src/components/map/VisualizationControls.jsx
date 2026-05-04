@@ -8,14 +8,14 @@ import {
   useDemandFilter,
   useFleetFilter,
   useFleetDayType,
+  useTortuosityFilter,
 } from '../../store/useMapStore.js';
 import {
-  FREQUENCY_CATEGORIES,
-  NO_SERVICE_COLOR,
   frequencyHistogram,
   speedHistogram,
   demandHistogram,
   fleetHistogram,
+  tortuosityHistogram,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -26,8 +26,9 @@ const MODES = [
   { id: 'route', label: 'Color' },
   { id: 'offer', label: 'Frecuencia' },
   { id: 'speed', label: 'Velocidad' },
-  { id: 'demand', label: 'Usuarios' },
+  { id: 'demand', label: 'Viajeros' },
   { id: 'fleet', label: 'Flota' },
+  { id: 'tortuosity', label: 'Tortuosidad' },
 ];
 
 const FLEET_DAY_TYPES = [
@@ -49,6 +50,8 @@ export default function VisualizationControls({
   routeSpeed,
   routeDemand,
   routeFleet,
+  routeTortuosity,
+  routesMeta,
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
@@ -68,6 +71,8 @@ export default function VisualizationControls({
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
   const setFleetDayType = useMapStore((s) => s.setFleetDayType);
+  const tortuosityFilter = useTortuosityFilter();
+  const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
 
   const handleStart = (e) => {
     const v = Number(e.target.value);
@@ -101,21 +106,31 @@ export default function VisualizationControls({
     [colorMode, routeSpeed, selectedRouteIds, speedFilter]
   );
 
-  // El histograma de demanda se calcula sobre TODAS las líneas con datos
-  // (255), no sólo las que están en el catálogo GTFS (233). Algunas líneas
-  // top (867, 868 con ~100k viajeros/día) no tienen shapes en el feed GTFS;
-  // si limitásemos el histograma a `selectedRouteIds`, esos buckets aparecerían
-  // siempre vacíos y la distribución resultaría engañosa.
+  // Sólo consideramos las líneas que están en el feed GTFS de 2026: hay
+  // líneas con datos de viajeros 2025 que ya no existen en 2026 y se descartan.
+  const demandRouteIds = useMemo(() => {
+    if (!routeDemand || !routesMeta) return [];
+    const inGtfs = new Set(routesMeta.map((r) => r.id));
+    return Object.keys(routeDemand.byRoute).filter((id) => inGtfs.has(id));
+  }, [routeDemand, routesMeta]);
+
+  const demandStats = useMemo(() => {
+    if (!routeDemand || demandRouteIds.length === 0) return null;
+    const values = demandRouteIds.map((id) => routeDemand.byRoute[id].dailyAvg);
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
+      count: values.length,
+      dropped: Object.keys(routeDemand.byRoute).length - values.length,
+    };
+  }, [routeDemand, demandRouteIds]);
+
   const demandBuckets = useMemo(
     () =>
       colorMode === 'demand' && routeDemand && demandFilter
-        ? demandHistogram(
-            routeDemand,
-            Object.keys(routeDemand.byRoute),
-            demandFilter
-          )
+        ? demandHistogram(routeDemand, demandRouteIds, demandFilter)
         : [],
-    [colorMode, routeDemand, demandFilter]
+    [colorMode, routeDemand, demandRouteIds, demandFilter]
   );
 
   const fleetBuckets = useMemo(
@@ -124,6 +139,14 @@ export default function VisualizationControls({
         ? fleetHistogram(routeFleet, selectedRouteIds, fleetDayType, fleetFilter)
         : [],
     [colorMode, routeFleet, selectedRouteIds, fleetDayType, fleetFilter]
+  );
+
+  const tortuosityBuckets = useMemo(
+    () =>
+      colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter
+        ? tortuosityHistogram(routeTortuosity, selectedRouteIds, tortuosityFilter)
+        : [],
+    [colorMode, routeTortuosity, selectedRouteIds, tortuosityFilter]
   );
 
   return (
@@ -222,7 +245,7 @@ export default function VisualizationControls({
         </div>
       )}
 
-      {colorMode === 'demand' && routeDemand && demandFilter && (
+      {colorMode === 'demand' && routeDemand && demandFilter && demandStats && (
         <div className="body">
           <div className="filter-block">
             <div className="filter-title">
@@ -234,7 +257,7 @@ export default function VisualizationControls({
             <Histogram buckets={demandBuckets} />
             <RangeSlider
               min={0}
-              max={routeDemand.max}
+              max={demandStats.max}
               step={100}
               value={demandFilter}
               onChange={setDemandFilter}
@@ -242,10 +265,16 @@ export default function VisualizationControls({
             />
             <div className="caption muted">
               Media de viajeros diarios en {routeDemand.year} ·
-              {' '}{Object.keys(routeDemand.byRoute).length} líneas con datos ·
-              rango {routeDemand.min}–
-              {routeDemand.max.toLocaleString('es-ES')}. Escala de color
+              {' '}{demandStats.count} líneas con datos · rango{' '}
+              {demandStats.min.toLocaleString('es-ES')}–
+              {demandStats.max.toLocaleString('es-ES')}. Escala de color
               logarítmica.
+              {demandStats.dropped > 0 && (
+                <>
+                  {' '}<b>Nota:</b> se han descartado {demandStats.dropped} líneas
+                  con datos de viajeros 2025 que ya no figuran en el GTFS 2026.
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -291,29 +320,35 @@ export default function VisualizationControls({
         </div>
       )}
 
-      {colorMode === 'offer' && (
-        <div className="body legend categorical">
-          <div className="caption">Leyenda de frecuencia (mejor del rango)</div>
-          <ul>
-            {FREQUENCY_CATEGORIES.map((cat) => (
-              <li key={cat.label}>
-                <span
-                  className="swatch"
-                  style={{ background: `rgb(${cat.color.join(',')})` }}
-                />
-                <span>{cat.label}</span>
-              </li>
-            ))}
-            <li>
-              <span
-                className="swatch"
-                style={{ background: `rgb(${NO_SERVICE_COLOR.join(',')})` }}
-              />
-              <span>No opera</span>
-            </li>
-          </ul>
+      {colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter && (
+        <div className="body">
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Distribución de tortuosidad</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={tortuosityBuckets} />
+            <RangeSlider
+              min={1}
+              max={Math.max(3, Math.ceil(routeTortuosity.max * 10) / 10)}
+              step={0.1}
+              value={tortuosityFilter}
+              onChange={setTortuosityFilter}
+              format={(v) => v.toFixed(2)}
+            />
+            <div className="caption muted">
+              Tortuosidad = longitud del recorrido / distancia en línea recta
+              entre los dos extremos del sentido (media de ambos sentidos).
+              1.00 = línea recta · valores altos = trayecto sinuoso o circular.
+              Rango {routeTortuosity.min.toFixed(2)}–
+              {routeTortuosity.max.toFixed(2)}.
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -327,3 +327,88 @@ export function passesFleetFilter(fleet, routeId, dayType, filter) {
   if (v == null) return fMin <= 0;
   return v >= fMin && v <= fMax;
 }
+
+/**
+ * 7 categorías de tortuosidad. Rampa de verde oscuro a rojo oscuro pasando
+ * por amarillo. Las primeras 6 cubren el rango habitual 1.0–2.5 y la última
+ * agrupa todas las líneas circulares (> 2.5).
+ */
+export const TORTUOSITY_CATEGORIES = [
+  { maxRatio: 1.25, label: '1.00–1.25', color: [27, 94, 32] },     // verde oscuro
+  { maxRatio: 1.50, label: '1.25–1.50', color: [102, 187, 106] },  // verde claro
+  { maxRatio: 1.75, label: '1.50–1.75', color: [205, 220, 57] },   // verde-amarillo
+  { maxRatio: 2.00, label: '1.75–2.00', color: [255, 210, 63] },   // amarillo
+  { maxRatio: 2.25, label: '2.00–2.25', color: [255, 153, 51] },   // naranja
+  { maxRatio: 2.50, label: '2.25–2.50', color: [239, 83, 80] },    // rojo claro
+  { maxRatio: Infinity, label: '> 2.50', color: [127, 20, 20] },   // rojo oscuro
+];
+
+const TORTUOSITY_LO = 1.0;
+
+export function tortuosityForRoute(tortuosity, routeId) {
+  return tortuosity?.byRoute?.[routeId]?.tortuosity ?? null;
+}
+
+export function tortuosityCategory(ratio) {
+  if (ratio == null) return null;
+  for (const cat of TORTUOSITY_CATEGORIES) {
+    if (ratio <= cat.maxRatio) return cat;
+  }
+  return TORTUOSITY_CATEGORIES[TORTUOSITY_CATEGORIES.length - 1];
+}
+
+export function tortuosityColorForRoute(tortuosity, routeId) {
+  if (!tortuosity) return NO_SERVICE_COLOR;
+  const v = tortuosityForRoute(tortuosity, routeId);
+  if (v == null) return NO_SERVICE_COLOR;
+  return tortuosityCategory(v).color;
+}
+
+export function tortuosityHistogram(tortuosity, routeIds, filter) {
+  if (!tortuosity) return [];
+  const counts = TORTUOSITY_CATEGORIES.map(() => 0);
+  let noData = 0;
+
+  for (const id of routeIds) {
+    const v = tortuosityForRoute(tortuosity, id);
+    if (v == null) {
+      noData += 1;
+      continue;
+    }
+    const idx = TORTUOSITY_CATEGORIES.findIndex((c) => v <= c.maxRatio);
+    counts[idx >= 0 ? idx : counts.length - 1] += 1;
+  }
+
+  const [fMin, fMax] = filter;
+  const inFilter = (lo, hi) => {
+    const bucketHi = isFinite(hi) ? hi : Infinity;
+    return bucketHi >= fMin && lo <= fMax;
+  };
+
+  const buckets = TORTUOSITY_CATEGORIES.map((cat, i) => {
+    const lo = i === 0 ? TORTUOSITY_LO : TORTUOSITY_CATEGORIES[i - 1].maxRatio;
+    return {
+      label: cat.label,
+      count: counts[i],
+      color: cat.color,
+      inRange: inFilter(lo, cat.maxRatio),
+    };
+  });
+  if (noData > 0) {
+    buckets.push({
+      label: 'Sin datos',
+      count: noData,
+      color: NO_SERVICE_COLOR,
+      inRange: fMin <= TORTUOSITY_LO,
+    });
+  }
+  return buckets;
+}
+
+export function passesTortuosityFilter(tortuosity, routeId, filter) {
+  if (!tortuosity) return true;
+  const v = tortuosityForRoute(tortuosity, routeId);
+  const [fMin, fMax] = filter;
+  if (v == null) return fMin <= TORTUOSITY_LO;
+  return v >= fMin && v <= fMax;
+}

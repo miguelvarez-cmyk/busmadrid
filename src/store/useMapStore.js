@@ -43,10 +43,12 @@ export const useMapStore = create((set) => ({
   speedFilter: null,       // [min, max] km/h; null hasta cargar route_speed
   demandFilter: null,      // [min, max] viajeros/día; null hasta cargar route_demand
   fleetFilter: null,       // [min, max] buses; null hasta cargar route_fleet
+  tortuosityFilter: null,  // [min, max] ratio; null hasta cargar route_tortuosity
   setFreqFilter: (range) => set({ freqFilter: range }),
   setSpeedFilter: (range) => set({ speedFilter: range }),
   setDemandFilter: (range) => set({ demandFilter: range }),
   setFleetFilter: (range) => set({ fleetFilter: range }),
+  setTortuosityFilter: (range) => set({ tortuosityFilter: range }),
 
   // Tipo de día para el modo Flota: LA=laborable, SA=sábado, FE=festivo
   fleetDayType: 'LA',
@@ -82,6 +84,7 @@ export const useSpeedFilter = () => useMapStore((s) => s.speedFilter);
 export const useDemandFilter = () => useMapStore((s) => s.demandFilter);
 export const useFleetFilter = () => useMapStore((s) => s.fleetFilter);
 export const useFleetDayType = () => useMapStore((s) => s.fleetDayType);
+export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
