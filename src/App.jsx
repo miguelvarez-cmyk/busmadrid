@@ -236,7 +236,16 @@ export default function App() {
       <DeckGL
         viewState={viewState}
         onViewStateChange={({ viewState: next }) => setViewState(next)}
-        controller={!boxSelectMode}
+        controller={
+          boxSelectMode
+            ? false
+            : {
+                dragRotate: false,
+                touchRotate: false,
+                inertia: true,
+                scrollZoom: { smooth: true },
+              }
+        }
         layers={layers}
       >
         <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
