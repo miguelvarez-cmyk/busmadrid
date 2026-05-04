@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useMapStore,
   useColorMode,
@@ -73,6 +73,10 @@ export default function VisualizationControls({
   const setFleetDayType = useMapStore((s) => s.setFleetDayType);
   const tortuosityFilter = useTortuosityFilter();
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
+
+  const [collapsed, setCollapsed] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  );
 
   const handleStart = (e) => {
     const v = Number(e.target.value);
@@ -150,11 +154,22 @@ export default function VisualizationControls({
   );
 
   return (
-    <div className="viz-controls">
+    <div className={`viz-controls ${collapsed ? 'collapsed' : ''}`}>
       <header>
         <span>Modo de coloreado</span>
+        <button
+          type="button"
+          className="collapse"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? 'Expandir' : 'Colapsar'}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? '▸' : '▾'}
+        </button>
       </header>
 
+      {!collapsed && (
+        <>
       <div className="modes" role="radiogroup">
         {MODES.map((m) => (
           <button
@@ -349,6 +364,8 @@ export default function VisualizationControls({
         </div>
       )}
 
+        </>
+      )}
     </div>
   );
 }

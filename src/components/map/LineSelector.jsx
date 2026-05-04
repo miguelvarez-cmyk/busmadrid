@@ -19,7 +19,9 @@ export default function LineSelector({ routesMeta }) {
   const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
   const [query, setQuery] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  );
   const anchorRef = useRef(null);
 
   const allIds = useMemo(() => routesMeta.map((r) => r.id), [routesMeta]);
@@ -84,7 +86,7 @@ export default function LineSelector({ routesMeta }) {
   };
 
   return (
-    <div className="line-selector">
+    <div className={`line-selector ${collapsed ? 'collapsed' : ''}`}>
       <header>
         <h2>Líneas EMT</h2>
         <button

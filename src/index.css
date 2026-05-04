@@ -715,3 +715,172 @@ html, body, #root {
 .status-overlay.error {
   background: rgba(180, 30, 30, 0.92);
 }
+
+/* ===== Responsive: tablets y móviles ===== */
+
+@media (max-width: 900px) {
+  .line-selector {
+    width: 300px;
+  }
+  .viz-controls {
+    width: 280px;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Inputs ≥ 16 px para evitar el zoom automático en iOS Safari */
+  .line-selector input[type='text'],
+  .viz-controls .hour-input input {
+    font-size: 16px;
+  }
+
+  /* Targets táctiles más cómodos */
+  .line-selector .bulk button,
+  .line-selector .box-toggle,
+  .basemap-switch button,
+  .layer-toggles label,
+  .viz-controls .modes button,
+  .viz-controls .days button,
+  .line-list label {
+    min-height: 40px;
+  }
+
+  /* LineSelector: panel superior, ancho completo, colapsable */
+  .line-selector {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 60vh;
+    font-size: 13px;
+  }
+  .line-selector.collapsed {
+    width: auto;
+    max-height: none;
+  }
+
+  /* VizControls: panel inferior tipo bottom-sheet */
+  .viz-controls {
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .viz-controls.collapsed {
+    max-height: none;
+  }
+
+  /* Cuando ambos paneles están abiertos en móvil, dejar paso entre ellos
+     limitando alturas — el usuario puede colapsar el otro para ver todo */
+  .viz-controls header,
+  .line-selector header {
+    padding: 12px;
+  }
+  .viz-controls header .collapse,
+  .line-selector header .collapse {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  /* Modos: dos filas de tres si no caben en una */
+  .viz-controls .modes {
+    flex-wrap: wrap;
+  }
+  .viz-controls .modes button {
+    flex: 1 1 33%;
+    min-width: 33%;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Capas/basemap arriba a la derecha cuando los paneles ocupan abajo */
+  .layer-toggles {
+    bottom: auto;
+    top: 8px;
+    right: 8px;
+    left: auto;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .basemap-switch button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Hover info: barra superior, sin solaparse con LineSelector */
+  .hover-info {
+    bottom: auto;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    max-width: none;
+    font-size: 12px;
+  }
+  .hover-info.stop {
+    bottom: auto;
+    top: 56px;
+  }
+
+  /* Selección por área no es práctica con dedo: ocultar */
+  .box-select-overlay,
+  .box-select-hint {
+    display: none;
+  }
+  .line-selector .box-toggle {
+    display: none;
+  }
+
+  /* Slider con thumb más grande */
+  .range-slider input[type='range']::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+  .range-slider input[type='range']::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
+  .range-slider {
+    height: 36px;
+  }
+  .range-slider .track {
+    top: 16px;
+  }
+  .range-slider .labels {
+    top: 28px;
+  }
+
+  /* Histograma compacto */
+  .hist-row {
+    grid-template-columns: 64px 1fr 22px;
+    font-size: 10px;
+  }
+}
+
+/* Estado colapsado: solo cabecera visible (todas las pantallas) */
+.line-selector.collapsed,
+.viz-controls.collapsed {
+  max-height: 56px;
+  overflow: hidden;
+}
+.line-selector.collapsed header,
+.viz-controls.collapsed header {
+  border-bottom: none;
+}
+
+/* Mejoras generales de accesibilidad táctil */
+button {
+  touch-action: manipulation;
+}
+
+@media (hover: none) {
+  /* En dispositivos sin hover, ocultar tooltips de hover de líneas (no son
+     accionables con dedo) y reservar la barra superior solo para selección
+     por tap */
+  .hover-info:not(.stop) {
+    display: none;
+  }
+}
