@@ -9,6 +9,8 @@ import {
   useFleetFilter,
   useFleetDayType,
   useTortuosityFilter,
+  useScheduleFilter,
+  useScheduleDayType,
 } from '../../store/useMapStore.js';
 import {
   frequencyHistogram,
@@ -16,6 +18,8 @@ import {
   demandHistogram,
   fleetHistogram,
   tortuosityHistogram,
+  scheduleHistogram,
+  formatSpanMinutes,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -29,6 +33,7 @@ const MODES = [
   { id: 'demand', label: 'Viajeros' },
   { id: 'fleet', label: 'Flota' },
   { id: 'tortuosity', label: 'Tortuosidad' },
+  { id: 'schedule', label: 'Horario' },
 ];
 
 const FLEET_DAY_TYPES = [
@@ -51,6 +56,7 @@ export default function VisualizationControls({
   routeDemand,
   routeFleet,
   routeTortuosity,
+  routeSchedule,
   routesMeta,
   serviceMetrics,
   selectedRouteIds,
@@ -74,6 +80,10 @@ export default function VisualizationControls({
   const setFleetDayType = useMapStore((s) => s.setFleetDayType);
   const tortuosityFilter = useTortuosityFilter();
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
+  const scheduleFilter = useScheduleFilter();
+  const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
+  const scheduleDayType = useScheduleDayType();
+  const setScheduleDayType = useMapStore((s) => s.setScheduleDayType);
 
   const [collapsed, setCollapsed] = useState(
     !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
@@ -152,6 +162,14 @@ export default function VisualizationControls({
         ? tortuosityHistogram(routeTortuosity, selectedRouteIds, tortuosityFilter)
         : [],
     [colorMode, routeTortuosity, selectedRouteIds, tortuosityFilter]
+  );
+
+  const scheduleBuckets = useMemo(
+    () =>
+      colorMode === 'schedule' && routeSchedule && scheduleFilter
+        ? scheduleHistogram(routeSchedule, selectedRouteIds, scheduleDayType, scheduleFilter)
+        : [],
+    [colorMode, routeSchedule, selectedRouteIds, scheduleDayType, scheduleFilter]
   );
 
   const content = (
@@ -345,6 +363,45 @@ export default function VisualizationControls({
               1.00 = línea recta · valores altos = trayecto sinuoso o circular.
               Rango {routeTortuosity.min.toFixed(2)}–
               {routeTortuosity.max.toFixed(2)}.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {colorMode === 'schedule' && routeSchedule && scheduleFilter && (
+        <div className="body">
+          <div className="row days">
+            {FLEET_DAY_TYPES.map((d) => (
+              <button
+                key={d.id}
+                className={scheduleDayType === d.id ? 'active' : ''}
+                onClick={() => setScheduleDayType(d.id)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Distribución de amplitud de horario</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={scheduleBuckets} />
+            <RangeSlider
+              min={0}
+              max={Math.ceil(routeSchedule.max / 60) * 60}
+              step={30}
+              value={scheduleFilter}
+              onChange={setScheduleFilter}
+              format={(v) => formatSpanMinutes(v)}
+            />
+            <div className="caption muted">
+              Media de (última salida − primera salida) desde cada cabecera,
+              por tipo de día. Más horas = verde · Menos horas = rojo.
+              Rango {formatSpanMinutes(routeSchedule.min)}–{formatSpanMinutes(routeSchedule.max)}.
             </div>
           </div>
         </div>

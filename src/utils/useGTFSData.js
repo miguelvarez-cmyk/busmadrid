@@ -9,6 +9,7 @@ export function useGTFSData() {
   const [routeDemand, setRouteDemand] = useState(null);
   const [routeFleet, setRouteFleet] = useState(null);
   const [routeTortuosity, setRouteTortuosity] = useState(null);
+  const [routeSchedule, setRouteSchedule] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -22,8 +23,9 @@ export function useGTFSData() {
       fetch('/data/route_demand.json').then((r) => r.json()),
       fetch('/data/route_fleet.json').then((r) => r.json()),
       fetch('/data/route_tortuosity.json').then((r) => r.json()),
+      fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, schedule]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -33,6 +35,7 @@ export function useGTFSData() {
         setRouteDemand(demand);
         setRouteFleet(fleet);
         setRouteTortuosity(tortuosity);
+        setRouteSchedule(schedule);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -49,6 +52,7 @@ export function useGTFSData() {
     routeDemand,
     routeFleet,
     routeTortuosity,
+    routeSchedule,
     error,
     loading: !routesGeojson && !error,
   };

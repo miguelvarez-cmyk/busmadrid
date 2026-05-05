@@ -1,14 +1,18 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
+import { passesStopRoutesFilter } from '../utils/service.js';
 
-export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible }) {
+export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible, stopRoutesFilter }) {
   if (!geojson || !visible) return null;
 
   const data = geojson.features.filter((f) => {
     const routes = f.properties.routes;
+    let hasVisible = false;
     for (let i = 0; i < routes.length; i++) {
-      if (visibleRouteIds.has(routes[i])) return true;
+      if (visibleRouteIds.has(routes[i])) { hasVisible = true; break; }
     }
-    return false;
+    if (!hasVisible) return false;
+    if (stopRoutesFilter) return passesStopRoutesFilter(f, stopRoutesFilter);
+    return true;
   });
 
   return new ScatterplotLayer({

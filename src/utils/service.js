@@ -412,3 +412,158 @@ export function passesTortuosityFilter(tortuosity, routeId, filter) {
   if (v == null) return fMin <= TORTUOSITY_LO;
   return v >= fMin && v <= fMax;
 }
+
+// ── Amplitud de horario de servicio ──────────────────────────────────────────
+
+/**
+ * Amplitud de servicio en minutos para una línea y tipo de día.
+ * Devuelve null si la línea no opera ese tipo de día.
+ */
+export function scheduleSpanForRoute(schedule, routeId, dayType) {
+  return schedule?.byRoute?.[routeId]?.[dayType] ?? null;
+}
+
+/**
+ * Rampa rojo → amarillo → verde para amplitud de horario.
+ * Más horas de servicio = más verde.
+ */
+export function scheduleColor(spanMin, min, max) {
+  if (spanMin == null || spanMin <= 0) return NO_SERVICE_COLOR;
+  if (max <= min) return [60, 220, 80];
+  const t = Math.max(0, Math.min(1, (spanMin - min) / (max - min)));
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [220, Math.round(60 + 180 * k), 50];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+}
+
+export function scheduleColorForRoute(schedule, routeId, dayType) {
+  if (!schedule) return NO_SERVICE_COLOR;
+  const v = scheduleSpanForRoute(schedule, routeId, dayType);
+  if (v == null) return NO_SERVICE_COLOR;
+  return scheduleColor(v, schedule.min, schedule.max);
+}
+
+/**
+ * Formatea minutos como "Xh Ymin" (o "Xh" si los minutos son 0).
+ */
+export function formatSpanMinutes(min) {
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
+/**
+ * Buckets de 60 minutos (1 hora) para el histograma de amplitud de servicio.
+ * Incluye "Sin servicio" para líneas sin datos en el tipo de día activo.
+ */
+export function scheduleHistogram(schedule, routeIds, dayType, filter) {
+  if (!schedule) return [];
+  const step = 60;
+  const lo = Math.floor(schedule.min / step) * step;
+  const hi = Math.ceil((schedule.max + 0.001) / step) * step;
+  const nBuckets = Math.max(1, Math.round((hi - lo) / step));
+  const counts = new Array(nBuckets).fill(0);
+  let noData = 0;
+
+  for (const id of routeIds) {
+    const v = scheduleSpanForRoute(schedule, id, dayType);
+    if (v == null) {
+      noData += 1;
+      continue;
+    }
+    const idx = Math.min(nBuckets - 1, Math.floor((v - lo) / step));
+    if (idx >= 0) counts[idx] += 1;
+  }
+
+  const [fMin, fMax] = filter;
+  const buckets = counts.map((count, i) => {
+    const bLo = lo + i * step;
+    const bHi = bLo + step;
+    const mid = bLo + step / 2;
+    return {
+      label: `${Math.round(bLo / 60)}–${Math.round(bHi / 60)}h`,
+      count,
+      color: scheduleColor(mid, schedule.min, schedule.max),
+      inRange: bHi > fMin && bLo <= fMax,
+    };
+  });
+  if (noData > 0) {
+    buckets.push({
+      label: 'Sin servicio',
+      count: noData,
+      color: NO_SERVICE_COLOR,
+      inRange: fMin <= 0,
+    });
+  }
+  return buckets;
+}
+
+export function passesScheduleFilter(schedule, routeId, dayType, filter) {
+  if (!schedule) return true;
+  const v = scheduleSpanForRoute(schedule, routeId, dayType);
+  const [fMin, fMax] = filter;
+  if (v == null) return fMin <= 0;
+  return v >= fMin && v <= fMax;
+}
+
+// ── Líneas por parada ─────────────────────────────────────────────────────────
+
+/**
+ * Número de líneas que sirven una parada.
+ */
+export function stopRouteCount(stop) {
+  return stop?.properties?.routes?.length ?? 0;
+}
+
+const STOP_ROUTES_BUCKETS = [
+  { lo: 1,  hi: 1,  label: '1' },
+  { lo: 2,  hi: 2,  label: '2' },
+  { lo: 3,  hi: 3,  label: '3' },
+  { lo: 4,  hi: 4,  label: '4' },
+  { lo: 5,  hi: 5,  label: '5' },
+  { lo: 6,  hi: 10, label: '6–10' },
+  { lo: 11, hi: Infinity, label: '11+' },
+];
+
+/**
+ * Color para el histograma de paradas: más líneas = azul más intenso.
+ */
+function stopRoutesColor(count) {
+  if (count <= 1) return [100, 149, 237];   // cornflower blue
+  if (count <= 2) return [65, 105, 225];    // royal blue
+  if (count <= 3) return [30, 80, 200];
+  if (count <= 5) return [0, 60, 180];
+  if (count <= 10) return [138, 43, 226];   // blue-violet
+  return [148, 0, 211];                     // dark violet
+}
+
+/**
+ * Histograma de paradas agrupadas por número de líneas.
+ */
+export function stopRoutesHistogram(stopsGeojson, filter) {
+  if (!stopsGeojson) return [];
+  const counts = STOP_ROUTES_BUCKETS.map(() => 0);
+  for (const f of stopsGeojson.features) {
+    const n = stopRouteCount(f);
+    if (n < 1) continue;
+    const i = STOP_ROUTES_BUCKETS.findIndex((b) => n >= b.lo && n <= b.hi);
+    if (i >= 0) counts[i] += 1;
+  }
+  const [fMin, fMax] = filter;
+  return STOP_ROUTES_BUCKETS.map((b, i) => ({
+    label: b.label,
+    count: counts[i],
+    color: stopRoutesColor(b.hi === Infinity ? b.lo : Math.round((b.lo + b.hi) / 2)),
+    inRange: b.lo <= fMax && (b.hi === Infinity ? true : b.hi >= fMin),
+  }));
+}
+
+export function passesStopRoutesFilter(stop, filter) {
+  const [fMin, fMax] = filter;
+  const n = stopRouteCount(stop);
+  return n >= fMin && n <= fMax;
+}

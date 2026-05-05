@@ -22,6 +22,9 @@ import {
   useFleetFilter,
   useFleetDayType,
   useTortuosityFilter,
+  useScheduleFilter,
+  useScheduleDayType,
+  useStopRoutesFilter,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -30,7 +33,7 @@ import {
   applyModeFilter,
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
-import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute } from './utils/service.js';
+import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute, scheduleSpanForRoute, formatSpanMinutes } from './utils/service.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 
@@ -60,6 +63,11 @@ export default function App() {
   const fleetDayType = useFleetDayType();
   const tortuosityFilter = useTortuosityFilter();
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
+  const scheduleFilter = useScheduleFilter();
+  const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
+  const scheduleDayType = useScheduleDayType();
+  const stopRoutesFilter = useStopRoutesFilter();
+  const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
   const {
     routesGeojson,
     routesMeta,
@@ -69,6 +77,7 @@ export default function App() {
     routeDemand,
     routeFleet,
     routeTortuosity,
+    routeSchedule,
     loading,
     error,
   } = useGTFSData();
@@ -109,6 +118,23 @@ export default function App() {
     }
   }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
 
+  useEffect(() => {
+    if (routeSchedule && !scheduleFilter) {
+      setScheduleFilter([0, Math.ceil(routeSchedule.max / 60) * 60]);
+    }
+  }, [routeSchedule, scheduleFilter, setScheduleFilter]);
+
+  useEffect(() => {
+    if (stopsGeojson && !stopRoutesFilter) {
+      let max = 1;
+      for (const f of stopsGeojson.features) {
+        const n = f.properties.routes?.length ?? 0;
+        if (n > max) max = n;
+      }
+      setStopRoutesFilter([1, max]);
+    }
+  }, [stopsGeojson, stopRoutesFilter, setStopRoutesFilter]);
+
   const visibleRouteIds = useMemo(
     () =>
       applyModeFilter({
@@ -119,6 +145,7 @@ export default function App() {
         routeDemand,
         routeFleet,
         routeTortuosity,
+        routeSchedule,
         timeFilter,
         freqFilter,
         speedFilter,
@@ -126,6 +153,8 @@ export default function App() {
         fleetFilter,
         fleetDayType,
         tortuosityFilter,
+        scheduleFilter,
+        scheduleDayType,
       }),
     [
       selectedRouteIds,
@@ -135,6 +164,7 @@ export default function App() {
       routeDemand,
       routeFleet,
       routeTortuosity,
+      routeSchedule,
       timeFilter,
       freqFilter,
       speedFilter,
@@ -142,6 +172,8 @@ export default function App() {
       fleetFilter,
       fleetDayType,
       tortuosityFilter,
+      scheduleFilter,
+      scheduleDayType,
     ]
   );
 
@@ -158,8 +190,10 @@ export default function App() {
           routeDemand,
           routeFleet,
           routeTortuosity,
+          routeSchedule,
           timeFilter,
           fleetDayType,
+          scheduleDayType,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         createStopsLayer({
@@ -167,6 +201,7 @@ export default function App() {
           visibleRouteIds,
           visible: showStops,
           onHover: setHoveredStop,
+          stopRoutesFilter,
         }),
       ].filter(Boolean),
     [
@@ -180,11 +215,14 @@ export default function App() {
       routeDemand,
       routeFleet,
       routeTortuosity,
+      routeSchedule,
       timeFilter,
       fleetDayType,
+      scheduleDayType,
       stopsGeojson,
       showStops,
       setHoveredStop,
+      stopRoutesFilter,
     ]
   );
 
@@ -226,6 +264,11 @@ export default function App() {
     return tortuosityForRoute(routeTortuosity, hoveredFeature.properties.route_id);
   }, [hoveredFeature, colorMode, routeTortuosity]);
 
+  const hoveredSchedule = useMemo(() => {
+    if (!hoveredFeature || colorMode !== 'schedule' || !routeSchedule) return null;
+    return scheduleSpanForRoute(routeSchedule, hoveredFeature.properties.route_id, scheduleDayType);
+  }, [hoveredFeature, colorMode, routeSchedule, scheduleDayType]);
+
   return (
     <div className="app">
       <DeckGL
@@ -255,6 +298,7 @@ export default function App() {
         routeDemand={routeDemand}
         routeFleet={routeFleet}
         routeTortuosity={routeTortuosity}
+        routeSchedule={routeSchedule}
         serviceMetrics={serviceMetrics}
         selectedRouteIds={selectedRouteIds}
         visibleRouteIds={visibleRouteIds}
@@ -293,6 +337,9 @@ export default function App() {
           )}
           {hoveredTortuosity != null && (
             <span className="offer">tortuosidad {hoveredTortuosity.toFixed(2)}</span>
+          )}
+          {hoveredSchedule != null && (
+            <span className="offer">{formatSpanMinutes(hoveredSchedule)} de servicio ({scheduleDayType})</span>
           )}
         </div>
       )}

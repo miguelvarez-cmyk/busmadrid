@@ -6,11 +6,13 @@ import {
   demandColorForRoute,
   fleetColorForRoute,
   tortuosityColorForRoute,
+  scheduleColorForRoute,
   passesFrequencyFilter,
   passesSpeedFilter,
   passesDemandFilter,
   passesFleetFilter,
   passesTortuosityFilter,
+  passesScheduleFilter,
 } from '../utils/service.js';
 
 /**
@@ -25,6 +27,7 @@ export function applyModeFilter({
   routeDemand,
   routeFleet,
   routeTortuosity,
+  routeSchedule,
   timeFilter,
   freqFilter,
   speedFilter,
@@ -32,6 +35,8 @@ export function applyModeFilter({
   fleetFilter,
   fleetDayType,
   tortuosityFilter,
+  scheduleFilter,
+  scheduleDayType,
 }) {
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
@@ -77,6 +82,13 @@ export function applyModeFilter({
     }
     return out;
   }
+  if (colorMode === 'schedule' && routeSchedule && scheduleFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesScheduleFilter(routeSchedule, id, scheduleDayType, scheduleFilter)) out.add(id);
+    }
+    return out;
+  }
   return routeIds;
 }
 
@@ -90,8 +102,10 @@ export function createRoutesLayer({
   routeDemand,
   routeFleet,
   routeTortuosity,
+  routeSchedule,
   timeFilter,
   fleetDayType,
+  scheduleDayType,
 }) {
   if (!geojson) return null;
 
@@ -134,6 +148,11 @@ export function createRoutesLayer({
       ...tortuosityColorForRoute(routeTortuosity, f.properties.route_id),
       230,
     ];
+  } else if (colorMode === 'schedule' && routeSchedule) {
+    getLineColor = (f) => [
+      ...scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType),
+      230,
+    ];
   } else {
     getLineColor = (f) => [...hexToRgb(f.properties.route_color), 220];
   }
@@ -155,6 +174,7 @@ export function createRoutesLayer({
         timeFilter.startHour,
         timeFilter.endHour,
         fleetDayType,
+        scheduleDayType,
       ],
     },
   });

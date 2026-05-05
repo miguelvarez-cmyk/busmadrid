@@ -2,6 +2,7 @@ import { useState } from 'react';
 import LineSelector from './LineSelector.jsx';
 import VisualizationControls from './VisualizationControls.jsx';
 import LayerToggles from './LayerToggles.jsx';
+import StopRoutesPanel from './StopRoutesPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   return (
@@ -29,6 +30,7 @@ export default function Sidebar({
   routeDemand,
   routeFleet,
   routeTortuosity,
+  routeSchedule,
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
@@ -54,7 +56,7 @@ export default function Sidebar({
     });
   };
 
-  const hasViz = serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity;
+  const hasViz = serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity || routeSchedule;
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -86,6 +88,7 @@ export default function Sidebar({
               routeDemand={routeDemand}
               routeFleet={routeFleet}
               routeTortuosity={routeTortuosity}
+              routeSchedule={routeSchedule}
               routesMeta={routesMeta}
               serviceMetrics={serviceMetrics}
               selectedRouteIds={selectedRouteIds}
@@ -94,6 +97,16 @@ export default function Sidebar({
             />
           </AccordionSection>
         )}
+
+        <AccordionSection
+          id="paradas"
+          title="Paradas"
+          icon="⬤"
+          isOpen={openSections.has('paradas')}
+          onToggle={toggleSection}
+        >
+          <StopRoutesPanel stopsGeojson={stopsGeojson} />
+        </AccordionSection>
 
         <AccordionSection
           id="capas"

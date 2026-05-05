@@ -44,15 +44,25 @@ export const useMapStore = create((set) => ({
   demandFilter: null,      // [min, max] viajeros/día; null hasta cargar route_demand
   fleetFilter: null,       // [min, max] buses; null hasta cargar route_fleet
   tortuosityFilter: null,  // [min, max] ratio; null hasta cargar route_tortuosity
+  scheduleFilter: null,    // [min, max] minutos; null hasta cargar route_schedule
   setFreqFilter: (range) => set({ freqFilter: range }),
   setSpeedFilter: (range) => set({ speedFilter: range }),
   setDemandFilter: (range) => set({ demandFilter: range }),
   setFleetFilter: (range) => set({ fleetFilter: range }),
   setTortuosityFilter: (range) => set({ tortuosityFilter: range }),
+  setScheduleFilter: (range) => set({ scheduleFilter: range }),
 
   // Tipo de día para el modo Flota: LA=laborable, SA=sábado, FE=festivo
   fleetDayType: 'LA',
   setFleetDayType: (t) => set({ fleetDayType: t }),
+
+  // Tipo de día para el modo Horario
+  scheduleDayType: 'LA',
+  setScheduleDayType: (t) => set({ scheduleDayType: t }),
+
+  // Filtro de paradas por número de líneas: [min, max]
+  stopRoutesFilter: null,
+  setStopRoutesFilter: (range) => set({ stopRoutesFilter: range }),
 
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
@@ -85,6 +95,9 @@ export const useDemandFilter = () => useMapStore((s) => s.demandFilter);
 export const useFleetFilter = () => useMapStore((s) => s.fleetFilter);
 export const useFleetDayType = () => useMapStore((s) => s.fleetDayType);
 export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);
+export const useScheduleFilter = () => useMapStore((s) => s.scheduleFilter);
+export const useScheduleDayType = () => useMapStore((s) => s.scheduleDayType);
+export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
