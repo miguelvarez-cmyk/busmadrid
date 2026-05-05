@@ -27,7 +27,7 @@ import RangeSlider from './RangeSlider.jsx';
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 const MODES = [
-  { id: 'route', label: 'Color' },
+  { id: 'route', label: 'Itinerarios' },
   { id: 'offer', label: 'Frecuencia' },
   { id: 'speed', label: 'Velocidad' },
   { id: 'demand', label: 'Viajeros' },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -82,11 +82,13 @@ export default function App() {
     error,
   } = useGTFSData();
 
+  const didInitRoutes = useRef(false);
   useEffect(() => {
-    if (routesMeta && selectedRouteIds.size === 0) {
+    if (routesMeta && !didInitRoutes.current) {
+      didInitRoutes.current = true;
       selectAllRoutes(routesMeta.map((r) => r.id));
     }
-  }, [routesMeta, selectedRouteIds.size, selectAllRoutes]);
+  }, [routesMeta, selectAllRoutes]);
 
   useEffect(() => {
     if (routeSpeed && !speedFilter) {

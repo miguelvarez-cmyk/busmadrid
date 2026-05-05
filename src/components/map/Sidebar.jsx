@@ -59,80 +59,92 @@ export default function Sidebar({
   const hasViz = serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity || routeSchedule;
 
   return (
-    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-header">
-        <span className="sidebar-title">EMT Madrid</span>
-      </div>
+    <>
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <span className="sidebar-title">Visualizador Bus Madrid</span>
+          <button
+            type="button"
+            className="sidebar-hamburger"
+            onClick={() => setIsOpen(false)}
+            aria-label="Cerrar panel"
+          >
+            ☰
+          </button>
+        </div>
 
-      <div className="sidebar-body">
-        <AccordionSection
-          id="lineas"
-          title="Líneas"
-          icon="≡"
-          isOpen={openSections.has('lineas')}
-          onToggle={toggleSection}
-        >
-          {routesMeta && <LineSelector routesMeta={routesMeta} inSidebar />}
-        </AccordionSection>
-
-        {hasViz && (
+        <div className="sidebar-body">
           <AccordionSection
-            id="viz"
-            title="Visualización"
-            icon="⚙"
-            isOpen={openSections.has('viz')}
+            id="lineas"
+            title="Líneas"
+            icon="≡"
+            isOpen={openSections.has('lineas')}
             onToggle={toggleSection}
           >
-            <VisualizationControls
-              routeSpeed={routeSpeed}
-              routeDemand={routeDemand}
-              routeFleet={routeFleet}
-              routeTortuosity={routeTortuosity}
-              routeSchedule={routeSchedule}
-              routesMeta={routesMeta}
-              serviceMetrics={serviceMetrics}
-              selectedRouteIds={selectedRouteIds}
-              visibleRouteIds={visibleRouteIds}
-              inSidebar
+            {routesMeta && <LineSelector routesMeta={routesMeta} inSidebar />}
+          </AccordionSection>
+
+          {hasViz && (
+            <AccordionSection
+              id="viz"
+              title="Visualización"
+              icon="⚙"
+              isOpen={openSections.has('viz')}
+              onToggle={toggleSection}
+            >
+              <VisualizationControls
+                routeSpeed={routeSpeed}
+                routeDemand={routeDemand}
+                routeFleet={routeFleet}
+                routeTortuosity={routeTortuosity}
+                routeSchedule={routeSchedule}
+                routesMeta={routesMeta}
+                serviceMetrics={serviceMetrics}
+                selectedRouteIds={selectedRouteIds}
+                visibleRouteIds={visibleRouteIds}
+                inSidebar
+              />
+            </AccordionSection>
+          )}
+
+          <AccordionSection
+            id="paradas"
+            title="Paradas"
+            icon="⬤"
+            isOpen={openSections.has('paradas')}
+            onToggle={toggleSection}
+          >
+            <StopRoutesPanel stopsGeojson={stopsGeojson} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="capas"
+            title="Capas"
+            icon="◧"
+            isOpen={openSections.has('capas')}
+            onToggle={toggleSection}
+          >
+            <LayerToggles
+              basemap={basemap}
+              setBasemap={setBasemap}
+              showStops={showStops}
+              setShowStops={setShowStops}
+              stopsGeojson={stopsGeojson}
             />
           </AccordionSection>
-        )}
-
-        <AccordionSection
-          id="paradas"
-          title="Paradas"
-          icon="⬤"
-          isOpen={openSections.has('paradas')}
-          onToggle={toggleSection}
-        >
-          <StopRoutesPanel stopsGeojson={stopsGeojson} />
-        </AccordionSection>
-
-        <AccordionSection
-          id="capas"
-          title="Capas"
-          icon="◧"
-          isOpen={openSections.has('capas')}
-          onToggle={toggleSection}
-        >
-          <LayerToggles
-            basemap={basemap}
-            setBasemap={setBasemap}
-            showStops={showStops}
-            setShowStops={setShowStops}
-            stopsGeojson={stopsGeojson}
-          />
-        </AccordionSection>
+        </div>
       </div>
 
-      <button
-        type="button"
-        className="sidebar-toggle"
-        onClick={() => setIsOpen((o) => !o)}
-        aria-label={isOpen ? 'Cerrar panel' : 'Abrir panel'}
-      >
-        {isOpen ? '‹' : '›'}
-      </button>
-    </div>
+      {!isOpen && (
+        <button
+          type="button"
+          className="sidebar-open-btn"
+          onClick={() => setIsOpen(true)}
+          aria-label="Abrir panel"
+        >
+          ☰
+        </button>
+      )}
+    </>
   );
 }

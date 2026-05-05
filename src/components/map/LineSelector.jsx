@@ -22,6 +22,7 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
   const [collapsed, setCollapsed] = useState(
     !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
   );
+  const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
   const anchorRef = useRef(null);
 
   const allIds = useMemo(() => routesMeta.map((r) => r.id), [routesMeta]);
@@ -41,6 +42,13 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
     }
     return { groups, visibleOrder: order };
   }, [routesMeta, query]);
+
+  const toggleGroup = (key) =>
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
 
   const handleClick = (e, id) => {
     if (e.shiftKey && anchorRef.current && anchorRef.current !== id) {
@@ -97,14 +105,14 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
         <div className="bulk">
           <button onClick={() => selectAllRoutes(allIds)}>Todas</button>
           <button onClick={clearRoutes}>Ninguna</button>
+          <button
+            className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
+            onClick={() => setBoxSelectMode(!boxSelectMode)}
+            title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
+          >
+            ▭ Área
+          </button>
         </div>
-        <button
-          className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
-          onClick={() => setBoxSelectMode(!boxSelectMode)}
-          title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
-        >
-          {boxSelectMode ? '◼ Salir del modo área' : '▭ Selección por área'}
-        </button>
         <div className="status">
           {selected.size} de {routesMeta.length} líneas visibles
           <span className="hint"> · Shift+clic = rango</span>
@@ -116,22 +124,26 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
           const items = groups[key];
           const ids = items.map((r) => r.id);
           const selectedInGroup = ids.filter((id) => selected.has(id)).length;
+          const isGroupCollapsed = collapsedGroups.has(key);
           return (
             <section key={key}>
               <h3>
-                <span>{GROUP_LABELS[key]}</span>
-                <span className="count">
-                  {selectedInGroup}/{items.length}
-                </span>
+                <button className="group-toggle" onClick={() => toggleGroup(key)}>
+                  <span className="group-label">{GROUP_LABELS[key]}</span>
+                  <span className="count">{selectedInGroup}/{items.length}</span>
+                  <span className="group-arrow">{isGroupCollapsed ? '▸' : '▾'}</span>
+                </button>
                 <span className="group-actions">
                   <button onClick={() => groupSelectAll(ids, true)}>+</button>
                   <button onClick={() => groupSelectAll(ids, false)}>−</button>
                 </span>
               </h3>
-              {items.length === 0 ? (
-                <div className="empty">—</div>
-              ) : (
-                <ul>{items.map(renderItem)}</ul>
+              {!isGroupCollapsed && (
+                items.length === 0 ? (
+                  <div className="empty">—</div>
+                ) : (
+                  <ul>{items.map(renderItem)}</ul>
+                )
               )}
             </section>
           );
