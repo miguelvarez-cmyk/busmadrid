@@ -247,6 +247,7 @@ export default function App() {
               }
         }
         layers={layers}
+        glOptions={{ powerPreference: 'high-performance' }}
       >
         <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
       </DeckGL>
