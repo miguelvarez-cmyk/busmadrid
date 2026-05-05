@@ -55,6 +55,7 @@ export default function VisualizationControls({
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
+  inSidebar = false,
 }) {
   const colorMode = useColorMode();
   const setColorMode = useMapStore((s) => s.setColorMode);
@@ -75,7 +76,7 @@ export default function VisualizationControls({
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
 
   const [collapsed, setCollapsed] = useState(
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+    !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
   );
 
   const handleStart = (e) => {
@@ -153,23 +154,8 @@ export default function VisualizationControls({
     [colorMode, routeTortuosity, selectedRouteIds, tortuosityFilter]
   );
 
-  return (
-    <div className={`viz-controls ${collapsed ? 'collapsed' : ''}`}>
-      <header>
-        <span>Modo de coloreado</span>
-        <button
-          type="button"
-          className="collapse"
-          onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? 'Expandir' : 'Colapsar'}
-          aria-expanded={!collapsed}
-        >
-          {collapsed ? '▸' : '▾'}
-        </button>
-      </header>
-
-      {!collapsed && (
-        <>
+  const content = (
+    <>
       <div className="modes" role="radiogroup">
         {MODES.map((m) => (
           <button
@@ -364,8 +350,26 @@ export default function VisualizationControls({
         </div>
       )}
 
-        </>
-      )}
+    </>
+  );
+
+  if (inSidebar) return content;
+
+  return (
+    <div className={`viz-controls ${collapsed ? 'collapsed' : ''}`}>
+      <header>
+        <span>Modo de coloreado</span>
+        <button
+          type="button"
+          className="collapse"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? 'Expandir' : 'Colapsar'}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? '▸' : '▾'}
+        </button>
+      </header>
+      {!collapsed && content}
     </div>
   );
 }

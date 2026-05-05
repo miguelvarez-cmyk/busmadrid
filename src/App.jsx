@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { BASEMAPS, BASEMAP_ORDER } from './config/mapConfig.js';
+import { BASEMAPS } from './config/mapConfig.js';
 import {
   useMapStore,
   useViewState,
@@ -31,9 +31,8 @@ import {
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute } from './utils/service.js';
-import LineSelector from './components/map/LineSelector.jsx';
-import VisualizationControls from './components/map/VisualizationControls.jsx';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
+import Sidebar from './components/map/Sidebar.jsx';
 
 export default function App() {
   const viewState = useViewState();
@@ -109,10 +108,6 @@ export default function App() {
       setTortuosityFilter([1, hi]);
     }
   }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
-
-  const [layersCollapsed, setLayersCollapsed] = useState(
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
-  );
 
   const visibleRouteIds = useMemo(
     () =>
@@ -254,67 +249,21 @@ export default function App() {
 
       <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
 
-      {routesMeta && <LineSelector routesMeta={routesMeta} />}
-      {(serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity) && (
-        <VisualizationControls
-          routeSpeed={routeSpeed}
-          routeDemand={routeDemand}
-          routeFleet={routeFleet}
-          routeTortuosity={routeTortuosity}
-          routesMeta={routesMeta}
-          serviceMetrics={serviceMetrics}
-          selectedRouteIds={selectedRouteIds}
-          visibleRouteIds={visibleRouteIds}
-        />
-      )}
-
-      <div
-        className={`layer-toggles ${basemap === 'satellite' ? 'on-dark' : ''} ${
-          layersCollapsed ? 'collapsed' : ''
-        }`}
-      >
-        <header>
-          <span className="title">Capas</span>
-          <button
-            type="button"
-            className="collapse"
-            onClick={() => setLayersCollapsed((c) => !c)}
-            aria-label={layersCollapsed ? 'Expandir' : 'Colapsar'}
-            aria-expanded={!layersCollapsed}
-          >
-            {layersCollapsed ? '▸' : '▾'}
-          </button>
-        </header>
-        {!layersCollapsed && (
-          <>
-            <div className="basemap-switch" role="radiogroup" aria-label="Mapa base">
-              {BASEMAP_ORDER.map((id) => (
-                <button
-                  key={id}
-                  role="radio"
-                  aria-checked={basemap === id}
-                  className={basemap === id ? 'active' : ''}
-                  onClick={() => setBasemap(id)}
-                >
-                  {BASEMAPS[id].label}
-                </button>
-              ))}
-            </div>
-            <label>
-              <input
-                type="checkbox"
-                checked={showStops}
-                onChange={(e) => setShowStops(e.target.checked)}
-                disabled={!stopsGeojson}
-              />
-              <span>Mostrar paradas</span>
-              {stopsGeojson && (
-                <span className="muted"> ({stopsGeojson.features.length})</span>
-              )}
-            </label>
-          </>
-        )}
-      </div>
+      <Sidebar
+        routesMeta={routesMeta}
+        routeSpeed={routeSpeed}
+        routeDemand={routeDemand}
+        routeFleet={routeFleet}
+        routeTortuosity={routeTortuosity}
+        serviceMetrics={serviceMetrics}
+        selectedRouteIds={selectedRouteIds}
+        visibleRouteIds={visibleRouteIds}
+        basemap={basemap}
+        setBasemap={setBasemap}
+        showStops={showStops}
+        setShowStops={setShowStops}
+        stopsGeojson={stopsGeojson}
+      />
 
       {hoveredFeature && (
         <div className="hover-info">

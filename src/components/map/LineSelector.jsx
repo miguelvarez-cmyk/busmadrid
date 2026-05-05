@@ -7,7 +7,7 @@ import {
 } from '../../store/useMapStore.js';
 import { groupRoutes, GROUP_LABELS, GROUP_ORDER } from '../../utils/routeGroups.js';
 
-export default function LineSelector({ routesMeta }) {
+export default function LineSelector({ routesMeta, inSidebar = false }) {
   const selected = useSelectedRouteIds();
   const hovered = useHoveredRouteId();
   const toggleRoute = useMapStore((s) => s.toggleRoute);
@@ -20,7 +20,7 @@ export default function LineSelector({ routesMeta }) {
 
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState(
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+    !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
   );
   const anchorRef = useRef(null);
 
@@ -85,6 +85,63 @@ export default function LineSelector({ routesMeta }) {
     );
   };
 
+  const content = (
+    <>
+      <div className="controls">
+        <input
+          type="text"
+          placeholder="Buscar línea..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="bulk">
+          <button onClick={() => selectAllRoutes(allIds)}>Todas</button>
+          <button onClick={clearRoutes}>Ninguna</button>
+        </div>
+        <button
+          className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
+          onClick={() => setBoxSelectMode(!boxSelectMode)}
+          title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
+        >
+          {boxSelectMode ? '◼ Salir del modo área' : '▭ Selección por área'}
+        </button>
+        <div className="status">
+          {selected.size} de {routesMeta.length} líneas visibles
+          <span className="hint"> · Shift+clic = rango</span>
+        </div>
+      </div>
+
+      <div className="line-list">
+        {GROUP_ORDER.map((key) => {
+          const items = groups[key];
+          const ids = items.map((r) => r.id);
+          const selectedInGroup = ids.filter((id) => selected.has(id)).length;
+          return (
+            <section key={key}>
+              <h3>
+                <span>{GROUP_LABELS[key]}</span>
+                <span className="count">
+                  {selectedInGroup}/{items.length}
+                </span>
+                <span className="group-actions">
+                  <button onClick={() => groupSelectAll(ids, true)}>+</button>
+                  <button onClick={() => groupSelectAll(ids, false)}>−</button>
+                </span>
+              </h3>
+              {items.length === 0 ? (
+                <div className="empty">—</div>
+              ) : (
+                <ul>{items.map(renderItem)}</ul>
+              )}
+            </section>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  if (inSidebar) return content;
+
   return (
     <div className={`line-selector ${collapsed ? 'collapsed' : ''}`}>
       <header>
@@ -97,61 +154,7 @@ export default function LineSelector({ routesMeta }) {
           {collapsed ? '▸' : '▾'}
         </button>
       </header>
-
-      {!collapsed && (
-        <>
-          <div className="controls">
-            <input
-              type="text"
-              placeholder="Buscar línea..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <div className="bulk">
-              <button onClick={() => selectAllRoutes(allIds)}>Todas</button>
-              <button onClick={clearRoutes}>Ninguna</button>
-            </div>
-            <button
-              className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
-              onClick={() => setBoxSelectMode(!boxSelectMode)}
-              title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
-            >
-              {boxSelectMode ? '◼ Salir del modo área' : '▭ Selección por área'}
-            </button>
-            <div className="status">
-              {selected.size} de {routesMeta.length} líneas visibles
-              <span className="hint"> · Shift+clic = rango</span>
-            </div>
-          </div>
-
-          <div className="line-list">
-            {GROUP_ORDER.map((key) => {
-              const items = groups[key];
-              const ids = items.map((r) => r.id);
-              const selectedInGroup = ids.filter((id) => selected.has(id)).length;
-              return (
-                <section key={key}>
-                  <h3>
-                    <span>{GROUP_LABELS[key]}</span>
-                    <span className="count">
-                      {selectedInGroup}/{items.length}
-                    </span>
-                    <span className="group-actions">
-                      <button onClick={() => groupSelectAll(ids, true)}>+</button>
-                      <button onClick={() => groupSelectAll(ids, false)}>−</button>
-                    </span>
-                  </h3>
-                  {items.length === 0 ? (
-                    <div className="empty">—</div>
-                  ) : (
-                    <ul>{items.map(renderItem)}</ul>
-                  )}
-                </section>
-              );
-            })}
-          </div>
-        </>
-      )}
+      {!collapsed && content}
     </div>
   );
 }
