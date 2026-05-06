@@ -45,9 +45,9 @@ export function createStopsLayer({
       const maxRoutes = stopRoutesFilter[1];
       const t = maxRoutes > 0 ? routeCount / maxRoutes : 0;
       return [
-        lerp(200, 255, t),
+        lerp(50, 220, t),
         lerp(200, 50, t),
-        lerp(200, 50, t),
+        lerp(50, 50, t),
         230,
       ];
     }
@@ -57,9 +57,9 @@ export function createStopsLayer({
       const maxPeak = stopExpeditionsFilter[1];
       const t = maxPeak > 0 ? peak / maxPeak : 0;
       return [
-        lerp(200, 255, t),
-        lerp(200, 140, t),
-        lerp(200, 0, t),
+        lerp(50, 220, t),
+        lerp(200, 50, t),
+        lerp(50, 50, t),
         230,
       ];
     }

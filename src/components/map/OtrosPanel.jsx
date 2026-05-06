@@ -101,8 +101,8 @@ export default function OtrosPanel({
         count,
         color: [
           Math.round(50 + 170 * t),
-          Math.round(120 - 70 * t),
-          Math.round(220 - 170 * t),
+          Math.round(200 - 150 * t),
+          50,
         ],
         inRange: binLo <= fMax && binHi > fMin,
       };
