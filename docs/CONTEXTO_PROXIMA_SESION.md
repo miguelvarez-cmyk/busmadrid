@@ -1,41 +1,52 @@
 # Contexto para la próxima sesión
 
 > Sesión cerrada: 2026-05-06 (tarde)
-> Esta sesión estandarizó los gradientes de color a verde→rojo en todos los paneles y histogramas. Lee este documento al inicio de la próxima sesión para retomar contexto.
+> Esta sesión estandarizó los gradientes de color a **verde → amarillo → rojo** en todos los paneles, histogramas y capas del mapa. Lee este documento al inicio de la próxima sesión para retomar contexto.
 
 ---
 
 ## Lo que hizo esta sesión
 
-Cambios de consistencia visual: todos los histogramas y capas ahora usan el mismo gradiente **verde → rojo**.
+Cambios de consistencia visual: todos los histogramas y capas ahora usan el mismo gradiente **verde → amarillo → rojo**.
 
 ### Cambios implementados
 
-1. **Gradiente verde→rojo en `service.js`:**
-   - `stopRoutesColor()` — cambiado de colores discretos (blues/violets) a gradiente verde→rojo
-   - `fleetColor()` — cambiado de rojo→amarillo→verde a verde→rojo
-   - `demandColor()` — cambiado de rojo→amarillo→verde a verde→rojo
+1. **Gradiente verde→amarillo→rojo en `service.js`:**
+   - `stopRoutesColor()` — de colores discretos (blues/violets) a gradiente verde→amarillo→rojo
+   - `fleetColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
+   - `demandColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
+   - `speedColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
+   - `scheduleColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
 
-2. **Histogramas actualizados a verde→rojo:**
+2. **Histogramas actualizados a verde→amarillo→rojo:**
    - `StopExpeditionsPanel` — expediciones hora punta
    - `OtrosPanel` — ocupación (pax/expedición)
 
-3. **RangeSlider de ocupación mejorado:**
-   - Cambió `step={occupancyFilter[1] / 100}` a `step={0.1}` para evitar pasos muy pequeños/grandes
+3. **Capas de mapa actualizadas:**
+   - `createStopsLayer` — paradas por nº de líneas y expediciones
+   - `createRoutesLayer` — `occupancyColorForRoute()` para modo ocupación
 
-4. **Botón "Ocultar líneas" añadido en paradas:**
-   - Nuevo botón en `StopRoutesPanel` que vacía la selección de líneas (`setSelectedRouteIds([])`)
+4. **Botón "Ocultar líneas" en paradas:**
+   - Nuevo botón en `StopRoutesPanel` que vacía la selección de líneas
 
 5. **CLAUDE.md actualizado:**
-   - Añadida sección "Gradiente de color — consistencia global" con fórmula de interpolación y lista de dónde aplicar
+   - Sección "Gradiente de color — consistencia global" con fórmula de interpolación verde→amarillo→rojo
 
 ### Fórmula de gradiente (documentada en CLAUDE.md)
 
 ```js
-const t = Math.max(0, Math.min(1, valor / maxValor));
+if (t < 0.5) {
+  const k = t / 0.5;  // verde→amarillo
+  return [
+    Math.round(50 + 170 * k),   // R: 50→220
+    200,                        // G: constante
+    50,                         // B: constante
+  ];
+}
+const k = (t - 0.5) / 0.5;  // amarillo→rojo
 return [
-  Math.round(50 + 170 * t),   // R: 50→220
-  Math.round(200 - 150 * t),  // G: 200→50
+  220,                        // R: constante
+  Math.round(200 - 150 * k),  // G: 200→50
   50,                         // B: constante
 ];
 ```
