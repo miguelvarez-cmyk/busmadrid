@@ -12,6 +12,7 @@ export function useGTFSData() {
   const [routeSchedule, setRouteSchedule] = useState(null);
   const [routeDistricts, setRouteDistricts] = useState(null);
   const [barriosGeojson, setBarriosGeojson] = useState(null);
+  const [stopExpeditions, setStopExpeditions] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -28,8 +29,9 @@ export function useGTFSData() {
       fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null),
       fetch('/data/route_districts.json').then((r) => r.json()).catch(() => null),
       fetch('/data/barrios.geojson').then((r) => r.json()).catch(() => null),
+      fetch('/data/stop_expeditions.json').then((r) => r.json()).catch(() => null),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, schedule, districts, barrios]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, schedule, districts, barrios, stopExp]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -42,6 +44,7 @@ export function useGTFSData() {
         setRouteSchedule(schedule);
         setRouteDistricts(districts);
         setBarriosGeojson(barrios);
+        setStopExpeditions(stopExp);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -61,6 +64,7 @@ export function useGTFSData() {
     routeSchedule,
     routeDistricts,
     barriosGeojson,
+    stopExpeditions,
     error,
     loading: !routesGeojson && !error,
   };

@@ -3,7 +3,6 @@ import {
   useMapStore,
   useSelectedRouteIds,
   useHoveredRouteId,
-  useBoxSelectMode,
 } from '../../store/useMapStore.js';
 import { groupRoutes, GROUP_LABELS, GROUP_ORDER } from '../../utils/routeGroups.js';
 
@@ -15,8 +14,6 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
   const selectAllRoutes = useMapStore((s) => s.selectAllRoutes);
   const clearRoutes = useMapStore((s) => s.clearRoutes);
   const setHoveredRouteId = useMapStore((s) => s.setHoveredRouteId);
-  const boxSelectMode = useBoxSelectMode();
-  const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState(
@@ -105,13 +102,6 @@ export default function LineSelector({ routesMeta, inSidebar = false }) {
         <div className="bulk">
           <button onClick={() => selectAllRoutes(allIds)}>Todas</button>
           <button onClick={clearRoutes}>Ninguna</button>
-          <button
-            className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
-            onClick={() => setBoxSelectMode(!boxSelectMode)}
-            title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
-          >
-            ▭ Área
-          </button>
         </div>
         <div className="status">
           {selected.size} de {routesMeta.length} líneas visibles

@@ -1,7 +1,20 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { passesStopRoutesFilter } from '../utils/service.js';
 
-export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible, stopRoutesFilter }) {
+function lerp(a, b, t) {
+  return Math.round(a + (b - a) * t);
+}
+
+export function createStopsLayer({
+  geojson,
+  visibleRouteIds,
+  onHover,
+  visible,
+  stopRoutesFilter,
+  stopColorMode,
+  stopExpeditions,
+  stopExpeditionsFilter,
+}) {
   if (!geojson || !visible) return null;
 
   const data = geojson.features.filter((f) => {
@@ -11,9 +24,49 @@ export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible, s
       if (visibleRouteIds.has(routes[i])) { hasVisible = true; break; }
     }
     if (!hasVisible) return false;
-    if (stopRoutesFilter) return passesStopRoutesFilter(f, stopRoutesFilter);
+
+    // Filter by stop color mode
+    if (stopColorMode === 'routes' && stopRoutesFilter) {
+      if (!passesStopRoutesFilter(f, stopRoutesFilter)) return false;
+    } else if (stopColorMode === 'expeditions' && stopExpeditionsFilter) {
+      const stopId = f.properties.stop_id;
+      const peak = stopExpeditions?.byStop?.[stopId]?.peak ?? 0;
+      const [minPeak, maxPeak] = stopExpeditionsFilter;
+      if (peak < minPeak || peak > maxPeak) return false;
+    }
     return true;
   });
+
+  const getFillColor = (f) => {
+    const stopId = f.properties.stop_id;
+
+    if (stopColorMode === 'routes' && stopRoutesFilter) {
+      const routeCount = f.properties.routes?.length ?? 0;
+      const maxRoutes = stopRoutesFilter[1];
+      const t = maxRoutes > 0 ? routeCount / maxRoutes : 0;
+      return [
+        lerp(200, 255, t),
+        lerp(200, 50, t),
+        lerp(200, 50, t),
+        230,
+      ];
+    }
+
+    if (stopColorMode === 'expeditions' && stopExpeditionsFilter) {
+      const peak = stopExpeditions?.byStop?.[stopId]?.peak ?? 0;
+      const maxPeak = stopExpeditionsFilter[1];
+      const t = maxPeak > 0 ? peak / maxPeak : 0;
+      return [
+        lerp(200, 255, t),
+        lerp(200, 140, t),
+        lerp(200, 0, t),
+        230,
+      ];
+    }
+
+    // Default white
+    return [255, 255, 255, 230];
+  };
 
   return new ScatterplotLayer({
     id: 'stops',
@@ -23,7 +76,7 @@ export function createStopsLayer({ geojson, visibleRouteIds, onHover, visible, s
     radiusUnits: 'meters',
     radiusMinPixels: 2,
     radiusMaxPixels: 6,
-    getFillColor: [255, 255, 255, 230],
+    getFillColor,
     getLineColor: [30, 30, 30, 255],
     lineWidthMinPixels: 1,
     stroked: true,

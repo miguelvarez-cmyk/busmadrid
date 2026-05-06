@@ -1,6 +1,6 @@
 import { BASEMAPS, BASEMAP_ORDER } from '../../config/mapConfig.js';
 
-export default function LayerToggles({ basemap, setBasemap, showStops, setShowStops, stopsGeojson }) {
+export default function LayerToggles({ basemap, setBasemap }) {
   return (
     <div className="layer-toggles-content">
       <div className="basemap-switch" role="radiogroup" aria-label="Mapa base">
@@ -16,18 +16,6 @@ export default function LayerToggles({ basemap, setBasemap, showStops, setShowSt
           </button>
         ))}
       </div>
-      <label>
-        <input
-          type="checkbox"
-          checked={showStops}
-          onChange={(e) => setShowStops(e.target.checked)}
-          disabled={!stopsGeojson}
-        />
-        <span>Mostrar paradas</span>
-        {stopsGeojson && (
-          <span className="muted"> ({stopsGeojson.features.length})</span>
-        )}
-      </label>
     </div>
   );
 }

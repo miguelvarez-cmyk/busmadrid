@@ -25,6 +25,9 @@ import {
   useScheduleFilter,
   useScheduleDayType,
   useStopRoutesFilter,
+  useStopColorMode,
+  useStopExpeditionsFilter,
+  useOccupancyFilter,
   useHighlightedZoneIds,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
@@ -70,6 +73,12 @@ export default function App() {
   const scheduleDayType = useScheduleDayType();
   const stopRoutesFilter = useStopRoutesFilter();
   const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
+  const stopColorMode = useStopColorMode();
+  const setStopColorMode = useMapStore((s) => s.setStopColorMode);
+  const stopExpeditionsFilter = useStopExpeditionsFilter();
+  const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
+  const occupancyFilter = useOccupancyFilter();
+  const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
   const highlightedZoneIds = useHighlightedZoneIds();
   const {
     routesGeojson,
@@ -83,6 +92,7 @@ export default function App() {
     routeSchedule,
     routeDistricts,
     barriosGeojson,
+    stopExpeditions,
     loading,
     error,
   } = useGTFSData();
@@ -142,6 +152,41 @@ export default function App() {
     }
   }, [stopsGeojson, stopRoutesFilter, setStopRoutesFilter]);
 
+  useEffect(() => {
+    if (stopExpeditions?.byStop && !stopExpeditionsFilter) {
+      const peaks = Object.values(stopExpeditions.byStop).map((s) => s.peak);
+      const maxPeak = peaks.length > 0 ? Math.max(...peaks) : 100;
+      setStopExpeditionsFilter([0, maxPeak]);
+    }
+  }, [stopExpeditions, stopExpeditionsFilter, setStopExpeditionsFilter]);
+
+  // Ocupación media = viajeros/día ÷ expediciones/día
+  const occupancyData = useMemo(() => {
+    if (!serviceMetrics?.byRoute || !routeDemand?.byRoute) return {};
+    const result = {};
+    for (const [route_id, demand] of Object.entries(routeDemand.byRoute)) {
+      const dailyAvg = demand.dailyAvg ?? 0;
+      const m = serviceMetrics.byRoute[route_id];
+      let totalTrips = 0;
+      if (m?.["1"]) {
+        for (const dir of ["0", "1"]) {
+          const hrs = m["1"][dir];
+          if (Array.isArray(hrs)) totalTrips += hrs.reduce((a, b) => a + b, 0);
+        }
+      }
+      result[route_id] = totalTrips > 0 ? dailyAvg / totalTrips : 0;
+    }
+    return result;
+  }, [serviceMetrics, routeDemand]);
+
+  useEffect(() => {
+    if (occupancyData && Object.keys(occupancyData).length > 0 && !occupancyFilter) {
+      const values = Object.values(occupancyData);
+      const maxOcc = Math.max(...values);
+      setOccupancyFilter([0, maxOcc]);
+    }
+  }, [occupancyData, occupancyFilter, setOccupancyFilter]);
+
   const visibleRouteIds = useMemo(
     () =>
       applyModeFilter({
@@ -153,6 +198,7 @@ export default function App() {
         routeFleet,
         routeTortuosity,
         routeSchedule,
+        occupancyData,
         timeFilter,
         freqFilter,
         speedFilter,
@@ -162,6 +208,7 @@ export default function App() {
         tortuosityFilter,
         scheduleFilter,
         scheduleDayType,
+        occupancyFilter,
       }),
     [
       selectedRouteIds,
@@ -172,6 +219,7 @@ export default function App() {
       routeFleet,
       routeTortuosity,
       routeSchedule,
+      occupancyData,
       timeFilter,
       freqFilter,
       speedFilter,
@@ -181,6 +229,7 @@ export default function App() {
       tortuosityFilter,
       scheduleFilter,
       scheduleDayType,
+      occupancyFilter,
     ]
   );
 
@@ -198,6 +247,7 @@ export default function App() {
           routeFleet,
           routeTortuosity,
           routeSchedule,
+          occupancyData,
           timeFilter,
           fleetDayType,
           scheduleDayType,
@@ -209,6 +259,9 @@ export default function App() {
           visible: showStops,
           onHover: setHoveredStop,
           stopRoutesFilter,
+          stopColorMode,
+          stopExpeditions,
+          stopExpeditionsFilter,
         }),
         createZonesLayer({ geojson: barriosGeojson, highlightedZoneIds }),
       ].filter(Boolean),
@@ -224,6 +277,7 @@ export default function App() {
       routeFleet,
       routeTortuosity,
       routeSchedule,
+      occupancyData,
       timeFilter,
       fleetDayType,
       scheduleDayType,
@@ -231,6 +285,9 @@ export default function App() {
       showStops,
       setHoveredStop,
       stopRoutesFilter,
+      stopColorMode,
+      stopExpeditions,
+      stopExpeditionsFilter,
       barriosGeojson,
       highlightedZoneIds,
     ]
@@ -318,6 +375,8 @@ export default function App() {
         showStops={showStops}
         setShowStops={setShowStops}
         stopsGeojson={stopsGeojson}
+        stopExpeditions={stopExpeditions}
+        occupancyData={occupancyData}
       />
 
       {hoveredFeature && (

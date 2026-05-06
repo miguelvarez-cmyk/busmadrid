@@ -29,8 +29,10 @@ export const useMapStore = create((set) => ({
   hoveredRouteId: null,
   setHoveredRouteId: (id) => set({ hoveredRouteId: id }),
 
-  colorMode: 'route',
-  setColorMode: (mode) => set({ colorMode: mode }),
+  colorMode: null,
+  setColorMode: (mode) => set((state) => ({
+    colorMode: state.colorMode === mode ? null : mode,
+  })),
 
   dayOfWeek: 0,
   startHour: 7,
@@ -63,6 +65,20 @@ export const useMapStore = create((set) => ({
   // Filtro de paradas por número de líneas: [min, max]
   stopRoutesFilter: null,
   setStopRoutesFilter: (range) => set({ stopRoutesFilter: range }),
+
+  // Modo de color para paradas: 'routes' | 'expeditions' | null
+  stopColorMode: null,
+  setStopColorMode: (mode) => set((state) => ({
+    stopColorMode: state.stopColorMode === mode ? null : mode,
+  })),
+
+  // Filtro de paradas por número de expediciones en hora punta: [min, max]
+  stopExpeditionsFilter: null,
+  setStopExpeditionsFilter: (range) => set({ stopExpeditionsFilter: range }),
+
+  // Filtro de ocupación media de rutas: [min, max]
+  occupancyFilter: null,
+  setOccupancyFilter: (range) => set({ occupancyFilter: range }),
 
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
@@ -108,6 +124,9 @@ export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);
 export const useScheduleFilter = () => useMapStore((s) => s.scheduleFilter);
 export const useScheduleDayType = () => useMapStore((s) => s.scheduleDayType);
 export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
+export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
+export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditionsFilter);
+export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);

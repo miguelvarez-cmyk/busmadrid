@@ -118,7 +118,7 @@ html, body, #root {
 
 .line-list section h3 {
   margin: 0;
-  padding: 8px 12px;
+  padding: 6px 12px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -215,7 +215,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 4px 12px;
   cursor: pointer;
   user-select: none;
 }
@@ -1435,7 +1435,7 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 0;
+  padding: 4px 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -1500,7 +1500,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px 6px 8px;
+  padding: 4px 14px 4px 8px;
   background: none;
   border: none;
   cursor: pointer;

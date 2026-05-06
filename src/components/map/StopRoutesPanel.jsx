@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMapStore, useStopRoutesFilter } from '../../store/useMapStore.js';
+import { useMapStore, useStopRoutesFilter, useStopColorMode } from '../../store/useMapStore.js';
 import { stopRoutesHistogram } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -7,6 +7,8 @@ import RangeSlider from './RangeSlider.jsx';
 export default function StopRoutesPanel({ stopsGeojson }) {
   const stopRoutesFilter = useStopRoutesFilter();
   const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
+  const stopColorMode = useStopColorMode();
+  const setStopColorMode = useMapStore((s) => s.setStopColorMode);
 
   const maxRoutes = useMemo(() => {
     if (!stopsGeojson) return 10;
@@ -27,27 +29,44 @@ export default function StopRoutesPanel({ stopsGeojson }) {
 
   if (!stopsGeojson || !stopRoutesFilter) return null;
 
+  const isActive = stopColorMode === 'routes';
+
   return (
     <div className="controls">
-      <div className="filter-block">
-        <div className="filter-title">
-          <span>Paradas por nº de líneas</span>
-          <span className="muted">{totalStops} paradas</span>
+      <button
+        className={`toggle-button ${isActive ? 'active' : ''}`}
+        onClick={() => setStopColorMode('routes')}
+        style={{
+          width: '100%',
+          padding: '8px 12px',
+          background: isActive ? '#1a1a1a' : '#f9fafb',
+          color: isActive ? '#fff' : '#374151',
+          border: '1px solid #d1d5db',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontWeight: 500,
+          marginBottom: '8px',
+        }}
+      >
+        {isActive ? '✓ Paradas por nº líneas' : 'Paradas por nº líneas'}
+      </button>
+
+      {isActive && (
+        <div className="filter-block">
+          <Histogram buckets={buckets} />
+          <RangeSlider
+            min={1}
+            max={maxRoutes}
+            step={1}
+            value={stopRoutesFilter}
+            onChange={setStopRoutesFilter}
+            format={(v) => `${v} línea${v !== 1 ? 's' : ''}`}
+          />
+          <div className="caption muted">
+            Colorea paradas según cuántas líneas las sirven.
+          </div>
         </div>
-        <Histogram buckets={buckets} />
-        <RangeSlider
-          min={1}
-          max={maxRoutes}
-          step={1}
-          value={stopRoutesFilter}
-          onChange={setStopRoutesFilter}
-          format={(v) => `${v} línea${v !== 1 ? 's' : ''}`}
-        />
-        <div className="caption muted">
-          Filtra las paradas visibles según cuántas líneas las sirven.
-          Solo activo cuando "Mostrar paradas" está habilitado.
-        </div>
-      </div>
+      )}
     </div>
   );
 }

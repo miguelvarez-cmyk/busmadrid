@@ -36,13 +36,13 @@ const SATELLITE_STYLE = {
 const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 export const BASEMAPS = {
-  osm: { id: 'osm', label: 'OSM', style: OSM_STYLE },
-  dark: { id: 'dark', label: 'Gris oscuro', style: DARK_STYLE },
-  satellite: { id: 'satellite', label: 'Satélite', style: SATELLITE_STYLE },
+  osm: { id: 'osm', label: 'Mapa', style: OSM_STYLE },
+  dark: { id: 'dark', label: 'Claro', style: DARK_STYLE },
+  satellite: { id: 'satellite', label: 'Foto', style: SATELLITE_STYLE },
 };
 
-export const BASEMAP_ORDER = ['osm', 'dark', 'satellite'];
-export const DEFAULT_BASEMAP = 'osm';
+export const BASEMAP_ORDER = ['dark', 'osm', 'satellite'];
+export const DEFAULT_BASEMAP = 'dark';
 
 export const INITIAL_VIEW_STATE = {
   longitude: -3.7038,

@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useMapStore } from '../../store/useMapStore.js';
 import LineSelector from './LineSelector.jsx';
 import VisualizationControls from './VisualizationControls.jsx';
 import LayerToggles from './LayerToggles.jsx';
 import StopRoutesPanel from './StopRoutesPanel.jsx';
 import DistrictsPanel from './DistrictsPanel.jsx';
+import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
+import OtrosPanel from './OtrosPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   return (
@@ -41,6 +44,8 @@ export default function Sidebar({
   showStops,
   setShowStops,
   stopsGeojson,
+  stopExpeditions,
+  occupancyData,
 }) {
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
   const [isOpen, setIsOpen] = useState(!isMobile);
@@ -58,7 +63,10 @@ export default function Sidebar({
     });
   };
 
-  const hasViz = serviceMetrics || routeSpeed || routeDemand || routeFleet || routeTortuosity || routeSchedule;
+  const boxSelectMode = useMapStore((s) => s.boxSelectMode);
+  const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
+
+  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule;
 
   return (
     <>
@@ -86,18 +94,40 @@ export default function Sidebar({
             {routesMeta && <LineSelector routesMeta={routesMeta} inSidebar />}
           </AccordionSection>
 
+          <AccordionSection
+            id="barrios"
+            title="Barrios"
+            icon="◉"
+            isOpen={openSections.has('barrios')}
+            onToggle={toggleSection}
+          >
+            <div className="barrios-content">
+              <button
+                className={`box-toggle ${boxSelectMode ? 'on' : ''}`}
+                onClick={() => setBoxSelectMode(!boxSelectMode)}
+                title="Arrastra un recuadro en el mapa para añadir líneas. Mantén Ctrl para quitarlas."
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  marginBottom: '12px',
+                }}
+              >
+                ▭ Área
+              </button>
+              <DistrictsPanel routeDistricts={routeDistricts} />
+            </div>
+          </AccordionSection>
+
           {hasViz && (
             <AccordionSection
-              id="viz"
-              title="Visualización"
+              id="calidad"
+              title="Calidad de la Oferta"
               icon="⚙"
-              isOpen={openSections.has('viz')}
+              isOpen={openSections.has('calidad')}
               onToggle={toggleSection}
             >
               <VisualizationControls
                 routeSpeed={routeSpeed}
-                routeDemand={routeDemand}
-                routeFleet={routeFleet}
                 routeTortuosity={routeTortuosity}
                 routeSchedule={routeSchedule}
                 routesMeta={routesMeta}
@@ -110,38 +140,56 @@ export default function Sidebar({
           )}
 
           <AccordionSection
-            id="zonas"
-            title="Zonas"
-            icon="◉"
-            isOpen={openSections.has('zonas')}
-            onToggle={toggleSection}
-          >
-            <DistrictsPanel routeDistricts={routeDistricts} />
-          </AccordionSection>
-
-          <AccordionSection
             id="paradas"
             title="Paradas"
             icon="⬤"
             isOpen={openSections.has('paradas')}
             onToggle={toggleSection}
           >
+            <label style={{ marginBottom: '12px' }}>
+              <input
+                type="checkbox"
+                checked={showStops}
+                onChange={(e) => setShowStops(e.target.checked)}
+                disabled={!stopsGeojson}
+              />
+              <span>Mostrar paradas</span>
+              {stopsGeojson && (
+                <span className="muted"> ({stopsGeojson.features.length})</span>
+              )}
+            </label>
             <StopRoutesPanel stopsGeojson={stopsGeojson} />
+            <StopExpeditionsPanel stopExpeditions={stopExpeditions} />
           </AccordionSection>
 
+          {(routeFleet || routeDemand || occupancyData) && (
+            <AccordionSection
+              id="otros"
+              icon="★"
+              title="Otros"
+              isOpen={openSections.has('otros')}
+              onToggle={toggleSection}
+            >
+              <OtrosPanel
+                routeFleet={routeFleet}
+                routeDemand={routeDemand}
+                occupancyData={occupancyData}
+                routesMeta={routesMeta}
+                selectedRouteIds={selectedRouteIds}
+              />
+            </AccordionSection>
+          )}
+
           <AccordionSection
-            id="capas"
-            title="Capas"
+            id="fondo"
+            title="Fondo"
             icon="◧"
-            isOpen={openSections.has('capas')}
+            isOpen={openSections.has('fondo')}
             onToggle={toggleSection}
           >
             <LayerToggles
               basemap={basemap}
               setBasemap={setBasemap}
-              showStops={showStops}
-              setShowStops={setShowStops}
-              stopsGeojson={stopsGeojson}
             />
           </AccordionSection>
         </div>

@@ -27,13 +27,10 @@ import RangeSlider from './RangeSlider.jsx';
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 const MODES = [
-  { id: 'route', label: 'Itinerarios' },
   { id: 'offer', label: 'Frecuencia' },
+  { id: 'schedule', label: 'Horario de Paso' },
   { id: 'speed', label: 'Velocidad' },
-  { id: 'demand', label: 'Viajeros' },
-  { id: 'fleet', label: 'Flota' },
   { id: 'tortuosity', label: 'Tortuosidad' },
-  { id: 'schedule', label: 'Horario' },
 ];
 
 const FLEET_DAY_TYPES = [

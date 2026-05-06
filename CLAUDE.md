@@ -42,20 +42,30 @@ visualizador_GTFS_Madrid/
 ## Procesar el GTFS
 
 1. Descargar el feed GTFS de la EMT desde el portal de datos abiertos del Ayuntamiento de Madrid o del CRTM.
-2. Descomprimir el ZIP en `data/raw/` — debe contener al menos `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt`, `shapes.txt`.
+2. Descomprimir el ZIP dentro de `data/raw/GTFS/` — debe contener al menos `stops.txt`, `routes.txt`, `trips.txt`, `stop_times.txt`, `shapes.txt`, `calendar.txt`.
+   > **OJO:** los scripts esperan los archivos en `data/raw/GTFS/`, no directamente en `data/raw/`.
 3. Ejecutar el pipeline:
 
    ```bash
    python scripts/process_gtfs.py
+   python scripts/compute_service.py
+   python scripts/compute_stop_expeditions.py
+   # (y los compute_*.py adicionales: speed, demand, fleet, tortuosity, schedule)
    ```
 
    Genera en `public/data/` (servidos por Vite en `/data/`):
    - `routes.geojson` — recorridos agregados por línea (MultiLineString por route, ambos sentidos)
-   - `routes_meta.json` — lista compacta `{id, shortName, longName, color, type}` para el menú de selección
+   - `routes_meta.json` — `{id, shortName, longName, color, type}` por línea
+   - `service_metrics.json` — `byRoute[id][dow][dir][hour]` con expediciones por hora (`dow` 0–6 son string, lunes=0)
+   - `stops.geojson` — feature por parada con `{stop_id, stop_name, stop_code, routes:[...]}`
+   - `route_demand.json` — `byRoute[id] = {dailyAvg, total, days}` viajeros 2025
+   - `route_fleet.json`, `route_speed.json`, `route_tortuosity.json`, `route_schedule.json`
+   - `route_districts.json`, `barrios.geojson` — capas administrativas
+   - `stop_expeditions.json` — `byStop[stop_id] = {peak}` (pico horario de expediciones laborables)
 
-4. El frontend hace `fetch('/data/routes.geojson')` y `fetch('/data/routes_meta.json')` desde [src/utils/useGTFSData.js](src/utils/useGTFSData.js).
+4. El frontend hace `fetch('/data/...')` desde [src/utils/useGTFSData.js](src/utils/useGTFSData.js).
 
-> Si añades un nuevo paso de procesamiento, créalo como script aparte en `scripts/` con un nombre descriptivo (`build_frequencies.py`, `extract_vehicles.py`…) y documenta la entrada/salida arriba del archivo.
+> Si añades un nuevo paso de procesamiento, créalo como script aparte en `scripts/` con un nombre descriptivo y documenta la entrada/salida arriba del archivo. **Evita caracteres no-ASCII en `print()`** (la consola Windows con codepage cp1252 falla).
 
 ## Convenciones de código
 
@@ -84,6 +94,46 @@ visualizador_GTFS_Madrid/
 - Los GeoJSON pueden ser grandes (decenas de MB). Preferir capas binarias de Deck.gl (`GeoJsonLayer` con `data` como objeto ya parseado) y evitar re-cargas innecesarias.
 - Memoizar capas con `useMemo` cuando dependan de filtros del store.
 
+## Sidebar — estructura
+
+El sidebar tiene **6 secciones** (acordeón). El orden es vinculante; si cambias [src/components/map/Sidebar.jsx](src/components/map/Sidebar.jsx), respeta:
+
+1. **Líneas** — `LineSelector` (sin botón Área aquí; va en Barrios)
+2. **Barrios** — botón `▭ Área` (toggle `boxSelectMode`) + `DistrictsPanel`
+3. **Calidad de la Oferta** — `VisualizationControls` con exactamente 4 modos: `offer` (Frecuencia), `schedule` (Horario de Paso), `speed` (Velocidad), `tortuosity` (Tortuosidad)
+4. **Paradas** — checkbox `showStops` + `StopRoutesPanel` + `StopExpeditionsPanel`
+5. **Otros** — `OtrosPanel` con Flota, Demanda y Ocupación media
+6. **Fondo** — `LayerToggles` (solo basemap)
+
+**Modos de color (`colorMode` en el store):** `offer | schedule | speed | tortuosity | fleet | demand | occupancy | null`. Es **toggle**: clic en el modo activo lo desactiva → líneas en color por defecto.
+
+**Modos de color de paradas (`stopColorMode`):** `routes | expeditions | null`. Mismo patrón toggle.
+
+**Cálculo de ocupación media** (en `App.jsx`, `useMemo` sobre `serviceMetrics` + `routeDemand`):
+```
+occupancy[route_id] = routeDemand.byRoute[id].dailyAvg / total_trips_lunes
+```
+donde `total_trips_lunes` es la suma de `serviceMetrics.byRoute[id]["1"]["0"]` + `["1"]` para todas las horas. Lunes (`dow="1"`) se usa como representante de día laborable.
+
+## Histograma — formato de bucket
+
+El componente `Histogram` espera buckets con esta forma exacta:
+
+```js
+{ label: string, count: number, color: [r, g, b], inRange?: boolean }
+```
+
+`label` se usa como `key` y como texto. `color` es `rgb()` para la barra. Si falta cualquiera de los dos, **la barra no renderiza**. Las funciones `*Histogram` de [src/utils/service.js](src/utils/service.js) ya producen este formato — replícalo en cualquier histograma nuevo.
+
+## Estado (`useMapStore.js`) — patrones
+
+- **Toggles** (`setColorMode`, `setStopColorMode`):
+  ```js
+  set((s) => ({ x: s.x === v ? null : v }))
+  ```
+- **Selectores nominales** al final del archivo (`useColorMode`, `useStopColorMode`, etc.). Evitar `useStore(s => s.x)` repartido por la app.
+- Los **filtros** (`speedFilter`, `fleetFilter`, `occupancyFilter`, ...) son `[min, max]` o `null` hasta que sus datos cargan. La inicialización se hace en `useEffect` dentro de `App.jsx` cuando llega cada dataset.
+
 ## Compatibilidad móvil
 
 **La aplicación DEBE funcionar sin problemas en teléfonos móviles en cualquier navegador, incluido Chrome en Android.**
@@ -105,3 +155,10 @@ npm run build     # Build de producción a dist/
 npm run preview   # Sirve el build localmente
 npm run lint      # ESLint
 ```
+
+## Documentación viva
+
+- [docs/IDEACION.md](docs/IDEACION.md) — Roadmap de mejoras y features futuras (priorizado).
+- [docs/CONTEXTO_PROXIMA_SESION.md](docs/CONTEXTO_PROXIMA_SESION.md) — Última sesión: qué se hizo, estado git, qué verificar.
+
+Cuando cierres una sesión que haya cambiado el estado del proyecto, actualiza estos dos documentos antes de irte.

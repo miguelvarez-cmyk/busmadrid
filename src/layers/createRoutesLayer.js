@@ -17,7 +17,7 @@ import {
 
 /**
  * Aplica filtros de modo (frecuencia/velocidad) sobre un set base de ids.
- * Devuelve el subset que pasa el filtro activo. En modo 'route' no filtra.
+ * Devuelve el subset que pasa el filtro activo.
  */
 export function applyModeFilter({
   routeIds,
@@ -28,6 +28,7 @@ export function applyModeFilter({
   routeFleet,
   routeTortuosity,
   routeSchedule,
+  occupancyData,
   timeFilter,
   freqFilter,
   speedFilter,
@@ -37,6 +38,7 @@ export function applyModeFilter({
   tortuosityFilter,
   scheduleFilter,
   scheduleDayType,
+  occupancyFilter,
 }) {
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
@@ -89,7 +91,26 @@ export function applyModeFilter({
     }
     return out;
   }
+  if (colorMode === 'occupancy' && occupancyData && occupancyFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      const occ = occupancyData[id] ?? 0;
+      const [minOcc, maxOcc] = occupancyFilter;
+      if (occ >= minOcc && occ <= maxOcc) out.add(id);
+    }
+    return out;
+  }
   return routeIds;
+}
+
+function occupancyColorForRoute(occupancyData, routeId) {
+  const occ = occupancyData?.[routeId] ?? 0;
+  const maxOcc = Math.max(...Object.values(occupancyData || {}), 1);
+  const t = maxOcc > 0 ? Math.min(occ / maxOcc, 1) : 0;
+  const r = Math.round(50 + (220 - 50) * t);
+  const g = Math.round(120 + (50 - 120) * t);
+  const b = Math.round(220 + (50 - 220) * t);
+  return [r, g, b];
 }
 
 export function createRoutesLayer({
@@ -103,6 +124,7 @@ export function createRoutesLayer({
   routeFleet,
   routeTortuosity,
   routeSchedule,
+  occupancyData,
   timeFilter,
   fleetDayType,
   scheduleDayType,
@@ -151,6 +173,11 @@ export function createRoutesLayer({
   } else if (colorMode === 'schedule' && routeSchedule) {
     getLineColor = (f) => [
       ...scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType),
+      230,
+    ];
+  } else if (colorMode === 'occupancy' && occupancyData) {
+    getLineColor = (f) => [
+      ...occupancyColorForRoute(occupancyData, f.properties.route_id),
       230,
     ];
   } else {
