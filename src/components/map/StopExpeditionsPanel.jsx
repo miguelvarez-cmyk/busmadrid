@@ -39,9 +39,9 @@ export default function StopExpeditionsPanel({ stopExpeditions }) {
         label: `${binLo}–${binHi}`,
         count,
         color: [
-          Math.round(200 + 55 * t),
-          Math.round(200 - 60 * t),
-          Math.round(200 - 200 * t),
+          Math.round(50 + 170 * t),
+          Math.round(200 - 150 * t),
+          50,
         ],
         inRange: binLo <= fMax && binHi > fMin,
       };

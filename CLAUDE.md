@@ -125,6 +125,29 @@ El componente `Histogram` espera buckets con esta forma exacta:
 
 `label` se usa como `key` y como texto. `color` es `rgb()` para la barra. Si falta cualquiera de los dos, **la barra no renderiza**. Las funciones `*Histogram` de [src/utils/service.js](src/utils/service.js) ya producen este formato — replícalo en cualquier histograma nuevo.
 
+## Gradiente de color — consistencia global
+
+**Todos los histogramas y capas de visualización DEBEN usar el mismo gradiente verde → rojo para mantener consistencia visual:**
+
+- Verde (mínimo): `[50, 200, 50]`
+- Rojo (máximo): `[220, 50, 50]`
+
+Fórmula de interpolación:
+```js
+const t = Math.max(0, Math.min(1, valor / maxValor));
+return [
+  Math.round(50 + 170 * t),   // R: 50→220
+  Math.round(200 - 150 * t),  // G: 200→50
+  50,                         // B: constante
+];
+```
+
+Aplica este gradiente en:
+- `fleetColor()`, `demandColor()` en [src/utils/service.js](src/utils/service.js)
+- `stopRoutesColor()` en [src/utils/service.js](src/utils/service.js)
+- Buckets de histogramas en `StopExpeditionsPanel`, `OtrosPanel`
+- Capas Deck.gl (`createRoutesLayer`, `createStopsLayer`)
+
 ## Estado (`useMapStore.js`) — patrones
 
 - **Toggles** (`setColorMode`, `setStopColorMode`):

@@ -236,7 +236,7 @@ export default function OtrosPanel({
               <RangeSlider
                 min={0}
                 max={occupancyFilter[1]}
-                step={occupancyFilter[1] / 100}
+                step={0.1}
                 value={occupancyFilter}
                 onChange={setOccupancyFilter}
                 format={(v) => `${v.toFixed(1)} pax`}

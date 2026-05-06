@@ -176,22 +176,21 @@ export function passesSpeedFilter(speeds, routeId, filter) {
 }
 
 /**
- * Color para demanda usando escala logarítmica entre min y max globales.
+ * Gradiente verde → rojo para demanda usando escala logarítmica entre min y max globales.
  * El rango de viajeros/día es muy amplio (decenas a 100k+), una escala lineal
  * aplastaría todas las líneas pequeñas en el rojo.
  */
 export function demandColor(dailyAvg, min, max) {
   if (dailyAvg == null || dailyAvg <= 0) return NO_SERVICE_COLOR;
-  if (max <= min) return [60, 220, 80];
+  if (max <= min) return [50, 200, 50];
   const lMin = Math.log10(Math.max(1, min));
   const lMax = Math.log10(Math.max(2, max));
   const t = Math.max(0, Math.min(1, (Math.log10(dailyAvg) - lMin) / (lMax - lMin)));
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [
+    Math.round(50 + 170 * t),
+    Math.round(200 - 150 * t),
+    50,
+  ];
 }
 
 export function demandColorForRoute(demand, routeId) {
@@ -246,20 +245,19 @@ export function passesDemandFilter(demand, routeId, filter) {
 }
 
 /**
- * Rampa rojo → amarillo → verde para tamaño de flota. Usa el rango global
+ * Gradiente verde → rojo para tamaño de flota. Usa el rango global
  * (min, max) precalculado por compute_fleet.py para mantener una escala
  * estable cuando el usuario cambia la selección o el tipo de día.
  */
 export function fleetColor(buses, min, max) {
   if (buses == null || buses <= 0) return NO_SERVICE_COLOR;
-  if (max <= min) return [60, 220, 80];
+  if (max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (buses - min) / (max - min)));
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [
+    Math.round(50 + 170 * t),
+    Math.round(200 - 150 * t),
+    50,
+  ];
 }
 
 export function fleetForRoute(fleet, routeId, dayType) {
@@ -530,15 +528,17 @@ const STOP_ROUTES_BUCKETS = [
 ];
 
 /**
- * Color para el histograma de paradas: más líneas = azul más intenso.
+ * Color para el histograma de paradas: gradiente verde→rojo según líneas.
+ * Mapea el count (1–11+) a un valor de intensidad para el gradiente.
  */
 function stopRoutesColor(count) {
-  if (count <= 1) return [100, 149, 237];   // cornflower blue
-  if (count <= 2) return [65, 105, 225];    // royal blue
-  if (count <= 3) return [30, 80, 200];
-  if (count <= 5) return [0, 60, 180];
-  if (count <= 10) return [138, 43, 226];   // blue-violet
-  return [148, 0, 211];                     // dark violet
+  const STOP_ROUTES_MAX = 11;
+  const t = Math.min(1, Math.max(0, (count - 1) / (STOP_ROUTES_MAX - 1)));
+  return [
+    Math.round(50 + 170 * t),
+    Math.round(200 - 150 * t),
+    50,
+  ];
 }
 
 /**

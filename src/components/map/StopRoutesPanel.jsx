@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMapStore, useStopRoutesFilter, useStopColorMode } from '../../store/useMapStore.js';
+import { useMapStore, useStopRoutesFilter, useStopColorMode, useSelectedRouteIds } from '../../store/useMapStore.js';
 import { stopRoutesHistogram } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -9,6 +9,7 @@ export default function StopRoutesPanel({ stopsGeojson }) {
   const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
   const stopColorMode = useStopColorMode();
   const setStopColorMode = useMapStore((s) => s.setStopColorMode);
+  const setSelectedRouteIds = useMapStore((s) => s.setSelectedRouteIds);
 
   const maxRoutes = useMemo(() => {
     if (!stopsGeojson) return 10;
@@ -49,6 +50,23 @@ export default function StopRoutesPanel({ stopsGeojson }) {
         }}
       >
         {isActive ? '✓ Paradas por nº líneas' : 'Paradas por nº líneas'}
+      </button>
+
+      <button
+        onClick={() => setSelectedRouteIds([])}
+        style={{
+          width: '100%',
+          padding: '6px 12px',
+          background: '#f9fafb',
+          color: '#374151',
+          border: '1px solid #d1d5db',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '12px',
+          marginBottom: '8px',
+        }}
+      >
+        Ocultar líneas
       </button>
 
       {isActive && (
