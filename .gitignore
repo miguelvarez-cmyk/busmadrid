@@ -7,7 +7,7 @@ dist/
 data/raw/*
 !data/raw/.gitkeep
 # Los límites administrativos son pequeños y sí se pueden versionar
-!data/raw/boundaries/
+!data/raw/distritos_barrios/
 
 # Datos procesados intermedios (los servidos a la web están en public/data/)
 data/processed/*.geojson
