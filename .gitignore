@@ -6,6 +6,8 @@ dist/
 # Datos GTFS crudos — pesados, no se versionan (descarga manual)
 data/raw/*
 !data/raw/.gitkeep
+# Los límites administrativos son pequeños y sí se pueden versionar
+!data/raw/boundaries/
 
 # Datos procesados intermedios (los servidos a la web están en public/data/)
 data/processed/*.geojson

@@ -84,6 +84,19 @@ visualizador_GTFS_Madrid/
 - Los GeoJSON pueden ser grandes (decenas de MB). Preferir capas binarias de Deck.gl (`GeoJsonLayer` con `data` como objeto ya parseado) y evitar re-cargas innecesarias.
 - Memoizar capas con `useMemo` cuando dependan de filtros del store.
 
+## Compatibilidad móvil
+
+**La aplicación DEBE funcionar sin problemas en teléfonos móviles en cualquier navegador, incluido Chrome en Android.**
+
+Reglas a mantener siempre:
+- El mapa (Deck.gl + MapLibre) debe renderizarse correctamente en Chrome Android. Usar `powerPreference: 'default'` en `glOptions` del componente DeckGL (NO `'high-performance'` — falla en muchos chips móviles).
+- El sidebar en móvil (≤720 px) se comporta como un bottom-sheet que sube desde abajo.
+- Cuando el sidebar está cerrado, el botón ☰ (`.sidebar-open-btn`) debe ser visible y accesible sobre el mapa.
+- Usar `env(safe-area-inset-bottom, 0px)` en cualquier elemento fijo al borde inferior para respetar el home indicator y la barra de navegación de Android/iOS.
+- `height: 100dvh` en el contenedor `.app` para adaptar la altura a la barra de URL dinámica del navegador móvil.
+- No usar `backdrop-filter` en elementos que compartan compositing layer con el canvas WebGL.
+- Probar siempre en móvil (o DevTools en modo responsive) antes de hacer push a producción.
+
 ## Comandos útiles
 
 ```bash

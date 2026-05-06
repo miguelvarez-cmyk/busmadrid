@@ -3,6 +3,7 @@ import LineSelector from './LineSelector.jsx';
 import VisualizationControls from './VisualizationControls.jsx';
 import LayerToggles from './LayerToggles.jsx';
 import StopRoutesPanel from './StopRoutesPanel.jsx';
+import DistrictsPanel from './DistrictsPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   return (
@@ -31,6 +32,7 @@ export default function Sidebar({
   routeFleet,
   routeTortuosity,
   routeSchedule,
+  routeDistricts,
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
@@ -106,6 +108,16 @@ export default function Sidebar({
               />
             </AccordionSection>
           )}
+
+          <AccordionSection
+            id="zonas"
+            title="Zonas"
+            icon="◉"
+            isOpen={openSections.has('zonas')}
+            onToggle={toggleSection}
+          >
+            <DistrictsPanel routeDistricts={routeDistricts} />
+          </AccordionSection>
 
           <AccordionSection
             id="paradas"

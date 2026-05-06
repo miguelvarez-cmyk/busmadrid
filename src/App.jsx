@@ -78,6 +78,7 @@ export default function App() {
     routeFleet,
     routeTortuosity,
     routeSchedule,
+    routeDistricts,
     loading,
     error,
   } = useGTFSData();
@@ -287,7 +288,7 @@ export default function App() {
               }
         }
         layers={layers}
-        glOptions={{ powerPreference: 'high-performance' }}
+        glOptions={{ powerPreference: 'default' }}
       >
         <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
       </DeckGL>
@@ -301,6 +302,7 @@ export default function App() {
         routeFleet={routeFleet}
         routeTortuosity={routeTortuosity}
         routeSchedule={routeSchedule}
+        routeDistricts={routeDistricts}
         serviceMetrics={serviceMetrics}
         selectedRouteIds={selectedRouteIds}
         visibleRouteIds={visibleRouteIds}
