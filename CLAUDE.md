@@ -127,24 +127,34 @@ El componente `Histogram` espera buckets con esta forma exacta:
 
 ## Gradiente de color — consistencia global
 
-**Todos los histogramas y capas de visualización DEBEN usar el mismo gradiente verde → rojo para mantener consistencia visual:**
+**Todos los histogramas y capas de visualización DEBEN usar el mismo gradiente verde → amarillo → rojo para mantener consistencia visual:**
 
 - Verde (mínimo): `[50, 200, 50]`
+- Amarillo (medio): `[220, 200, 50]`
 - Rojo (máximo): `[220, 50, 50]`
 
-Fórmula de interpolación:
+Fórmula de interpolación (t ∈ [0, 1]):
 ```js
-const t = Math.max(0, Math.min(1, valor / maxValor));
+if (t < 0.5) {
+  const k = t / 0.5;  // primera mitad: verde→amarillo
+  return [
+    Math.round(50 + 170 * k),   // R: 50→220
+    200,                        // G: constante
+    50,                         // B: constante
+  ];
+}
+const k = (t - 0.5) / 0.5;  // segunda mitad: amarillo→rojo
 return [
-  Math.round(50 + 170 * t),   // R: 50→220
-  Math.round(200 - 150 * t),  // G: 200→50
+  220,                        // R: constante
+  Math.round(200 - 150 * k),  // G: 200→50
   50,                         // B: constante
 ];
 ```
 
 Aplica este gradiente en:
-- `fleetColor()`, `demandColor()` en [src/utils/service.js](src/utils/service.js)
+- `fleetColor()`, `demandColor()`, `speedColor()`, `scheduleColor()` en [src/utils/service.js](src/utils/service.js)
 - `stopRoutesColor()` en [src/utils/service.js](src/utils/service.js)
+- `occupancyColorForRoute()` en [src/layers/createRoutesLayer.js](src/layers/createRoutesLayer.js)
 - Buckets de histogramas en `StopExpeditionsPanel`, `OtrosPanel`
 - Capas Deck.gl (`createRoutesLayer`, `createStopsLayer`)
 

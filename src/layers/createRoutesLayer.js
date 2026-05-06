@@ -107,9 +107,18 @@ function occupancyColorForRoute(occupancyData, routeId) {
   const occ = occupancyData?.[routeId] ?? 0;
   const maxOcc = Math.max(...Object.values(occupancyData || {}), 1);
   const t = maxOcc > 0 ? Math.min(occ / maxOcc, 1) : 0;
-  const r = Math.round(50 + (220 - 50) * t);
-  const g = Math.round(120 + (50 - 120) * t);
-  const b = Math.round(220 + (50 - 220) * t);
+  let r, g, b;
+  if (t < 0.5) {
+    const k = t / 0.5;
+    r = Math.round(220);
+    g = Math.round(60 + 180 * k);
+    b = 50;
+  } else {
+    const k = (t - 0.5) / 0.5;
+    r = Math.round(220 - 180 * k);
+    g = Math.round(240 - 90 * k);
+    b = Math.round(50 + 30 * k);
+  }
   return [r, g, b];
 }
 

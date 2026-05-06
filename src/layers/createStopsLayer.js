@@ -44,24 +44,38 @@ export function createStopsLayer({
       const routeCount = f.properties.routes?.length ?? 0;
       const maxRoutes = stopRoutesFilter[1];
       const t = maxRoutes > 0 ? routeCount / maxRoutes : 0;
-      return [
-        lerp(50, 220, t),
-        lerp(200, 50, t),
-        lerp(50, 50, t),
-        230,
-      ];
+      let r, g, b;
+      if (t < 0.5) {
+        const k = t / 0.5;
+        r = lerp(50, 255, k);
+        g = 200;
+        b = 50;
+      } else {
+        const k = (t - 0.5) / 0.5;
+        r = lerp(255, 220, k);
+        g = lerp(200, 50, k);
+        b = 50;
+      }
+      return [r, g, b, 230];
     }
 
     if (stopColorMode === 'expeditions' && stopExpeditionsFilter) {
       const peak = stopExpeditions?.byStop?.[stopId]?.peak ?? 0;
       const maxPeak = stopExpeditionsFilter[1];
       const t = maxPeak > 0 ? peak / maxPeak : 0;
-      return [
-        lerp(50, 220, t),
-        lerp(200, 50, t),
-        lerp(50, 50, t),
-        230,
-      ];
+      let r, g, b;
+      if (t < 0.5) {
+        const k = t / 0.5;
+        r = lerp(50, 255, k);
+        g = 200;
+        b = 50;
+      } else {
+        const k = (t - 0.5) / 0.5;
+        r = lerp(255, 220, k);
+        g = lerp(200, 50, k);
+        b = 50;
+      }
+      return [r, g, b, 230];
     }
 
     // Default white

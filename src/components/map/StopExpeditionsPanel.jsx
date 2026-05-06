@@ -35,14 +35,26 @@ export default function StopExpeditionsPanel({ stopExpeditions }) {
       const binLo = i * binWidth;
       const binHi = binLo + binWidth;
       const t = maxPeak > 0 ? Math.min(binLo / maxPeak, 1) : 0;
+      let color;
+      if (t < 0.5) {
+        const k = t / 0.5;
+        color = [
+          Math.round(220),
+          Math.round(60 + 180 * k),
+          50,
+        ];
+      } else {
+        const k = (t - 0.5) / 0.5;
+        color = [
+          Math.round(220 - 180 * k),
+          Math.round(240 - 90 * k),
+          Math.round(50 + 30 * k),
+        ];
+      }
       return {
         label: `${binLo}–${binHi}`,
         count,
-        color: [
-          Math.round(50 + 170 * t),
-          Math.round(200 - 150 * t),
-          50,
-        ],
+        color,
         inRange: binLo <= fMax && binHi > fMin,
       };
     });

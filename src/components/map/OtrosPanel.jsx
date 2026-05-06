@@ -96,14 +96,26 @@ export default function OtrosPanel({
       const binLo = i * binWidth;
       const binHi = binLo + binWidth;
       const t = maxVal > 0 ? Math.min((binLo + binHi / 2) / maxVal, 1) : 0;
+      let color;
+      if (t < 0.5) {
+        const k = t / 0.5;
+        color = [
+          Math.round(220),
+          Math.round(60 + 180 * k),
+          50,
+        ];
+      } else {
+        const k = (t - 0.5) / 0.5;
+        color = [
+          Math.round(220 - 180 * k),
+          Math.round(240 - 90 * k),
+          Math.round(50 + 30 * k),
+        ];
+      }
       return {
         label: `${binLo.toFixed(0)}–${binHi.toFixed(0)}`,
         count,
-        color: [
-          Math.round(50 + 170 * t),
-          Math.round(200 - 150 * t),
-          50,
-        ],
+        color,
         inRange: binLo <= fMax && binHi > fMin,
       };
     });

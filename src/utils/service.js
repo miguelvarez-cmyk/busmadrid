@@ -61,19 +61,19 @@ export function frequencyColorForRoute(metrics, routeId, dow, startHour, endHour
 }
 
 /**
- * Rampa rojo → amarillo → verde para velocidad media. Usa el rango global
+ * Rampa verde → amarillo → rojo para velocidad media. Usa el rango global
  * (min, max) precalculado por compute_speed.py para mantener una escala estable
  * cuando el usuario cambia la selección.
  */
 export function speedColor(speedKmh, min, max) {
-  if (speedKmh == null || max <= min) return [60, 220, 80];
+  if (speedKmh == null || max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (speedKmh - min) / (max - min)));
   if (t < 0.5) {
     const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
+    return [Math.round(50 + 170 * k), 200, 50];
   }
   const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [220, Math.round(200 - 150 * k), 50];
 }
 
 export function speedColorForRoute(speeds, routeId) {
@@ -176,7 +176,7 @@ export function passesSpeedFilter(speeds, routeId, filter) {
 }
 
 /**
- * Gradiente verde → rojo para demanda usando escala logarítmica entre min y max globales.
+ * Gradiente verde → amarillo → rojo para demanda usando escala logarítmica entre min y max globales.
  * El rango de viajeros/día es muy amplio (decenas a 100k+), una escala lineal
  * aplastaría todas las líneas pequeñas en el rojo.
  */
@@ -186,11 +186,12 @@ export function demandColor(dailyAvg, min, max) {
   const lMin = Math.log10(Math.max(1, min));
   const lMax = Math.log10(Math.max(2, max));
   const t = Math.max(0, Math.min(1, (Math.log10(dailyAvg) - lMin) / (lMax - lMin)));
-  return [
-    Math.round(50 + 170 * t),
-    Math.round(200 - 150 * t),
-    50,
-  ];
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [220, Math.round(60 + 180 * k), 50];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
 }
 
 export function demandColorForRoute(demand, routeId) {
@@ -245,7 +246,7 @@ export function passesDemandFilter(demand, routeId, filter) {
 }
 
 /**
- * Gradiente verde → rojo para tamaño de flota. Usa el rango global
+ * Gradiente verde → amarillo → rojo para tamaño de flota. Usa el rango global
  * (min, max) precalculado por compute_fleet.py para mantener una escala
  * estable cuando el usuario cambia la selección o el tipo de día.
  */
@@ -253,11 +254,12 @@ export function fleetColor(buses, min, max) {
   if (buses == null || buses <= 0) return NO_SERVICE_COLOR;
   if (max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (buses - min) / (max - min)));
-  return [
-    Math.round(50 + 170 * t),
-    Math.round(200 - 150 * t),
-    50,
-  ];
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [220, Math.round(60 + 180 * k), 50];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
 }
 
 export function fleetForRoute(fleet, routeId, dayType) {
@@ -422,19 +424,19 @@ export function scheduleSpanForRoute(schedule, routeId, dayType) {
 }
 
 /**
- * Rampa rojo → amarillo → verde para amplitud de horario.
+ * Rampa verde → amarillo → rojo para amplitud de horario.
  * Más horas de servicio = más verde.
  */
 export function scheduleColor(spanMin, min, max) {
   if (spanMin == null || spanMin <= 0) return NO_SERVICE_COLOR;
-  if (max <= min) return [60, 220, 80];
+  if (max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (spanMin - min) / (max - min)));
   if (t < 0.5) {
     const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
+    return [Math.round(50 + 170 * k), 200, 50];
   }
   const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [220, Math.round(200 - 150 * k), 50];
 }
 
 export function scheduleColorForRoute(schedule, routeId, dayType) {
@@ -528,15 +530,25 @@ const STOP_ROUTES_BUCKETS = [
 ];
 
 /**
- * Color para el histograma de paradas: gradiente verde→rojo según líneas.
+ * Color para el histograma de paradas: gradiente verde→amarillo→rojo según líneas.
  * Mapea el count (1–11+) a un valor de intensidad para el gradiente.
  */
 function stopRoutesColor(count) {
   const STOP_ROUTES_MAX = 11;
   const t = Math.min(1, Math.max(0, (count - 1) / (STOP_ROUTES_MAX - 1)));
+
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [
+      Math.round(50 + 205 * k),
+      Math.round(200),
+      50,
+    ];
+  }
+  const k = (t - 0.5) / 0.5;
   return [
-    Math.round(50 + 170 * t),
-    Math.round(200 - 150 * t),
+    Math.round(255 - 35 * k),
+    Math.round(200 - 150 * k),
     50,
   ];
 }
