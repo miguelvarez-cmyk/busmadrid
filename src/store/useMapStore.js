@@ -76,6 +76,16 @@ export const useMapStore = create((set) => ({
 
   hoveredStop: null,
   setHoveredStop: (s) => set({ hoveredStop: s }),
+
+  highlightedZoneIds: new Set(),
+  toggleZoneHighlight: (barrioIds) =>
+    set((state) => {
+      const next = new Set(state.highlightedZoneIds);
+      const allIn = barrioIds.every((id) => next.has(id));
+      if (allIn) barrioIds.forEach((id) => next.delete(id));
+      else barrioIds.forEach((id) => next.add(id));
+      return { highlightedZoneIds: next };
+    }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
@@ -102,3 +112,4 @@ export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
 export const useBasemap = () => useMapStore((s) => s.basemap);
+export const useHighlightedZoneIds = () => useMapStore((s) => s.highlightedZoneIds);

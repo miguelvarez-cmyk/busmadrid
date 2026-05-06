@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useMapStore, useSelectedRouteIds } from '../../store/useMapStore.js';
+import { useMapStore, useSelectedRouteIds, useHighlightedZoneIds } from '../../store/useMapStore.js';
 
 function selectionState(routeIds, selected) {
   if (routeIds.length === 0) return 'none';
@@ -24,6 +24,8 @@ function IndeterminateCheckbox({ state, onChange }) {
 export default function DistrictsPanel({ routeDistricts }) {
   const selected = useSelectedRouteIds();
   const setRangeSelection = useMapStore((s) => s.setRangeSelection);
+  const toggleZoneHighlight = useMapStore((s) => s.toggleZoneHighlight);
+  const highlightedZoneIds = useHighlightedZoneIds();
   const [expandedDistricts, setExpandedDistricts] = useState(() => new Set());
 
   const distritos = useMemo(
@@ -53,6 +55,8 @@ export default function DistrictsPanel({ routeDistricts }) {
         const distState = selectionState(dist.routeIds, selected);
         const isExpanded = expandedDistricts.has(dist.id);
         const selectedN = dist.routeIds.filter((id) => selected.has(id)).length;
+        const distBarrioIds = dist.barrios.map((b) => b.id);
+        const distHighlighted = distBarrioIds.length > 0 && distBarrioIds.every((id) => highlightedZoneIds.has(id));
 
         return (
           <div key={dist.id} className="district-item">
@@ -63,8 +67,11 @@ export default function DistrictsPanel({ routeDistricts }) {
               />
               <button
                 type="button"
-                className="district-toggle"
-                onClick={() => toggleExpand(dist.id)}
+                className={`district-toggle${distHighlighted ? ' zone-highlighted' : ''}`}
+                onClick={() => {
+                  toggleExpand(dist.id);
+                  toggleZoneHighlight(distBarrioIds);
+                }}
               >
                 <span className="district-name">{dist.nombre}</span>
                 <span className="district-count">
@@ -79,18 +86,23 @@ export default function DistrictsPanel({ routeDistricts }) {
                 {dist.barrios.map((barrio) => {
                   const barState = selectionState(barrio.routeIds, selected);
                   const barN = barrio.routeIds.filter((id) => selected.has(id)).length;
+                  const barHighlighted = highlightedZoneIds.has(barrio.id);
                   return (
-                    <div key={barrio.id} className="barrio-item">
-                      <label>
-                        <IndeterminateCheckbox
-                          state={barState}
-                          onChange={() => toggle(barrio.routeIds, barState)}
-                        />
+                    <div key={barrio.id} className={`barrio-item${barHighlighted ? ' zone-highlighted' : ''}`}>
+                      <IndeterminateCheckbox
+                        state={barState}
+                        onChange={() => toggle(barrio.routeIds, barState)}
+                      />
+                      <button
+                        type="button"
+                        className="barrio-label-btn"
+                        onClick={() => toggleZoneHighlight([barrio.id])}
+                      >
                         <span className="barrio-name">{barrio.nombre}</span>
                         <span className="barrio-count">
                           {barN}/{barrio.routeIds.length}
                         </span>
-                      </label>
+                      </button>
                     </div>
                   );
                 })}

@@ -41,6 +41,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUTES_FILE = ROOT / "public" / "data" / "routes.geojson"
 BOUNDARIES_FILE = ROOT / "data" / "raw" / "distritos_barrios" / "BARRIOS.shp"
 OUT_FILE = ROOT / "public" / "data" / "route_districts.json"
+BAR_GEOJSON_FILE = ROOT / "public" / "data" / "barrios.geojson"
 
 DIST_ID_FIELD = "CODDIS"    # entero 1..21
 DIST_NAME_FIELD = "NOMDIS"
@@ -135,6 +136,14 @@ def main() -> None:
         json.dump({"distritos": distritos_out}, f, ensure_ascii=False, separators=(",", ":"))
 
     print(f"OK -> {OUT_FILE.relative_to(ROOT)} ({OUT_FILE.stat().st_size / 1e3:.1f} KB)")
+
+    # Exportar geometrías de barrios para el overlay del mapa
+    geo_out = barrios_gdf[[BAR_ID_FIELD, DIST_ID_FIELD, "geometry"]].copy()
+    geo_out = geo_out.rename(columns={BAR_ID_FIELD: "cod_bar", DIST_ID_FIELD: "cod_dis"})
+    geo_out["cod_dis"] = geo_out["cod_dis"].apply(lambda x: str(int(x)).zfill(2))
+    geo_out["cod_bar"] = geo_out["cod_bar"].astype(str)
+    geo_out.to_file(BAR_GEOJSON_FILE, driver="GeoJSON")
+    print(f"OK -> {BAR_GEOJSON_FILE.relative_to(ROOT)} ({BAR_GEOJSON_FILE.stat().st_size / 1e3:.1f} KB)")
 
 
 if __name__ == "__main__":

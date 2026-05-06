@@ -1476,26 +1476,14 @@ button {
 }
 
 .barrio-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
 .barrio-item:last-child {
   border-bottom: none;
-}
-
-.barrio-item label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px 6px 34px;
-  cursor: pointer;
-  font-size: 12px;
-  color: #374151;
-  font-weight: 400;
-}
-
-.barrio-item label:hover {
-  background: #f0f0f0;
 }
 
 .barrio-item input[type='checkbox'] {
@@ -1504,6 +1492,38 @@ button {
   height: 13px;
   cursor: pointer;
   accent-color: #1a1a1a;
+  margin-left: 34px;
+}
+
+.barrio-label-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 400;
+  text-align: left;
+  min-width: 0;
+}
+
+.barrio-label-btn:hover {
+  background: #f0f0f0;
+}
+
+.barrio-item.zone-highlighted {
+  background: #eff6ff;
+}
+.barrio-item.zone-highlighted .barrio-label-btn {
+  color: #1d4ed8;
+}
+
+.district-toggle.zone-highlighted .district-name {
+  color: #1d4ed8;
 }
 
 .barrio-name {

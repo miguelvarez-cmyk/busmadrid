@@ -25,6 +25,7 @@ import {
   useScheduleFilter,
   useScheduleDayType,
   useStopRoutesFilter,
+  useHighlightedZoneIds,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -33,6 +34,7 @@ import {
   applyModeFilter,
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
+import { createZonesLayer } from './layers/createZonesLayer.js';
 import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute, scheduleSpanForRoute, formatSpanMinutes } from './utils/service.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
@@ -68,6 +70,7 @@ export default function App() {
   const scheduleDayType = useScheduleDayType();
   const stopRoutesFilter = useStopRoutesFilter();
   const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
+  const highlightedZoneIds = useHighlightedZoneIds();
   const {
     routesGeojson,
     routesMeta,
@@ -79,6 +82,7 @@ export default function App() {
     routeTortuosity,
     routeSchedule,
     routeDistricts,
+    barriosGeojson,
     loading,
     error,
   } = useGTFSData();
@@ -206,6 +210,7 @@ export default function App() {
           onHover: setHoveredStop,
           stopRoutesFilter,
         }),
+        createZonesLayer({ geojson: barriosGeojson, highlightedZoneIds }),
       ].filter(Boolean),
     [
       routesGeojson,
@@ -226,6 +231,8 @@ export default function App() {
       showStops,
       setHoveredStop,
       stopRoutesFilter,
+      barriosGeojson,
+      highlightedZoneIds,
     ]
   );
 
