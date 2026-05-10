@@ -29,6 +29,9 @@ export const useMapStore = create((set) => ({
   hoveredRouteId: null,
   setHoveredRouteId: (id) => set({ hoveredRouteId: id }),
 
+  hoveredRouteIds: [],
+  setHoveredRouteIds: (ids) => set({ hoveredRouteIds: ids }),
+
   colorMode: null,
   setColorMode: (mode) => set((state) => ({
     colorMode: state.colorMode === mode ? null : mode,
@@ -108,6 +111,7 @@ export const useViewState = () => useMapStore((s) => s.viewState);
 export const useSetViewState = () => useMapStore((s) => s.setViewState);
 export const useSelectedRouteIds = () => useMapStore((s) => s.selectedRouteIds);
 export const useHoveredRouteId = () => useMapStore((s) => s.hoveredRouteId);
+export const useHoveredRouteIds = () => useMapStore((s) => s.hoveredRouteIds);
 export const useColorMode = () => useMapStore((s) => s.colorMode);
 export const useTimeFilter = () =>
   useMapStore((s) => ({

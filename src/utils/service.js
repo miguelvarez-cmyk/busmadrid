@@ -510,6 +510,35 @@ export function passesScheduleFilter(schedule, routeId, dayType, filter) {
   return v >= fMin && v <= fMax;
 }
 
+/**
+ * Rango de horario (primera y última expedición) para una línea en un día específico.
+ * Usa serviceMetrics para derivar el primer y último slot con servicio.
+ * Devuelve string formato "06:00 – 23:00" o null si no hay servicio.
+ */
+export function scheduleRangeFromMetrics(metrics, routeId, dayOfWeek) {
+  const row = metrics?.byRoute?.[routeId]?.[String(dayOfWeek)];
+  if (!row) return null;
+
+  // Unión de los dos sentidos: busca qué horas tienen expediciones en 0 o 1
+  const slotsWithService = [];
+  for (let h = 0; h < 24; h++) {
+    const count0 = row['0']?.[h] ?? 0;
+    const count1 = row['1']?.[h] ?? 0;
+    if (count0 + count1 > 0) {
+      slotsWithService.push(h);
+    }
+  }
+
+  if (slotsWithService.length === 0) return null;
+
+  const first = Math.min(...slotsWithService);
+  const last = Math.max(...slotsWithService);
+  const firstStr = String(first).padStart(2, '0');
+  const lastStr = String(last).padStart(2, '0');
+
+  return `${firstStr}:00 – ${lastStr}:00`;
+}
+
 // ── Líneas por parada ─────────────────────────────────────────────────────────
 
 /**

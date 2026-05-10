@@ -125,7 +125,6 @@ function occupancyColorForRoute(occupancyData, routeId) {
 export function createRoutesLayer({
   geojson,
   visibleRouteIds,
-  onHover,
   colorMode,
   serviceMetrics,
   routeSpeed,
@@ -202,7 +201,6 @@ export function createRoutesLayer({
     pickable: true,
     autoHighlight: false,
     parameters: { depthTest: false },
-    onHover: (info) => onHover?.(info.object?.properties?.route_id ?? null),
     updateTriggers: {
       getLineColor: [
         colorMode,

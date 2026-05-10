@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -10,6 +10,7 @@ import {
   useSetViewState,
   useSelectedRouteIds,
   useHoveredRouteId,
+  useHoveredRouteIds,
   useColorMode,
   useTimeFilter,
   useBoxSelectMode,
@@ -38,9 +39,9 @@ import {
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
-import { bestFrequencyMinutes, fleetForRoute, tortuosityForRoute, scheduleSpanForRoute, formatSpanMinutes } from './utils/service.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
+import RouteTooltip from './components/map/RouteTooltip.jsx';
 
 export default function App() {
   const viewState = useViewState();
@@ -56,6 +57,10 @@ export default function App() {
   const setShowStops = useMapStore((s) => s.setShowStops);
   const hoveredStop = useHoveredStop();
   const setHoveredStop = useMapStore((s) => s.setHoveredStop);
+  const hoveredRouteIds = useHoveredRouteIds();
+  const setHoveredRouteIds = useMapStore((s) => s.setHoveredRouteIds);
+  const [hoverActiveIdx, setHoverActiveIdx] = useState(0);
+  const deckRef = useRef(null);
   const basemap = useBasemap();
   const setBasemap = useMapStore((s) => s.setBasemap);
   const freqFilter = useFreqFilter();
@@ -104,6 +109,14 @@ export default function App() {
       selectAllRoutes(routesMeta.map((r) => r.id));
     }
   }, [routesMeta, selectAllRoutes]);
+
+  // Sincronizar hoveredRouteId con el índice activo en hoveredRouteIds
+  useEffect(() => {
+    const activeId = hoveredRouteIds[hoverActiveIdx] ?? null;
+    if (activeId !== hoveredRouteId) {
+      setHoveredRouteId(activeId);
+    }
+  }, [hoveredRouteIds, hoverActiveIdx, hoveredRouteId, setHoveredRouteId]);
 
   useEffect(() => {
     if (routeSpeed && !speedFilter) {
@@ -239,7 +252,6 @@ export default function App() {
         createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
-          onHover: setHoveredRouteId,
           colorMode,
           serviceMetrics,
           routeSpeed,
@@ -269,7 +281,6 @@ export default function App() {
       routesGeojson,
       visibleRouteIds,
       hoveredRouteId,
-      setHoveredRouteId,
       colorMode,
       serviceMetrics,
       routeSpeed,
@@ -293,52 +304,11 @@ export default function App() {
     ]
   );
 
-  const hoveredFeature = useMemo(() => {
-    if (!hoveredRouteId || !routesGeojson) return null;
-    return routesGeojson.features.find(
-      (f) => f.properties.route_id === hoveredRouteId
-    );
-  }, [hoveredRouteId, routesGeojson]);
-
-  const hoveredFreqMin = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'offer' || !serviceMetrics) return null;
-    return bestFrequencyMinutes(
-      serviceMetrics,
-      hoveredFeature.properties.route_id,
-      timeFilter.dayOfWeek,
-      timeFilter.startHour,
-      timeFilter.endHour
-    );
-  }, [hoveredFeature, colorMode, serviceMetrics, timeFilter]);
-
-  const hoveredSpeed = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'speed' || !routeSpeed) return null;
-    return routeSpeed.byRoute[hoveredFeature.properties.route_id] ?? null;
-  }, [hoveredFeature, colorMode, routeSpeed]);
-
-  const hoveredDemand = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'demand' || !routeDemand) return null;
-    return routeDemand.byRoute[hoveredFeature.properties.route_id] ?? null;
-  }, [hoveredFeature, colorMode, routeDemand]);
-
-  const hoveredFleet = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'fleet' || !routeFleet) return null;
-    return fleetForRoute(routeFleet, hoveredFeature.properties.route_id, fleetDayType);
-  }, [hoveredFeature, colorMode, routeFleet, fleetDayType]);
-
-  const hoveredTortuosity = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'tortuosity' || !routeTortuosity) return null;
-    return tortuosityForRoute(routeTortuosity, hoveredFeature.properties.route_id);
-  }, [hoveredFeature, colorMode, routeTortuosity]);
-
-  const hoveredSchedule = useMemo(() => {
-    if (!hoveredFeature || colorMode !== 'schedule' || !routeSchedule) return null;
-    return scheduleSpanForRoute(routeSchedule, hoveredFeature.properties.route_id, scheduleDayType);
-  }, [hoveredFeature, colorMode, routeSchedule, scheduleDayType]);
 
   return (
     <div className="app">
       <DeckGL
+        ref={deckRef}
         viewState={viewState}
         onViewStateChange={({ viewState: next }) => setViewState(next)}
         controller={
@@ -353,6 +323,21 @@ export default function App() {
         }
         layers={layers}
         glOptions={{ powerPreference: 'default' }}
+        onHover={(info) => {
+          if (!info.object?.properties?.route_id) {
+            setHoveredRouteIds([]);
+            setHoverActiveIdx(0);
+            return;
+          }
+          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 10 }) ?? [];
+          const routeIds = [...new Set(
+            picks
+              .map((p) => p.object?.properties?.route_id)
+              .filter((id) => id && visibleRouteIds.has(id))
+          )];
+          setHoveredRouteIds(routeIds.length ? routeIds : [info.object.properties.route_id]);
+          setHoverActiveIdx(0);
+        }}
       >
         <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
       </DeckGL>
@@ -379,40 +364,17 @@ export default function App() {
         occupancyData={occupancyData}
       />
 
-      {hoveredFeature && (
-        <div className="hover-info">
-          <span
-            className="swatch"
-            style={{ background: `#${hoveredFeature.properties.route_color}` }}
-          />
-          <b>Línea {hoveredFeature.properties.route_short_name}</b>
-          <span className="long">{hoveredFeature.properties.route_long_name}</span>
-          {hoveredFreqMin !== null && (
-            <span className="offer">
-              {isFinite(hoveredFreqMin)
-                ? `cada ${hoveredFreqMin.toFixed(1)} min`
-                : 'no opera'}
-            </span>
-          )}
-          {hoveredSpeed && (
-            <span className="offer">{hoveredSpeed.speedKmh.toFixed(1)} km/h</span>
-          )}
-          {hoveredDemand && (
-            <span className="offer">
-              {hoveredDemand.dailyAvg.toLocaleString('es-ES')} viajeros/día
-            </span>
-          )}
-          {hoveredFleet != null && (
-            <span className="offer">{hoveredFleet} buses ({fleetDayType})</span>
-          )}
-          {hoveredTortuosity != null && (
-            <span className="offer">tortuosidad {hoveredTortuosity.toFixed(2)}</span>
-          )}
-          {hoveredSchedule != null && (
-            <span className="offer">{formatSpanMinutes(hoveredSchedule)} de servicio ({scheduleDayType})</span>
-          )}
-        </div>
-      )}
+      <RouteTooltip
+        activeRouteId={hoveredRouteIds[hoverActiveIdx]}
+        candidateIds={hoveredRouteIds}
+        activeIdx={hoverActiveIdx}
+        onSelectIdx={setHoverActiveIdx}
+        routesMeta={routesMeta}
+        routeSpeed={routeSpeed}
+        routeDemand={routeDemand}
+        serviceMetrics={serviceMetrics}
+        dayOfWeek={timeFilter.dayOfWeek}
+      />
 
       {hoveredStop && (
         <div className="hover-info stop">
