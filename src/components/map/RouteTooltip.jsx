@@ -11,6 +11,8 @@ export default function RouteTooltip({
   routeDemand,
   serviceMetrics,
   dayOfWeek,
+  onTooltipMouseEnter,
+  onTooltipMouseLeave,
 }) {
   if (!activeRouteId) return null;
 
@@ -37,7 +39,11 @@ export default function RouteTooltip({
   if (!routeMeta) return null;
 
   return (
-    <div className="hover-info">
+    <div
+      className="hover-info"
+      onMouseEnter={onTooltipMouseEnter}
+      onMouseLeave={onTooltipMouseLeave}
+    >
       <div className="route-header">
         <span
           className="swatch"
@@ -89,7 +95,7 @@ export default function RouteTooltip({
                   onClick={() => onSelectIdx(idx)}
                   title={`Ver línea ${meta?.shortName}`}
                 >
-                  {meta?.shortName}
+                  {idx === activeIdx ? '▶ ' : ''}{meta?.shortName}
                 </button>
               );
             })}

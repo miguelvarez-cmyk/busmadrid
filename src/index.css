@@ -260,6 +260,7 @@ html, body, #root {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 15;
   max-width: 380px;
+  cursor: default;
 }
 
 .hover-info .route-header {

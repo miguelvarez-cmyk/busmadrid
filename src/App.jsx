@@ -61,6 +61,8 @@ export default function App() {
   const setHoveredRouteIds = useMapStore((s) => s.setHoveredRouteIds);
   const [hoverActiveIdx, setHoverActiveIdx] = useState(0);
   const deckRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+  const isTooltipHoveredRef = useRef(false);
   const basemap = useBasemap();
   const setBasemap = useMapStore((s) => s.setBasemap);
   const freqFilter = useFreqFilter();
@@ -325,18 +327,23 @@ export default function App() {
         glOptions={{ powerPreference: 'default' }}
         onHover={(info) => {
           if (!info.object?.properties?.route_id) {
-            setHoveredRouteIds([]);
-            setHoverActiveIdx(0);
+            clearTimeout(hoverTimeoutRef.current);
+            hoverTimeoutRef.current = setTimeout(() => {
+              if (!isTooltipHoveredRef.current) {
+                setHoveredRouteIds([]);
+                setHoverActiveIdx(0);
+              }
+            }, 200);
             return;
           }
+          clearTimeout(hoverTimeoutRef.current);
           const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 60 }) ?? [];
           const routeIds = [...new Set(
             picks
               .map((p) => p.object?.properties?.route_id)
               .filter((id) => id && visibleRouteIds.has(id))
           )];
-          const newRouteIds = routeIds.length ? routeIds : [info.object.properties.route_id];
-          setHoveredRouteIds(newRouteIds);
+          setHoveredRouteIds(routeIds.length ? routeIds : [info.object.properties.route_id]);
           setHoverActiveIdx(0);
         }}
       >
@@ -375,6 +382,15 @@ export default function App() {
         routeDemand={routeDemand}
         serviceMetrics={serviceMetrics}
         dayOfWeek={timeFilter.dayOfWeek}
+        onTooltipMouseEnter={() => {
+          isTooltipHoveredRef.current = true;
+          clearTimeout(hoverTimeoutRef.current);
+        }}
+        onTooltipMouseLeave={() => {
+          isTooltipHoveredRef.current = false;
+          setHoveredRouteIds([]);
+          setHoverActiveIdx(0);
+        }}
       />
 
       {hoveredStop && (
