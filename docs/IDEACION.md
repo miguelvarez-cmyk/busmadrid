@@ -3,8 +3,8 @@
 Documento vivo con ideas de mejora para el **Visualizador GTFS Madrid**.
 Cada bloque indica **prioridad** (alta/media/baja), **complejidad** (S/M/L/XL) y **valor**.
 
-> Última actualización: 2026-05-06
-> Estado actual: rediseño de sidebar (6 secciones) finalizado, datos de expediciones por parada generados, ocupación media calculada cliente-side.
+> Última actualización: 2026-05-10
+> Estado actual: tooltip enriquecido con 6 campos + detección de líneas superpuestas (Tab para ciclar). Slider ocupación corregido. Colores consistentes en todos los paneles.
 
 ---
 
@@ -114,11 +114,8 @@ Mover `applyModeFilter`, `frequencyHistogram`, etc. a un worker cuando se proces
 
 ## 6. UX y acabado
 
-### 6.1 Hover info enriquecido — media · S
-El tooltip actual es un `div` flotante simple. Mejoras:
-- Mostrar siempre frecuencia + velocidad + ocupación (no solo el modo activo)
-- Mini-sparkline horaria
-- Posición fija (esquina inferior izq) en lugar de seguir el cursor
+### 6.1 ~~Hover info enriquecido~~ — ✅ completado (2026-05-10)
+Tooltip muestra siempre nº, nombre, longitud, horario, velocidad y demanda. Detecta líneas superpuestas (radio 200 px) y permite ciclar entre ellas con Tab / Shift+Tab.
 
 ### 6.2 Leyenda persistente — ⭐ alta · S
 Cuando hay un `colorMode` activo, mostrar una leyenda flotante (esquina superior derecha) con la escala de color y rangos. Hoy la leyenda solo aparece en el panel del sidebar, que puede estar cerrado.
@@ -176,8 +173,8 @@ Permitiría iterar visualmente sobre `OtrosPanel`, `DistrictsPanel`, etc. sin le
 
 ## Roadmap sugerido (próximas 3 sesiones)
 
-1. **Sesión próxima:** verificar el rediseño actual end-to-end, commit + cleanup, **leyenda persistente (6.2)** + **estado en URL (3.2)**.
-2. **Sesión +1:** **drawer de detalle de línea (3.3)** + **búsqueda por dirección (3.1)**.
+1. **Sesión próxima:** **leyenda persistente (6.2)** + **estado compartible vía URL (3.2)**.
+2. **Sesión +1:** **drawer de detalle de línea (3.3)** + **búsqueda por dirección/parada (3.1)**.
 3. **Sesión +2:** **animación temporal (2.1)** + **métricas agregadas por barrio (1.2)**.
 
 GTFS-RT (4.1) queda fuera del roadmap inmediato porque depende de acceso a la API.

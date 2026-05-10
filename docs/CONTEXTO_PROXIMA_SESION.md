@@ -1,125 +1,95 @@
 # Contexto para la próxima sesión
 
-> Sesión cerrada: 2026-05-06 (tarde)
-> Esta sesión estandarizó los gradientes de color a **verde → amarillo → rojo** en todos los paneles, histogramas y capas del mapa. Lee este documento al inicio de la próxima sesión para retomar contexto.
+> Sesión cerrada: 2026-05-10
+> Esta sesión implementó el tooltip enriquecido con detección de líneas superpuestas y navegación por teclado. Lee este documento al inicio de la próxima sesión.
 
 ---
 
 ## Lo que hizo esta sesión
 
-Cambios de consistencia visual: todos los histogramas y capas ahora usan el mismo gradiente **verde → amarillo → rojo**.
+### 1. Slider pax/expedición corregido
+El máximo del slider estaba ligado al valor del filtro en vez de al máximo de los datos. Ahora `maxOccupancy` se calcula una sola vez sobre `occupancyData` y el slider es estable.
 
-### Cambios implementados
+### 2. Basemaps reorganizados
+Orden definitivo: **Oscuro · Claro · Mapa · Foto**. Se añadió CARTO Light como fondo claro (un poco más oscuro que Positron). La sección Líneas arranca colapsada por defecto.
 
-1. **Gradiente verde→amarillo→rojo en `service.js`:**
-   - `stopRoutesColor()` — de colores discretos (blues/violets) a gradiente verde→amarillo→rojo
-   - `fleetColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
-   - `demandColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
-   - `speedColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
-   - `scheduleColor()` — de rojo→amarillo→verde a verde→amarillo→rojo
+### 3. Consistencia de colores corregida
+- `demandColor()`, `fleetColor()` tenían el gradiente invertido (rojo→verde). Corregidos a verde→amarillo→rojo.
+- `stopRoutesColor()` y `stopExpeditionsColor()` en `createStopsLayer` también corregidos.
+- `occupancyColorForRoute()` en `createRoutesLayer` corregido.
 
-2. **Histogramas actualizados a verde→amarillo→rojo:**
-   - `StopExpeditionsPanel` — expediciones hora punta
-   - `OtrosPanel` — ocupación (pax/expedición)
+### 4. Tooltip enriquecido — nuevo componente `RouteTooltip.jsx`
 
-3. **Capas de mapa actualizadas:**
-   - `createStopsLayer` — paradas por nº de líneas y expediciones
-   - `createRoutesLayer` — `occupancyColorForRoute()` para modo ocupación
+Muestra siempre (independientemente del colorMode):
+- Swatch de color + número y nombre de la línea
+- Grid 2×2: **Longitud** · **Horario** (hh:mm – hh:mm) · **Velocidad** · **Demanda**
 
-4. **Botón "Ocultar líneas" en paradas:**
-   - Nuevo botón en `StopRoutesPanel` que vacía la selección de líneas
+Horario derivado de `serviceMetrics` con la función `scheduleRangeFromMetrics()` en `service.js` (precisión ±1 h, sin reprocesar GTFS).
 
-5. **CLAUDE.md actualizado:**
-   - Sección "Gradiente de color — consistencia global" con fórmula de interpolación verde→amarillo→rojo
+### 5. Detección de líneas superpuestas — `pickObjects`
+`DeckGL.onHover` usa `deckRef.current.pickObjects({ radius: 200 })` para capturar todas las líneas en un radio de 200 px alrededor del cursor.
 
-### Fórmula de gradiente (documentada en CLAUDE.md)
+### 6. Navegación por teclado entre líneas
+- **Tab** avanza a la siguiente línea detectada; **Shift+Tab** retrocede.
+- Los indicadores visuales (pills) muestran todas las líneas; el activo aparece en azul con prefijo `▶`.
+- El label dice `Tab ↹ para ciclar · 1/3`.
 
-```js
-if (t < 0.5) {
-  const k = t / 0.5;  // verde→amarillo
-  return [
-    Math.round(50 + 170 * k),   // R: 50→220
-    200,                        // G: constante
-    50,                         // B: constante
-  ];
-}
-const k = (t - 0.5) / 0.5;  // amarillo→rojo
-return [
-  220,                        // R: constante
-  Math.round(200 - 150 * k),  // G: 200→50
-  50,                         // B: constante
-];
-```
-
-### Archivos modificados
-
-- `src/utils/service.js` — `stopRoutesColor()`, `fleetColor()`, `demandColor()`
-- `src/components/map/StopExpeditionsPanel.jsx` — buckets con gradiente verde→rojo
-- `src/components/map/OtrosPanel.jsx` — occupancyBuckets con gradiente verde→rojo + step del slider
-- `src/components/map/StopRoutesPanel.jsx` — nuevo botón "Ocultar líneas"
-- `CLAUDE.md` — nueva sección sobre consistencia de gradientes
+### 7. Tooltip que no desaparece al mover el ratón
+Patrón timeout + ref: cuando el cursor sale de una línea se espera 200 ms antes de limpiar. Si el cursor entra al tooltip en ese tiempo, el timeout se cancela. Al salir del tooltip el estado se limpia.
 
 ---
 
 ## Estado git al cerrar
 
-```
-Modificados (no commiteados):
- M src/utils/service.js
- M src/components/map/OtrosPanel.jsx
- M src/components/map/StopExpeditionsPanel.jsx
- M src/components/map/StopRoutesPanel.jsx
- M CLAUDE.md
-```
+Rama `main` sincronizada con `origin/main`. Último commit: `19d32ae Sube radio de detección de líneas superpuestas a 200px`.
 
-**Pendiente:** commit y push
+```
+10 commits nuevos en esta sesión:
+19d32ae Sube radio de detección de líneas superpuestas a 200px
+a638914 Cambia ciclo de líneas en tooltip a tecla Tab
+4cc8f7a Corrige tooltip: no desaparece al mover el ratón hacia él
+ac76153 Aumenta radio de detección de líneas superpuestas a 60px
+9c4c258 Mejora tooltip: detección de líneas superpuestas más amplia y pills más visibles
+03d5d61 Tooltip enriquecido con navegación entre líneas superpuestas
+```
 
 ---
 
-## ✅ Verificación visual realizada
-
-El build (`npm run build`) pasó sin errores. Dev server (`npm run dev`) arrancó correctamente.
-
-**Próxima sesión: verificar en navegador:**
-
-- [ ] Histogramas de Flota/Demanda/Ocupación con gradiente verde→rojo (antes: rojo→amarillo→verde)
-- [ ] Histogramas de paradas (nº líneas) con gradiente verde→rojo (antes: azules/violetas)
-- [ ] Histogramas de expediciones con gradiente verde→rojo (antes: azul→rojo)
-- [ ] RangeSlider de ocupación funciona correctamente (step 0.1)
-- [ ] Botón "Ocultar líneas" en StopRoutesPanel funciona (limpia selectedRouteIds)
-- [ ] Mobile: todo funciona en responsive
-
----
-
-## Mapa de archivos clave modificados
+## Archivos clave modificados esta sesión
 
 ```
-visualizador_GTFS_Madrid/
-├── CLAUDE.md                                     # Añadida sección de gradientes
-├── src/
-│   ├── utils/service.js                         # stopRoutesColor, fleetColor, demandColor
-│   └── components/map/
-│       ├── StopRoutesPanel.jsx                  # Nuevo botón "Ocultar líneas"
-│       ├── StopExpeditionsPanel.jsx             # Buckets con gradiente verde→rojo
-│       └── OtrosPanel.jsx                       # Buckets ocupancy + step slider
+src/
+├── App.jsx                         # deckRef, hoverTimeoutRef, isTooltipHoveredRef,
+│                                   #  onHover con pickObjects(200), useEffect Tab
+├── store/useMapStore.js            # hoveredRouteIds, setHoveredRouteIds, useHoveredRouteIds
+├── components/map/
+│   ├── RouteTooltip.jsx            # nuevo componente (tooltip enriquecido + pills Tab)
+│   ├── OtrosPanel.jsx              # slider ocupación con maxOccupancy fijo
+│   └── Sidebar.jsx                 # sección Líneas colapsada por defecto
+├── layers/
+│   ├── createRoutesLayer.js        # occupancyColorForRoute corregido, onHover eliminado
+│   └── createStopsLayer.js         # gradientes de paradas corregidos
+├── utils/service.js                # scheduleRangeFromMetrics(), demandColor/fleetColor corregidos
+├── config/mapConfig.js             # CARTO Light añadido, orden Oscuro·Claro·Mapa·Foto
+└── index.css                       # estilos tooltip: route-header, route-stats, route-pills, pills
 ```
 
 ---
 
 ## Para arrancar la próxima sesión
 
-1. `git status` → confirmar que sigue todo modificado/no committed
+1. `git pull` → confirmar que está al día
 2. `npm run dev` → abrir en navegador
-3. Verificar checklist visual de arriba
-4. Si todo funciona: commit + push
-5. Mirar [docs/IDEACION.md](IDEACION.md) → continuar con features de alto impacto
+3. Verificar tooltip: pasar cursor sobre tramos concurridos (Gran Vía, Castellana) → Tab cicla entre líneas
+4. Mirar [docs/IDEACION.md](IDEACION.md) → continuar con features de alto impacto
 
 ---
 
 ## Roadmap a partir de aquí
 
-Del [docs/IDEACION.md](IDEACION.md), prioridad alta:
-- **6.2 Leyenda persistente** — mostrar escala de color cuando `colorMode` está activo
-- **3.2 Estado compartible vía URL** — sincronizar líneas seleccionadas, modo, viewport
-- **3.3 Drawer de detalle de línea** — click en línea → panel lateral con info
-- **3.1 Búsqueda por dirección/parada** — barra de búsqueda con autocompletado
+Del [docs/IDEACION.md](IDEACION.md), por prioridad:
+
+- **6.2 Leyenda persistente** — escala de color flotante cuando `colorMode` está activo
+- **3.2 Estado compartible vía URL** — sincronizar líneas, modo, viewport con `nuqs`
+- **3.3 Drawer de detalle de línea** — click en línea → panel lateral con info completa
+- **3.1 Búsqueda por dirección/parada** — barra con autocompletado (Nominatim + paradas)
