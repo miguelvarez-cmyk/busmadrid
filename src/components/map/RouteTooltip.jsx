@@ -5,7 +5,6 @@ export default function RouteTooltip({
   activeRouteId,
   candidateIds,
   activeIdx,
-  onSelectIdx,
   routesMeta,
   routeSpeed,
   routeDemand,
@@ -84,19 +83,19 @@ export default function RouteTooltip({
 
       {candidateIds.length > 1 && (
         <div className="route-pills">
-          <span className="pills-label">Otras líneas en este tramo:</span>
+          <span className="pills-label">
+            Tab ↹ para ciclar · {activeIdx + 1}/{candidateIds.length}
+          </span>
           <div className="pills">
             {candidateIds.map((id, idx) => {
               const meta = routesMeta?.find((r) => r.id === id);
               return (
-                <button
+                <span
                   key={id}
                   className={`route-pill ${idx === activeIdx ? 'active' : ''}`}
-                  onClick={() => onSelectIdx(idx)}
-                  title={`Ver línea ${meta?.shortName}`}
                 >
                   {idx === activeIdx ? '▶ ' : ''}{meta?.shortName}
-                </button>
+                </span>
               );
             })}
           </div>

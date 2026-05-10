@@ -120,6 +120,22 @@ export default function App() {
     }
   }, [hoveredRouteIds, hoverActiveIdx, hoveredRouteId, setHoveredRouteId]);
 
+  // Tab / Shift+Tab cicla entre líneas superpuestas
+  useEffect(() => {
+    if (hoveredRouteIds.length <= 1) return;
+    const len = hoveredRouteIds.length;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        setHoverActiveIdx((prev) =>
+          e.shiftKey ? (prev - 1 + len) % len : (prev + 1) % len
+        );
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [hoveredRouteIds.length]);
+
   useEffect(() => {
     if (routeSpeed && !speedFilter) {
       setSpeedFilter([Math.floor(routeSpeed.min), Math.ceil(routeSpeed.max)]);
@@ -376,7 +392,6 @@ export default function App() {
         activeRouteId={hoveredRouteIds[hoverActiveIdx]}
         candidateIds={hoveredRouteIds}
         activeIdx={hoverActiveIdx}
-        onSelectIdx={setHoverActiveIdx}
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}

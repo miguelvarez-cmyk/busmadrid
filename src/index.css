@@ -353,22 +353,14 @@ html, body, #root {
 }
 
 .route-pill {
-  background: #fff;
+  background: #f0f0f0;
   border: 2px solid #d0d0d0;
-  color: #444;
-  padding: 5px 10px;
+  color: #666;
+  padding: 4px 9px;
   border-radius: 5px;
   font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 150ms ease;
   user-select: none;
-}
-
-.route-pill:hover {
-  background: #e8e8e8;
-  border-color: #888;
-  transform: scale(1.08);
 }
 
 .route-pill.active {
