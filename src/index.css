@@ -352,26 +352,29 @@ html, body, #root {
 }
 
 .route-pill {
-  background: #f0f0f0;
-  border: 1px solid #d0d0d0;
+  background: #fff;
+  border: 2px solid #d0d0d0;
   color: #444;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 150ms ease;
+  user-select: none;
 }
 
 .route-pill:hover {
   background: #e8e8e8;
-  border-color: #b0b0b0;
+  border-color: #888;
+  transform: scale(1.08);
 }
 
 .route-pill.active {
-  background: #1a1a1a;
+  background: #2a5a9c;
   color: #fff;
-  border-color: #1a1a1a;
+  border-color: #1a3a6c;
+  box-shadow: 0 2px 6px rgba(42, 90, 156, 0.3);
 }
 
 .viz-controls {

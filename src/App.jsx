@@ -329,13 +329,14 @@ export default function App() {
             setHoverActiveIdx(0);
             return;
           }
-          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 10 }) ?? [];
+          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 20 }) ?? [];
           const routeIds = [...new Set(
             picks
               .map((p) => p.object?.properties?.route_id)
               .filter((id) => id && visibleRouteIds.has(id))
           )];
-          setHoveredRouteIds(routeIds.length ? routeIds : [info.object.properties.route_id]);
+          const newRouteIds = routeIds.length ? routeIds : [info.object.properties.route_id];
+          setHoveredRouteIds(newRouteIds);
           setHoverActiveIdx(0);
         }}
       >

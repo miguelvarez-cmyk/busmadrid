@@ -78,7 +78,7 @@ export default function RouteTooltip({
 
       {candidateIds.length > 1 && (
         <div className="route-pills">
-          <span className="pills-label">También:</span>
+          <span className="pills-label">Otras líneas en este tramo:</span>
           <div className="pills">
             {candidateIds.map((id, idx) => {
               const meta = routesMeta?.find((r) => r.id === id);
