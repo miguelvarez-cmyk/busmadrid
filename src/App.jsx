@@ -353,7 +353,7 @@ export default function App() {
             return;
           }
           clearTimeout(hoverTimeoutRef.current);
-          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 60 }) ?? [];
+          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 200 }) ?? [];
           const routeIds = [...new Set(
             picks
               .map((p) => p.object?.properties?.route_id)
