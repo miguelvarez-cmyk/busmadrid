@@ -35,13 +35,17 @@ const SATELLITE_STYLE = {
 // Dark Matter (CARTO): mapa base en grises oscuros con el viario muy legible
 const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
+// Positron (CARTO): mapa base claro con colores suaves
+const LIGHT_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
 export const BASEMAPS = {
+  dark: { id: 'dark', label: 'Oscuro', style: DARK_STYLE },
+  light: { id: 'light', label: 'Claro', style: LIGHT_STYLE },
   osm: { id: 'osm', label: 'Mapa', style: OSM_STYLE },
-  dark: { id: 'dark', label: 'Claro', style: DARK_STYLE },
   satellite: { id: 'satellite', label: 'Foto', style: SATELLITE_STYLE },
 };
 
-export const BASEMAP_ORDER = ['dark', 'osm', 'satellite'];
+export const BASEMAP_ORDER = ['dark', 'light', 'osm', 'satellite'];
 export const DEFAULT_BASEMAP = 'dark';
 
 export const INITIAL_VIEW_STATE = {

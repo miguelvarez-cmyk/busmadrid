@@ -49,7 +49,7 @@ export default function Sidebar({
 }) {
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
   const [isOpen, setIsOpen] = useState(!isMobile);
-  const [openSections, setOpenSections] = useState(() => new Set(['lineas']));
+  const [openSections, setOpenSections] = useState(() => new Set());
 
   const toggleSection = (id) => {
     setOpenSections((prev) => {
