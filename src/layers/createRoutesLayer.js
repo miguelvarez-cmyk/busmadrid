@@ -110,14 +110,14 @@ function occupancyColorForRoute(occupancyData, routeId) {
   let r, g, b;
   if (t < 0.5) {
     const k = t / 0.5;
-    r = Math.round(220);
-    g = Math.round(60 + 180 * k);
+    r = Math.round(50 + 170 * k);
+    g = 200;
     b = 50;
   } else {
     const k = (t - 0.5) / 0.5;
-    r = Math.round(220 - 180 * k);
-    g = Math.round(240 - 90 * k);
-    b = Math.round(50 + 30 * k);
+    r = 220;
+    g = Math.round(200 - 150 * k);
+    b = 50;
   }
   return [r, g, b];
 }

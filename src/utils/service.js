@@ -188,10 +188,10 @@ export function demandColor(dailyAvg, min, max) {
   const t = Math.max(0, Math.min(1, (Math.log10(dailyAvg) - lMin) / (lMax - lMin)));
   if (t < 0.5) {
     const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
+    return [Math.round(50 + 170 * k), 200, 50];
   }
   const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [220, Math.round(200 - 150 * k), 50];
 }
 
 export function demandColorForRoute(demand, routeId) {
@@ -256,10 +256,10 @@ export function fleetColor(buses, min, max) {
   const t = Math.max(0, Math.min(1, (buses - min) / (max - min)));
   if (t < 0.5) {
     const k = t / 0.5;
-    return [220, Math.round(60 + 180 * k), 50];
+    return [Math.round(50 + 170 * k), 200, 50];
   }
   const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 180 * k), 240, Math.round(50 + 30 * k)];
+  return [220, Math.round(200 - 150 * k), 50];
 }
 
 export function fleetForRoute(fleet, routeId, dayType) {
