@@ -329,7 +329,7 @@ export default function App() {
             setHoverActiveIdx(0);
             return;
           }
-          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 20 }) ?? [];
+          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 60 }) ?? [];
           const routeIds = [...new Set(
             picks
               .map((p) => p.object?.properties?.route_id)
