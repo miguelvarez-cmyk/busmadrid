@@ -79,11 +79,17 @@ export default function OtrosPanel({
     [colorMode, routeDemand, demandRouteIds, demandFilter]
   );
 
+  const maxOccupancy = useMemo(() => {
+    if (!occupancyData || Object.keys(occupancyData).length === 0) return 1;
+    const values = Object.values(occupancyData).filter((v) => v > 0);
+    return values.length > 0 ? Math.max(...values) : 1;
+  }, [occupancyData]);
+
   const occupancyBuckets = useMemo(() => {
     if (colorMode !== 'occupancy' || !occupancyData || occupancyFilter == null) return [];
     const values = Object.values(occupancyData).filter((v) => v > 0);
     if (values.length === 0) return [];
-    const maxVal = Math.max(...values);
+    const maxVal = maxOccupancy;
     const binWidth = Math.max(1, Math.ceil(maxVal / 20));
     const nBins = Math.ceil(maxVal / binWidth) + 1;
     const counts = new Array(nBins).fill(0);
@@ -100,16 +106,16 @@ export default function OtrosPanel({
       if (t < 0.5) {
         const k = t / 0.5;
         color = [
-          Math.round(220),
-          Math.round(60 + 180 * k),
+          Math.round(50 + 170 * k),
+          200,
           50,
         ];
       } else {
         const k = (t - 0.5) / 0.5;
         color = [
-          Math.round(220 - 180 * k),
-          Math.round(240 - 90 * k),
-          Math.round(50 + 30 * k),
+          220,
+          Math.round(200 - 150 * k),
+          50,
         ];
       }
       return {
@@ -119,7 +125,7 @@ export default function OtrosPanel({
         inRange: binLo <= fMax && binHi > fMin,
       };
     });
-  }, [colorMode, occupancyData, occupancyFilter]);
+  }, [colorMode, occupancyData, occupancyFilter, maxOccupancy]);
 
   if (!routeFleet && !routeDemand && !occupancyData) return null;
 
@@ -247,7 +253,7 @@ export default function OtrosPanel({
               <Histogram buckets={occupancyBuckets} />
               <RangeSlider
                 min={0}
-                max={occupancyFilter[1]}
+                max={maxOccupancy}
                 step={0.1}
                 value={occupancyFilter}
                 onChange={setOccupancyFilter}
