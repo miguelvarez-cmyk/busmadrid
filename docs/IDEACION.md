@@ -3,8 +3,8 @@
 Documento vivo con ideas de mejora para el **Visualizador GTFS Madrid**.
 Cada bloque indica **prioridad** (alta/media/baja), **complejidad** (S/M/L/XL) y **valor**.
 
-> Última actualización: 2026-05-10
-> Estado actual: tooltip enriquecido con 6 campos + detección de líneas superpuestas (Tab para ciclar). Slider ocupación corregido. Colores consistentes en todos los paneles.
+> Última actualización: 2026-05-12
+> Estado actual: tooltip enriquecido con 6 campos + detección de líneas superpuestas (80 m reales, mín 15 px, Tab para ciclar). Slider ocupación corregido. Colores consistentes en todos los paneles.
 
 ---
 
@@ -114,8 +114,8 @@ Mover `applyModeFilter`, `frequencyHistogram`, etc. a un worker cuando se proces
 
 ## 6. UX y acabado
 
-### 6.1 ~~Hover info enriquecido~~ — ✅ completado (2026-05-10)
-Tooltip muestra siempre nº, nombre, longitud, horario, velocidad y demanda. Detecta líneas superpuestas (radio 200 px) y permite ciclar entre ellas con Tab / Shift+Tab.
+### 6.1 ~~Hover info enriquecido~~ — ✅ completado (2026-05-12)
+Tooltip muestra siempre nº, nombre, longitud, horario, velocidad y demanda. Detecta líneas superpuestas (80 m reales, mín 15 px) y permite ciclar entre ellas con Tab / Shift+Tab.
 
 ### 6.2 Leyenda persistente — ⭐ alta · S
 Cuando hay un `colorMode` activo, mostrar una leyenda flotante (esquina superior derecha) con la escala de color y rangos. Hoy la leyenda solo aparece en el panel del sidebar, que puede estar cerrado.

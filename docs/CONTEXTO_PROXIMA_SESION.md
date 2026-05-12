@@ -1,56 +1,49 @@
 # Contexto para la próxima sesión
 
-> Sesión cerrada: 2026-05-10
-> Esta sesión implementó el tooltip enriquecido con detección de líneas superpuestas y navegación por teclado. Lee este documento al inicio de la próxima sesión.
+> Sesión cerrada: 2026-05-12
+> Esta sesión ajustó el radio de detección del tooltip enriquecido de píxeles fijos a metros reales. Lee este documento al inicio de la próxima sesión.
 
 ---
 
 ## Lo que hizo esta sesión
 
-### 1. Slider pax/expedición corregido
-El máximo del slider estaba ligado al valor del filtro en vez de al máximo de los datos. Ahora `maxOccupancy` se calcula una sola vez sobre `occupancyData` y el slider es estable.
+### Radio de detección del tooltip: de 200 px fijos a 80 m reales
 
-### 2. Basemaps reorganizados
-Orden definitivo: **Oscuro · Claro · Mapa · Foto**. Se añadió CARTO Light como fondo claro (un poco más oscuro que Positron). La sección Líneas arranca colapsada por defecto.
+El `pickObjects` en `DeckGL.onHover` usaba `radius: 200` (píxeles de pantalla), lo que a zoom bajo detectaba rutas a kilómetros de distancia real.
 
-### 3. Consistencia de colores corregida
-- `demandColor()`, `fleetColor()` tenían el gradiente invertido (rojo→verde). Corregidos a verde→amarillo→rojo.
-- `stopRoutesColor()` y `stopExpeditionsColor()` en `createStopsLayer` también corregidos.
-- `occupancyColorForRoute()` en `createRoutesLayer` corregido.
+**Cambio implementado en `src/App.jsx`:**
+```js
+const viewport = deckRef.current?.deck?.getViewports()?.[0];
+const pixelsPerMeter = viewport?.getDistanceScales()?.pixelsPerMeter?.[0] ?? 1;
+const radiusPx = Math.max(15, Math.round(80 * pixelsPerMeter));
+const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: radiusPx }) ?? [];
+```
 
-### 4. Tooltip enriquecido — nuevo componente `RouteTooltip.jsx`
+- Se obtiene el viewport activo de Deck.gl y se usa `getDistanceScales().pixelsPerMeter` para convertir 80 metros a píxeles en el zoom actual.
+- `Math.max(15, ...)` garantiza un mínimo de 15 px para que el tooltip funcione a zoom bajo (sin el mínimo, 80 m a zoom 11 = 1 px, prácticamente indetectable).
 
-Muestra siempre (independientemente del colorMode):
-- Swatch de color + número y nombre de la línea
-- Grid 2×2: **Longitud** · **Horario** (hh:mm – hh:mm) · **Velocidad** · **Demanda**
+**Comportamiento por zoom:**
 
-Horario derivado de `serviceMetrics` con la función `scheduleRangeFromMetrics()` en `service.js` (precisión ±1 h, sin reprocesar GTFS).
-
-### 5. Detección de líneas superpuestas — `pickObjects`
-`DeckGL.onHover` usa `deckRef.current.pickObjects({ radius: 200 })` para capturar todas las líneas en un radio de 200 px alrededor del cursor.
-
-### 6. Navegación por teclado entre líneas
-- **Tab** avanza a la siguiente línea detectada; **Shift+Tab** retrocede.
-- Los indicadores visuales (pills) muestran todas las líneas; el activo aparece en azul con prefijo `▶`.
-- El label dice `Tab ↹ para ciclar · 1/3`.
-
-### 7. Tooltip que no desaparece al mover el ratón
-Patrón timeout + ref: cuando el cursor sale de una línea se espera 200 ms antes de limpiar. Si el cursor entra al tooltip en ese tiempo, el timeout se cancela. Al salir del tooltip el estado se limpia.
+| Zoom | 80 m en px | Radio final |
+|------|-----------|-------------|
+| 11   | 1 px      | 15 px (mín) |
+| 13   | 6 px      | 15 px (mín) |
+| 14   | 11 px     | 15 px (mín) |
+| 15   | 22 px     | 22 px ✓     |
+| 16   | 44 px     | 44 px ✓     |
 
 ---
 
 ## Estado git al cerrar
 
-Rama `main` sincronizada con `origin/main`. Último commit: `19d32ae Sube radio de detección de líneas superpuestas a 200px`.
+Rama `main` sincronizada con `origin/main`. Último commit: `6de5fdb Convierte radio de detección del tooltip a metros reales (80 m)`.
 
 ```
-10 commits nuevos en esta sesión:
+6de5fdb Convierte radio de detección del tooltip a metros reales (80 m)
+ff30c19 Actualiza documentación: tooltip enriquecido y cierre de sesión
 19d32ae Sube radio de detección de líneas superpuestas a 200px
 a638914 Cambia ciclo de líneas en tooltip a tecla Tab
 4cc8f7a Corrige tooltip: no desaparece al mover el ratón hacia él
-ac76153 Aumenta radio de detección de líneas superpuestas a 60px
-9c4c258 Mejora tooltip: detección de líneas superpuestas más amplia y pills más visibles
-03d5d61 Tooltip enriquecido con navegación entre líneas superpuestas
 ```
 
 ---
@@ -59,19 +52,7 @@ ac76153 Aumenta radio de detección de líneas superpuestas a 60px
 
 ```
 src/
-├── App.jsx                         # deckRef, hoverTimeoutRef, isTooltipHoveredRef,
-│                                   #  onHover con pickObjects(200), useEffect Tab
-├── store/useMapStore.js            # hoveredRouteIds, setHoveredRouteIds, useHoveredRouteIds
-├── components/map/
-│   ├── RouteTooltip.jsx            # nuevo componente (tooltip enriquecido + pills Tab)
-│   ├── OtrosPanel.jsx              # slider ocupación con maxOccupancy fijo
-│   └── Sidebar.jsx                 # sección Líneas colapsada por defecto
-├── layers/
-│   ├── createRoutesLayer.js        # occupancyColorForRoute corregido, onHover eliminado
-│   └── createStopsLayer.js         # gradientes de paradas corregidos
-├── utils/service.js                # scheduleRangeFromMetrics(), demandColor/fleetColor corregidos
-├── config/mapConfig.js             # CARTO Light añadido, orden Oscuro·Claro·Mapa·Foto
-└── index.css                       # estilos tooltip: route-header, route-stats, route-pills, pills
+└── App.jsx    # onHover: radius dinámico (80 m reales, mín 15 px)
 ```
 
 ---
@@ -80,7 +61,7 @@ src/
 
 1. `git pull` → confirmar que está al día
 2. `npm run dev` → abrir en navegador
-3. Verificar tooltip: pasar cursor sobre tramos concurridos (Gran Vía, Castellana) → Tab cicla entre líneas
+3. Verificar tooltip a distintos zooms: zoom 13 (parada 5378, 10+ líneas) y zoom 16 (radio más restrictivo)
 4. Mirar [docs/IDEACION.md](IDEACION.md) → continuar con features de alto impacto
 
 ---
