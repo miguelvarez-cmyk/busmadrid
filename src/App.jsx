@@ -353,7 +353,10 @@ export default function App() {
             return;
           }
           clearTimeout(hoverTimeoutRef.current);
-          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: 200 }) ?? [];
+          const viewport = deckRef.current?.deck?.getViewports()?.[0];
+          const pixelsPerMeter = viewport?.getDistanceScales()?.pixelsPerMeter?.[0] ?? 1;
+          const radiusPx = Math.max(15, Math.round(80 * pixelsPerMeter));
+          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: radiusPx }) ?? [];
           const routeIds = [...new Set(
             picks
               .map((p) => p.object?.properties?.route_id)
