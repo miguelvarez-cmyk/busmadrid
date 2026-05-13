@@ -47,11 +47,7 @@ STAT_DISTANCES = [100, 200, 400, 800]
 
 
 def _route_id_to_key(route_id: str) -> str:
-    """Convierte route_id al formato de 3 dígitos usado en el GTFS de busmadrid."""
-    try:
-        return str(int(route_id)).zfill(3)
-    except ValueError:
-        return route_id
+    return route_id
 
 
 def adapt(input_path: Path) -> None:
