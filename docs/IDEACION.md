@@ -3,8 +3,8 @@
 Documento vivo con ideas de mejora para el **Visualizador GTFS Madrid**.
 Cada bloque indica **prioridad** (alta/media/baja), **complejidad** (S/M/L/XL) y **valor**.
 
-> Última actualización: 2026-05-12
-> Estado actual: tooltip enriquecido con 6 campos + detección de líneas superpuestas (80 m reales, mín 15 px, Tab para ciclar). Slider ocupación corregido. Colores consistentes en todos los paneles.
+> Última actualización: 2026-05-13
+> Estado actual: tooltip enriquecido, leyenda de color flotante, URL sync, drawer de detalle de línea y buscador de paradas/direcciones implementados.
 
 ---
 
@@ -59,24 +59,14 @@ Resaltar líneas o tramos horarios donde el intervalo entre expediciones supera 
 
 ## 3. Posicionamiento e interacción
 
-### 3.1 Búsqueda por dirección/parada — ⭐ alta · M
-Barra de búsqueda con autocompletado:
-- Direcciones (geocoding via Nominatim/Photon)
-- Paradas por nombre o código
-- Click → centra mapa, opcionalmente filtra a líneas que sirven la parada
+### 3.1 ~~Búsqueda por dirección/parada~~ — ✅ completado (2026-05-13)
+Barra flotante centrada en la parte superior del mapa. Búsqueda local de paradas (por nombre/código) + geocodificación Nominatim acotada a Madrid. Click → anima viewport a la ubicación.
 
-### 3.2 Estado compartible vía URL — ⭐ alta · S
-Sincronizar a la URL: líneas seleccionadas, modo de color, rango horario, viewport, basemap. Permite compartir vistas concretas (#/líneas=27,14&modo=frecuencia&hora=8-10).
+### 3.2 ~~Estado compartible vía URL~~ — ✅ completado (2026-05-13)
+Hook `useUrlSync` sincroniza viewport, colorMode, selectedRouteIds, basemap, showStops y stopColorMode con `?search`. Sin dependencias externas. Debounce 300 ms, `replaceState` sin crear historial.
 
-**Librería:** `nuqs` o querystring manual + zustand persist.
-
-### 3.3 Detalle de línea (drawer) — ⭐ alta · M
-Click sobre una línea o sobre su nombre → drawer lateral con:
-- Cabecera con código + nombre + color
-- Diagrama lineal de paradas (lista vertical)
-- Mini-histograma de frecuencias
-- Datos de flota y demanda
-- Botón "Centrar en mapa"
+### 3.3 ~~Detalle de línea (drawer)~~ — ✅ completado (2026-05-13)
+Panel lateral derecho (340px) al hacer click en una línea. Muestra: longitud, duración, velocidad, demanda, flota, horario + gráfico de barras 24h de expediciones + botón "Centrar en mapa". En móvil: panel inferior (72dvh). Cierre con ×, Escape o click en mapa vacío.
 
 ### 3.4 Selección por trazado — baja · L
 Dibujar una línea/polígono libre y seleccionar las paradas o líneas que lo intersecan. Complementa el "Área" actual (rectángulo).
@@ -117,8 +107,8 @@ Mover `applyModeFilter`, `frequencyHistogram`, etc. a un worker cuando se proces
 ### 6.1 ~~Hover info enriquecido~~ — ✅ completado (2026-05-12)
 Tooltip muestra siempre nº, nombre, longitud, horario, velocidad y demanda. Detecta líneas superpuestas (80 m reales, mín 15 px) y permite ciclar entre ellas con Tab / Shift+Tab.
 
-### 6.2 Leyenda persistente — ⭐ alta · S
-Cuando hay un `colorMode` activo, mostrar una leyenda flotante (esquina superior derecha) con la escala de color y rangos. Hoy la leyenda solo aparece en el panel del sidebar, que puede estar cerrado.
+### 6.2 ~~Leyenda persistente~~ — ✅ completado (2026-05-13)
+Componente `ColorLegend` centrado en la parte inferior del mapa. Gradiente verde→amarillo→rojo con etiquetas de mín/máx para modos continuos; chips de colores categóricos para frecuencia y tortuosidad.
 
 ### 6.3 Estado vacío más informativo — baja · S
 Cuando no hay líneas seleccionadas, en lugar de mapa vacío, ofrecer atajos: "Ver todas las nocturnas", "Mostrar líneas del distrito Centro".
@@ -173,8 +163,8 @@ Permitiría iterar visualmente sobre `OtrosPanel`, `DistrictsPanel`, etc. sin le
 
 ## Roadmap sugerido (próximas 3 sesiones)
 
-1. **Sesión próxima:** **leyenda persistente (6.2)** + **estado compartible vía URL (3.2)**.
-2. **Sesión +1:** **drawer de detalle de línea (3.3)** + **búsqueda por dirección/parada (3.1)**.
-3. **Sesión +2:** **animación temporal (2.1)** + **métricas agregadas por barrio (1.2)**.
+1. **Sesión próxima:** **animación temporal (2.1)** + **métricas agregadas por barrio (1.2)**.
+2. **Sesión +1:** **pulir sidebar móvil (6.5)** + **code-splitting (5.1)**.
+3. **Sesión +2:** **posiciones GTFS-RT (4.1)** si hay acceso a la API EMT.
 
 GTFS-RT (4.1) queda fuera del roadmap inmediato porque depende de acceso a la API.

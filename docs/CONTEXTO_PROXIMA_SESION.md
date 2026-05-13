@@ -1,49 +1,60 @@
 # Contexto para la próxima sesión
 
-> Sesión cerrada: 2026-05-12
-> Esta sesión ajustó el radio de detección del tooltip enriquecido de píxeles fijos a metros reales. Lee este documento al inicio de la próxima sesión.
+> Sesión cerrada: 2026-05-13
+> Esta sesión implementó 4 features de interacción y UX: leyenda de color, URL sync, drawer de detalle de línea y buscador de paradas/direcciones.
 
 ---
 
 ## Lo que hizo esta sesión
 
-### Radio de detección del tooltip: de 200 px fijos a 80 m reales
+### 1. Leyenda de color flotante (`ColorLegend.jsx`)
 
-El `pickObjects` en `DeckGL.onHover` usaba `radius: 200` (píxeles de pantalla), lo que a zoom bajo detectaba rutas a kilómetros de distancia real.
+Nuevo componente `src/components/map/ColorLegend.jsx`. Aparece centrado en la parte inferior del mapa cuando hay un `colorMode` activo. Se oculta automáticamente cuando `colorMode` es null.
 
-**Cambio implementado en `src/App.jsx`:**
-```js
-const viewport = deckRef.current?.deck?.getViewports()?.[0];
-const pixelsPerMeter = viewport?.getDistanceScales()?.pixelsPerMeter?.[0] ?? 1;
-const radiusPx = Math.max(15, Math.round(80 * pixelsPerMeter));
-const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: radiusPx }) ?? [];
-```
+- **Modos gradiente** (speed, demand, fleet, schedule, occupancy): barra CSS verde→amarillo→rojo con etiquetas de mín/máx del filtro activo.
+- **Modos categóricos** (offer/frecuencia, tortuosity): lista de chips de colores usando las mismas constantes `FREQUENCY_CATEGORIES` y `TORTUOSITY_CATEGORIES` de `service.js`.
 
-- Se obtiene el viewport activo de Deck.gl y se usa `getDistanceScales().pixelsPerMeter` para convertir 80 metros a píxeles en el zoom actual.
-- `Math.max(15, ...)` garantiza un mínimo de 15 px para que el tooltip funcione a zoom bajo (sin el mínimo, 80 m a zoom 11 = 1 px, prácticamente indetectable).
+Posición: `position: fixed; left: 50%; bottom: 28px; z-index: 12`. En móvil sube a `top: 70px` para no solapar con el bottom-sheet.
 
-**Comportamiento por zoom:**
+### 2. Estado compartible vía URL (`useUrlSync.js`)
 
-| Zoom | 80 m en px | Radio final |
-|------|-----------|-------------|
-| 11   | 1 px      | 15 px (mín) |
-| 13   | 6 px      | 15 px (mín) |
-| 14   | 11 px     | 15 px (mín) |
-| 15   | 22 px     | 22 px ✓     |
-| 16   | 44 px     | 44 px ✓     |
+Nuevo hook `src/utils/useUrlSync.js`, llamado desde `App.jsx`. Sin dependencias externas (URLSearchParams nativo + `replaceState`).
+
+Campos sincronizados: `lon/lat/z` (viewport), `cm` (colorMode), `dow/sh/eh` (día/hora), `r` (selectedRouteIds, coma-separados), `bm` (basemap), `ss` (showStops), `scm` (stopColorMode).
+
+- **Mount**: lee la URL y restaura el estado en el store via `useMapStore.getState()`.
+- **State change**: escribe la URL con debounce de 300 ms (sin crear historial).
+- **Protección**: si la URL tiene `r=` con IDs concretos, el efecto de `selectAllRoutes` en `App.jsx` los respeta y no sobreescribe.
+
+### 3. Drawer de detalle de línea (`RouteDrawer.jsx`)
+
+Nuevo componente `src/components/map/RouteDrawer.jsx`. Panel lateral derecho (340px, espejo del sidebar) que se abre al hacer click en cualquier línea del mapa.
+
+- Click en línea → `setClickedRouteId(route_id)` via `onClick` en `<DeckGL>`.
+- Click en mapa vacío / botón × / tecla Escape → `setClickedRouteId(null)`.
+- **Contenido**: cabecera con swatch + número + nombre; grid de stats (longitud, duración, velocidad, demanda, flota, horario); gráfico de barras 24h de expediciones (dir0 + dir1 del `serviceMetrics`); botón "Centrar en mapa" que calcula el bbox del GeoJSON de la ruta.
+- **Nuevo estado en store**: `clickedRouteId`, `setClickedRouteId`, selector `useClickedRouteId`.
+- En móvil: panel inferior (72dvh), mismo patrón que el sidebar.
+
+### 4. Buscador de paradas y direcciones (`SearchBar.jsx`)
+
+Nuevo componente `src/components/map/SearchBar.jsx`. Barra flotante centrada en la parte superior del mapa (`top: 16px; z-index: 30`).
+
+- **Búsqueda local de paradas**: filtra `stopsGeojson.features` por `stop_name` y `stop_code` (≥2 chars, top 5, inmediata).
+- **Geocodificación de direcciones**: Nominatim con debounce 400ms, acotado al bbox de Madrid (`viewbox=-3.88,40.32,-3.53,40.55&bounded=1`), top 3 resultados.
+- Click en resultado → `setViewState({ longitude, latitude, zoom: 16/14, transitionDuration: 800 })`.
+- Cierre: Escape, click fuera del componente, o limpiar el input.
 
 ---
 
 ## Estado git al cerrar
 
-Rama `main` sincronizada con `origin/main`. Último commit: `6de5fdb Convierte radio de detección del tooltip a metros reales (80 m)`.
+Rama `main` sincronizada con `origin/main`. Último commit: `1d25db9 Añade leyenda de color, URL sync, drawer de línea y buscador`.
 
 ```
+1d25db9 Añade leyenda de color, URL sync, drawer de línea y buscador
+672de69 Actualiza documentación: radio de detección tooltip en metros reales
 6de5fdb Convierte radio de detección del tooltip a metros reales (80 m)
-ff30c19 Actualiza documentación: tooltip enriquecido y cierre de sesión
-19d32ae Sube radio de detección de líneas superpuestas a 200px
-a638914 Cambia ciclo de líneas en tooltip a tecla Tab
-4cc8f7a Corrige tooltip: no desaparece al mover el ratón hacia él
 ```
 
 ---
@@ -52,17 +63,27 @@ a638914 Cambia ciclo de líneas en tooltip a tecla Tab
 
 ```
 src/
-└── App.jsx    # onHover: radius dinámico (80 m reales, mín 15 px)
+├── App.jsx                          # imports, useUrlSync(), onClick DeckGL, render ColorLegend/RouteDrawer/SearchBar
+├── store/useMapStore.js             # clickedRouteId, setClickedRouteId, useClickedRouteId
+├── index.css                        # estilos ColorLegend, RouteDrawer, SearchBar + overrides móvil
+├── components/map/
+│   ├── ColorLegend.jsx              # nuevo — leyenda flotante según colorMode
+│   ├── RouteDrawer.jsx              # nuevo — panel detalle al hacer click en línea
+│   └── SearchBar.jsx                # nuevo — buscador paradas + Nominatim
+└── utils/
+    └── useUrlSync.js                # nuevo — sincronización URL ↔ store
 ```
 
 ---
 
-## Para arrancar la próxima sesión
+## Cosas a verificar en la próxima sesión
 
-1. `git pull` → confirmar que está al día
-2. `npm run dev` → abrir en navegador
-3. Verificar tooltip a distintos zooms: zoom 13 (parada 5378, 10+ líneas) y zoom 16 (radio más restrictivo)
-4. Mirar [docs/IDEACION.md](IDEACION.md) → continuar con features de alto impacto
+1. `npm run dev` → abrir en Chrome
+2. **ColorLegend**: activar modo Velocidad → aparece gradiente en la parte inferior. Activar Frecuencia → aparece leyenda categórica. Desactivar → desaparece.
+3. **URL sync**: seleccionar líneas + hacer zoom + activar modo → copiar URL → nueva pestaña → misma vista.
+4. **RouteDrawer**: click sobre una línea → drawer derecho con stats y gráfico de horas. Botón × y Escape cierran. "Centrar en mapa" anima el viewport.
+5. **SearchBar**: escribir "Cuatro Caminos" → aparecen paradas y/o dirección. Click → mapa navega allí.
+6. Verificar en móvil (DevTools responsive): sidebar bottom-sheet, drawer bottom-sheet, buscador en parte superior.
 
 ---
 
@@ -70,7 +91,7 @@ src/
 
 Del [docs/IDEACION.md](IDEACION.md), por prioridad:
 
-- **6.2 Leyenda persistente** — escala de color flotante cuando `colorMode` está activo
-- **3.2 Estado compartible vía URL** — sincronizar líneas, modo, viewport con `nuqs`
-- **3.3 Drawer de detalle de línea** — click en línea → panel lateral con info completa
-- **3.1 Búsqueda por dirección/parada** — barra con autocompletado (Nominatim + paradas)
+- **2.1 Animación temporal** — slider/play sobre el rango horario que anima el coloreado de frecuencia
+- **1.2 Métricas agregadas por barrio** — al pinchar un barrio: líneas, paradas, frecuencia media, cobertura
+- **6.5 Pulir sidebar móvil** — drag-handle, snap a alturas, cierre por swipe-down
+- **5.1 Code-splitting** — bundle de 933 kB: `manualChunks` + `lazy import` en componentes pesados
