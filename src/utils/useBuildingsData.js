@@ -1,27 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { geojson as fgbGeojson } from 'flatgeobuf';
+import { geojson } from 'flatgeobuf';
 
 const FGB_URL = '/data/edificios_poblacion.fgb';
+const MIN_ZOOM = 13;
 
-// Solo carga cuando el zoom es suficiente para que los edificios sean visibles
-const MIN_ZOOM = 14;
-
-function viewportToRect(viewState) {
+function viewportRect(viewState) {
   const { longitude, latitude, zoom } = viewState;
-  // Aproximación del bounding box visible según zoom
   const span = 360 / Math.pow(2, zoom);
   return {
     minX: longitude - span,
-    minY: latitude - span * 0.6,
+    minY: latitude - span * 0.7,
     maxX: longitude + span,
-    maxY: latitude + span * 0.6,
+    maxY: latitude + span * 0.7,
   };
 }
 
 export function useBuildingsData(viewState, enabled) {
   const [features, setFeatures] = useState([]);
   const debounceRef = useRef(null);
-  const abortRef = useRef(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || viewState.zoom < MIN_ZOOM) {
@@ -31,29 +28,34 @@ export function useBuildingsData(viewState, enabled) {
 
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      const rect = viewportToRect(viewState);
+      cancelledRef.current = false;
+      const rect = viewportRect(viewState);
       const collected = [];
       try {
-        const iter = fgbGeojson.iterate(FGB_URL, rect, { signal: controller.signal });
-        for await (const feature of iter) {
+        console.log('[buildings] cargando rect:', rect, 'zoom:', viewState.zoom);
+        // geojson.deserialize(url, rect, ...) internamente usa HTTP range requests
+        // cuando el primer arg es un string URL y hay un rect bbox
+        for await (const feature of geojson.deserialize(FGB_URL, rect)) {
+          if (cancelledRef.current) return;
           collected.push(feature);
         }
-        if (!controller.signal.aborted) {
-          setFeatures(collected);
-        }
+        console.log('[buildings] cargados:', collected.length);
+        if (!cancelledRef.current) setFeatures(collected);
       } catch (e) {
-        if (e.name !== 'AbortError') console.error('useBuildingsData:', e);
+        console.error('[buildings] error:', e);
       }
     }, 400);
 
     return () => {
       clearTimeout(debounceRef.current);
+      cancelledRef.current = true;
     };
-  }, [enabled, Math.round(viewState.zoom * 2), Math.round(viewState.longitude * 1000), Math.round(viewState.latitude * 1000)]);
+  }, [
+    enabled,
+    Math.round(viewState.zoom * 2),
+    Math.round(viewState.longitude * 1000),
+    Math.round(viewState.latitude * 1000),
+  ]);
 
   return features;
 }
