@@ -33,6 +33,8 @@ import {
   useCoverageDistance,
   useShowBuildings,
   useHighlightedZoneIds,
+  useShowBusLanes,
+  useShowParkingBands,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -43,6 +45,8 @@ import {
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
 import { createBuildingsLayer } from './layers/createBuildingsLayer.js';
+import { createBusLanesLayer } from './layers/createBusLanesLayer.js';
+import { createParkingBandsLayer } from './layers/createParkingBandsLayer.js';
 import { useBuildingsData } from './utils/useBuildingsData.js';
 import { useRouteBuffers } from './utils/useRouteBuffers.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
@@ -103,6 +107,8 @@ export default function App() {
   const setShowBuildings = useMapStore((s) => s.setShowBuildings);
   const highlightedZoneIds = useHighlightedZoneIds();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
+  const showBusLanes = useShowBusLanes();
+  const showParkingBands = useShowParkingBands();
 
   useUrlSync();
 
@@ -123,6 +129,8 @@ export default function App() {
     barriosGeojson,
     stopExpeditions,
     routeCoverage,
+    busLanesGeojson,
+    parkingBandsGeojson,
     loading,
     error,
   } = useGTFSData();
@@ -307,6 +315,8 @@ export default function App() {
     () =>
       [
         createBuildingsLayer({ features: buildingFeatures }),
+        createBusLanesLayer({ geojson: busLanesGeojson, visible: showBusLanes }),
+        createParkingBandsLayer({ geojson: parkingBandsGeojson, visibleRouteIds, visible: showParkingBands }),
         createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
@@ -364,6 +374,10 @@ export default function App() {
       stopExpeditionsFilter,
       barriosGeojson,
       highlightedZoneIds,
+      busLanesGeojson,
+      showBusLanes,
+      parkingBandsGeojson,
+      showParkingBands,
     ]
   );
 
@@ -441,6 +455,8 @@ export default function App() {
         routeCoverage={routeCoverage}
         showBuildings={showBuildings}
         setShowBuildings={setShowBuildings}
+        busLanesGeojson={busLanesGeojson}
+        parkingBandsGeojson={parkingBandsGeojson}
       />
 
       <RouteTooltip

@@ -1,97 +1,132 @@
 # Contexto para la próxima sesión
 
 > Sesión cerrada: 2026-05-13
-> Esta sesión implementó 4 features de interacción y UX: leyenda de color, URL sync, drawer de detalle de línea y buscador de paradas/direcciones.
+> Esta sesión implementó la sección "Elementos Viales" en el sidebar (carriles bus + aparcamiento SER).
+> La sección está integrada pero hay **deuda técnica pendiente** antes de que sea usable.
 
 ---
 
 ## Lo que hizo esta sesión
 
-### 1. Leyenda de color flotante (`ColorLegend.jsx`)
+### 1. Nueva sección "Elementos Viales" en el sidebar
 
-Nuevo componente `src/components/map/ColorLegend.jsx`. Aparece centrado en la parte inferior del mapa cuando hay un `colorMode` activo. Se oculta automáticamente cuando `colorMode` es null.
+Añade entre las secciones "Paradas" y "Otros" un nuevo acordeón con dos capas:
 
-- **Modos gradiente** (speed, demand, fleet, schedule, occupancy): barra CSS verde→amarillo→rojo con etiquetas de mín/máx del filtro activo.
-- **Modos categóricos** (offer/frecuencia, tortuosity): lista de chips de colores usando las mismas constantes `FREQUENCY_CATEGORIES` y `TORTUOSITY_CATEGORIES` de `service.js`.
+- **Carriles bus**: linestrings de los carriles reservados al autobús en Madrid. Color naranja.
+- **Aparcamiento en bandas SER**: tramos de aparcamiento regulado filtrados por las líneas seleccionadas. En calles de un carril (campo `Bateria_Linea` empieza por "L") se muestran ambos lados; en calles de varios carriles se calcula el lado derecho mediante producto vectorial y se descartan los del lado izquierdo.
 
-Posición: `position: fixed; left: 50%; bottom: 28px; z-index: 12`. En móvil sube a `top: 70px` para no solapar con el bottom-sheet.
+**Archivos nuevos:**
+- `scripts/descargar_carriles_bus_madrid.py` — descarga red OSM con `osmnx`
+- `scripts/descargar_aparcamiento_ser_madrid.py` — descarga bandas SER de SIGMA
+- `scripts/compute_elementos_viales.py` — post-proceso: genera `public/data/bus_lanes.geojson` y `public/data/parking_bands.geojson`
+- `src/layers/createBusLanesLayer.js`
+- `src/layers/createParkingBandsLayer.js`
+- `src/components/map/ElementosVialesPanel.jsx`
 
-### 2. Estado compartible vía URL (`useUrlSync.js`)
+**Archivos modificados:**
+- `src/store/useMapStore.js` — `showBusLanes`, `showParkingBands` + selectores
+- `src/utils/useGTFSData.js` — fetches de los dos GeoJSON opcionales
+- `src/App.jsx` — imports, hooks, layers, props sidebar
+- `src/components/map/Sidebar.jsx` — nueva `AccordionSection` + import
 
-Nuevo hook `src/utils/useUrlSync.js`, llamado desde `App.jsx`. Sin dependencias externas (URLSearchParams nativo + `replaceState`).
+---
 
-Campos sincronizados: `lon/lat/z` (viewport), `cm` (colorMode), `dow/sh/eh` (día/hora), `r` (selectedRouteIds, coma-separados), `bm` (basemap), `ss` (showStops), `scm` (stopColorMode).
+## ⚠️ Deuda técnica pendiente — RESOLVER EN LA PRÓXIMA SESIÓN
 
-- **Mount**: lee la URL y restaura el estado en el store via `useMapStore.getState()`.
-- **State change**: escribe la URL con debounce de 300 ms (sin crear historial).
-- **Protección**: si la URL tiene `r=` con IDs concretos, el efecto de `selectAllRoutes` en `App.jsx` los respeta y no sobreescribe.
+### DT-1 · Error en `descargar_carriles_bus_madrid.py` (BLOQUEANTE)
 
-### 3. Drawer de detalle de línea (`RouteDrawer.jsx`)
+**Síntoma:** el script falla con `400 Bad Request` de Overpass al usar `osmnx.graph_from_place` con `custom_filter` que contiene `|`.
 
-Nuevo componente `src/components/map/RouteDrawer.jsx`. Panel lateral derecho (340px, espejo del sidebar) que se abre al hacer click en cualquier línea del mapa.
+```
+osmnx._errors.ResponseStatusCodeError: 'overpass-api.de' responded: 400 Bad Request
+Error: line 1: parse error: ';' expected - '|' found.
+```
 
-- Click en línea → `setClickedRouteId(route_id)` via `onClick` en `<DeckGL>`.
-- Click en mapa vacío / botón × / tecla Escape → `setClickedRouteId(null)`.
-- **Contenido**: cabecera con swatch + número + nombre; grid de stats (longitud, duración, velocidad, demanda, flota, horario); gráfico de barras 24h de expediciones (dir0 + dir1 del `serviceMetrics`); botón "Centrar en mapa" que calcula el bbox del GeoJSON de la ruta.
-- **Nuevo estado en store**: `clickedRouteId`, `setClickedRouteId`, selector `useClickedRouteId`.
-- En móvil: panel inferior (72dvh), mismo patrón que el sidebar.
+**Causa:** `osmnx` construye la query Overpass concatenando los filtros con `|`, pero la sintaxis válida de Overpass QL para varios tags es hacer varias sentencias `way[tag1]; way[tag2];` dentro de un `union` — no con `|`. El `custom_filter` de `osmnx` acepta **un solo selector**, no varios OR separados por `|`.
 
-### 4. Buscador de paradas y direcciones (`SearchBar.jsx`)
+**Solución propuesta:** hacer N llamadas separadas a `osmnx.graph_from_place`, una por cada tag (`busway`, `bus:lanes`, `bus:lanes:forward`, `bus:lanes:backward`), y luego combinar los GeoDataFrames con `pd.concat` + `drop_duplicates`. Ejemplo:
 
-Nuevo componente `src/components/map/SearchBar.jsx`. Barra flotante centrada en la parte superior del mapa (`top: 16px; z-index: 30`).
+```python
+import osmnx as ox
+import geopandas as gpd
 
-- **Búsqueda local de paradas**: filtra `stopsGeojson.features` por `stop_name` y `stop_code` (≥2 chars, top 5, inmediata).
-- **Geocodificación de direcciones**: Nominatim con debounce 400ms, acotado al bbox de Madrid (`viewbox=-3.88,40.32,-3.53,40.55&bounded=1`), top 3 resultados.
-- Click en resultado → `setViewState({ longitude, latitude, zoom: 16/14, transitionDuration: 800 })`.
-- Cierre: Escape, click fuera del componente, o limpiar el input.
+tags_to_try = [
+    '["busway"]',
+    '["bus:lanes"]',
+    '["bus:lanes:forward"]',
+    '["bus:lanes:backward"]',
+]
+gdfs = []
+for tag_filter in tags_to_try:
+    try:
+        G = ox.graph_from_place("Madrid, Spain", custom_filter=f'["highway"]{tag_filter}', retain_all=True)
+        _, edges = ox.graph_to_gdfs(G)
+        gdfs.append(edges)
+    except Exception as e:
+        print(f"  Sin resultados para {tag_filter}: {e}")
+if gdfs:
+    combined = gpd.pd.concat(gdfs).drop_duplicates(subset=['osmid'] if 'osmid' in gdfs[0].columns else None)
+```
+
+Alternativamente, usar directamente la API Overpass con `requests` (como hacía el script original de SIGMA) y un mirror que funcione (`overpass.kumi.systems` fue el único que respondió sin timeout en esta sesión).
+
+### DT-2 · El aparcamiento SER no se visualiza en el mapa (pendiente de verificar)
+
+El GeoJSON `parking_bands.geojson` **sí tiene geometrías válidas** (verificado: 28.211 features, tipo `LineString`, coordenadas en EPSG:4326). El filtro por `visibleRouteIds` funciona correctamente en Node.
+
+Se añadió `stroked: true`, `filled: false`, `lineWidthMinPixels: 1` al `GeoJsonLayer` en `createParkingBandsLayer.js`. **Esto no se ha podido verificar en el navegador** porque la sesión terminó antes.
+
+**Acción en la próxima sesión:** arrancar `npm run dev`, activar el checkbox "Aparcamiento SER" con líneas seleccionadas y verificar si aparecen los tramos de colores. Si no aparece, abrir DevTools → consola → buscar errores del layer de Deck.gl.
+
+### DT-3 · Los carriles bus tienen geometría nula en el GeoPackage de SIGMA
+
+**Contexto:** la fuente original (`RED_ESTRUCTURANTE/MapServer/2`, layer "Calzadas") devuelve geometría `null` en todas las peticiones (incluyendo GeoJSON y esriJSON). Esto se descubrió en esta sesión y por eso se cambió a osmnx/OSM.
+
+Una vez resuelto DT-1, hay que regenerar:
+```bash
+python scripts/descargar_carriles_bus_madrid.py     # re-descarga con OSM
+python scripts/compute_elementos_viales.py           # regenera los dos GeoJSON
+```
 
 ---
 
 ## Estado git al cerrar
 
-Rama `main` sincronizada con `origin/main`. Último commit: `1d25db9 Añade leyenda de color, URL sync, drawer de línea y buscador`.
+Rama activa: `feature/coverage-poblacional`. Hay un commit de cierre de esta sesión con todo el código implementado.
 
+Archivos modificados respecto a `main`:
 ```
-1d25db9 Añade leyenda de color, URL sync, drawer de línea y buscador
-672de69 Actualiza documentación: radio de detección tooltip en metros reales
-6de5fdb Convierte radio de detección del tooltip a metros reales (80 m)
-```
-
----
-
-## Archivos clave modificados esta sesión
-
-```
-src/
-├── App.jsx                          # imports, useUrlSync(), onClick DeckGL, render ColorLegend/RouteDrawer/SearchBar
-├── store/useMapStore.js             # clickedRouteId, setClickedRouteId, useClickedRouteId
-├── index.css                        # estilos ColorLegend, RouteDrawer, SearchBar + overrides móvil
-├── components/map/
-│   ├── ColorLegend.jsx              # nuevo — leyenda flotante según colorMode
-│   ├── RouteDrawer.jsx              # nuevo — panel detalle al hacer click en línea
-│   └── SearchBar.jsx                # nuevo — buscador paradas + Nominatim
-└── utils/
-    └── useUrlSync.js                # nuevo — sincronización URL ↔ store
+src/store/useMapStore.js
+src/utils/useGTFSData.js
+src/App.jsx
+src/components/map/Sidebar.jsx
+src/layers/createBusLanesLayer.js       (nuevo)
+src/layers/createParkingBandsLayer.js   (nuevo)
+src/components/map/ElementosVialesPanel.jsx (nuevo)
+scripts/descargar_carriles_bus_madrid.py    (reescrito para OSM)
+scripts/descargar_aparcamiento_ser_madrid.py (nuevo)
+scripts/compute_elementos_viales.py         (nuevo)
 ```
 
 ---
 
 ## Cosas a verificar en la próxima sesión
 
-1. `npm run dev` → abrir en Chrome
-2. **ColorLegend**: activar modo Velocidad → aparece gradiente en la parte inferior. Activar Frecuencia → aparece leyenda categórica. Desactivar → desaparece.
-3. **URL sync**: seleccionar líneas + hacer zoom + activar modo → copiar URL → nueva pestaña → misma vista.
-4. **RouteDrawer**: click sobre una línea → drawer derecho con stats y gráfico de horas. Botón × y Escape cierran. "Centrar en mapa" anima el viewport.
-5. **SearchBar**: escribir "Cuatro Caminos" → aparecen paradas y/o dirección. Click → mapa navega allí.
-6. Verificar en móvil (DevTools responsive): sidebar bottom-sheet, drawer bottom-sheet, buscador en parte superior.
+1. Resolver DT-1: arreglar `descargar_carriles_bus_madrid.py` con llamadas separadas por tag
+2. Ejecutar: `python scripts/descargar_carriles_bus_madrid.py` → `python scripts/compute_elementos_viales.py`
+3. `npm run dev` → abrir la sección "Elementos Viales" → activar "Carriles bus" → deben aparecer líneas naranjas
+4. Activar "Aparcamiento SER" con líneas seleccionadas → deben aparecer tramos de colores (DT-2)
+5. Verificar que al deseleccionar todas las líneas la capa de aparcamiento desaparece
 
 ---
 
 ## Roadmap a partir de aquí
+
+Una vez resueltos los bugs de Elementos Viales:
 
 Del [docs/IDEACION.md](IDEACION.md), por prioridad:
 
 - **2.1 Animación temporal** — slider/play sobre el rango horario que anima el coloreado de frecuencia
 - **1.2 Métricas agregadas por barrio** — al pinchar un barrio: líneas, paradas, frecuencia media, cobertura
 - **6.5 Pulir sidebar móvil** — drag-handle, snap a alturas, cierre por swipe-down
-- **5.1 Code-splitting** — bundle de 933 kB: `manualChunks` + `lazy import` en componentes pesados
+- **5.1 Code-splitting** — bundle grande: `manualChunks` + `lazy import` en componentes pesados

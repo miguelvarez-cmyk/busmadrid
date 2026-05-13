@@ -118,6 +118,12 @@ export const useMapStore = create((set) => ({
       else barrioIds.forEach((id) => next.add(id));
       return { highlightedZoneIds: next };
     }),
+
+  // Elementos viales
+  showBusLanes: false,
+  setShowBusLanes: (v) => set({ showBusLanes: v }),
+  showParkingBands: false,
+  setShowParkingBands: (v) => set({ showParkingBands: v }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
@@ -153,3 +159,5 @@ export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
 export const useBasemap = () => useMapStore((s) => s.basemap);
 export const useHighlightedZoneIds = () => useMapStore((s) => s.highlightedZoneIds);
+export const useShowBusLanes = () => useMapStore((s) => s.showBusLanes);
+export const useShowParkingBands = () => useMapStore((s) => s.showParkingBands);

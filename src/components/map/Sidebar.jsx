@@ -8,6 +8,7 @@ import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
 import CoveragePanel from './CoveragePanel.jsx';
+import ElementosVialesPanel from './ElementosVialesPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   return (
@@ -50,6 +51,8 @@ export default function Sidebar({
   routeCoverage,
   showBuildings,
   setShowBuildings,
+  busLanesGeojson,
+  parkingBandsGeojson,
 }) {
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
   const [isOpen, setIsOpen] = useState(!isMobile);
@@ -164,6 +167,19 @@ export default function Sidebar({
             </label>
             <StopRoutesPanel stopsGeojson={stopsGeojson} />
             <StopExpeditionsPanel stopExpeditions={stopExpeditions} />
+          </AccordionSection>
+
+          <AccordionSection
+            id="elementos-viales"
+            title="Elementos Viales"
+            icon="⊟"
+            isOpen={openSections.has('elementos-viales')}
+            onToggle={toggleSection}
+          >
+            <ElementosVialesPanel
+              busLanesGeojson={busLanesGeojson}
+              parkingBandsGeojson={parkingBandsGeojson}
+            />
           </AccordionSection>
 
           {(routeFleet || routeDemand || occupancyData) && (

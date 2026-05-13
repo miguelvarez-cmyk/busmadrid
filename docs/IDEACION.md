@@ -4,7 +4,7 @@ Documento vivo con ideas de mejora para el **Visualizador GTFS Madrid**.
 Cada bloque indica **prioridad** (alta/media/baja), **complejidad** (S/M/L/XL) y **valor**.
 
 > Última actualización: 2026-05-13
-> Estado actual: tooltip enriquecido, leyenda de color flotante, URL sync, drawer de detalle de línea y buscador de paradas/direcciones implementados.
+> Estado actual: tooltip enriquecido, leyenda de color flotante, URL sync, drawer de detalle de línea, buscador de paradas/direcciones y sección "Elementos Viales" (carriles bus + aparcamiento SER) implementados. Los elementos viales tienen deuda técnica pendiente — ver CONTEXTO_PROXIMA_SESION.md.
 
 ---
 
@@ -163,8 +163,8 @@ Permitiría iterar visualmente sobre `OtrosPanel`, `DistrictsPanel`, etc. sin le
 
 ## Roadmap sugerido (próximas 3 sesiones)
 
-1. **Sesión próxima:** **animación temporal (2.1)** + **métricas agregadas por barrio (1.2)**.
-2. **Sesión +1:** **pulir sidebar móvil (6.5)** + **code-splitting (5.1)**.
-3. **Sesión +2:** **posiciones GTFS-RT (4.1)** si hay acceso a la API EMT.
+1. **Sesión próxima:** **resolver deuda técnica Elementos Viales** (DT-1 + DT-2 en CONTEXTO_PROXIMA_SESION.md) → luego **animación temporal (2.1)**.
+2. **Sesión +1:** **métricas agregadas por barrio (1.2)** + **pulir sidebar móvil (6.5)**.
+3. **Sesión +2:** **code-splitting (5.1)** + **posiciones GTFS-RT (4.1)** si hay acceso a la API EMT.
 
 GTFS-RT (4.1) queda fuera del roadmap inmediato porque depende de acceso a la API.
