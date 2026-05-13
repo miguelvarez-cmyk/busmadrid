@@ -42,6 +42,10 @@ import { createZonesLayer } from './layers/createZonesLayer.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
+import ColorLegend from './components/map/ColorLegend.jsx';
+import RouteDrawer from './components/map/RouteDrawer.jsx';
+import SearchBar from './components/map/SearchBar.jsx';
+import { useUrlSync } from './utils/useUrlSync.js';
 
 export default function App() {
   const viewState = useViewState();
@@ -87,6 +91,10 @@ export default function App() {
   const occupancyFilter = useOccupancyFilter();
   const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
   const highlightedZoneIds = useHighlightedZoneIds();
+  const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
+
+  useUrlSync();
+
   const {
     routesGeojson,
     routesMeta,
@@ -108,7 +116,9 @@ export default function App() {
   useEffect(() => {
     if (routesMeta && !didInitRoutes.current) {
       didInitRoutes.current = true;
-      selectAllRoutes(routesMeta.map((r) => r.id));
+      const urlR = new URLSearchParams(window.location.search).get('r');
+      const hasUrlRoutes = urlR?.split(',').filter(Boolean).length > 0;
+      if (!hasUrlRoutes) selectAllRoutes(routesMeta.map((r) => r.id));
     }
   }, [routesMeta, selectAllRoutes]);
 
@@ -341,6 +351,10 @@ export default function App() {
         }
         layers={layers}
         glOptions={{ powerPreference: 'default' }}
+        onClick={(info) => {
+          if (boxSelectMode) return;
+          setClickedRouteId(info.object?.properties?.route_id ?? null);
+        }}
         onHover={(info) => {
           if (!info.object?.properties?.route_id) {
             clearTimeout(hoverTimeoutRef.current);
@@ -418,6 +432,21 @@ export default function App() {
           <span className="offer">{hoveredStop.properties.routes.length} líneas</span>
         </div>
       )}
+
+      <ColorLegend />
+
+      <RouteDrawer
+        routesMeta={routesMeta}
+        routeSpeed={routeSpeed}
+        routeDemand={routeDemand}
+        routeFleet={routeFleet}
+        routeSchedule={routeSchedule}
+        serviceMetrics={serviceMetrics}
+        routesGeojson={routesGeojson}
+        dayOfWeek={timeFilter.dayOfWeek}
+      />
+
+      <SearchBar stopsGeojson={stopsGeojson} />
 
       {loading && <div className="status-overlay">Cargando datos GTFS...</div>}
       {error && (
