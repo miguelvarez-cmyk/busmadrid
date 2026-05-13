@@ -7,6 +7,7 @@ import StopRoutesPanel from './StopRoutesPanel.jsx';
 import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
+import CoveragePanel from './CoveragePanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   return (
@@ -67,7 +68,7 @@ export default function Sidebar({
   const boxSelectMode = useMapStore((s) => s.boxSelectMode);
   const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
-  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule || routeCoverage;
+  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule;
 
   return (
     <>
@@ -135,7 +136,6 @@ export default function Sidebar({
                 serviceMetrics={serviceMetrics}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
-                routeCoverage={routeCoverage}
                 inSidebar
               />
             </AccordionSection>
@@ -178,6 +178,22 @@ export default function Sidebar({
                 occupancyData={occupancyData}
                 routesMeta={routesMeta}
                 selectedRouteIds={selectedRouteIds}
+              />
+            </AccordionSection>
+          )}
+
+          {routeCoverage && (
+            <AccordionSection
+              id="cobertura"
+              title="Cobertura Poblacional"
+              icon="◎"
+              isOpen={openSections.has('cobertura')}
+              onToggle={toggleSection}
+            >
+              <CoveragePanel
+                routeCoverage={routeCoverage}
+                selectedRouteIds={selectedRouteIds}
+                visibleRouteIds={visibleRouteIds}
               />
             </AccordionSection>
           )}

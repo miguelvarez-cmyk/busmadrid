@@ -43,12 +43,20 @@ function HourChart({ row0, row1, color }) {
   );
 }
 
+function formatPax(v) {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 10_000) return `${Math.round(v / 1_000)}k`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return String(Math.round(v));
+}
+
 export default function RouteDrawer({
   routesMeta,
   routeSpeed,
   routeDemand,
   routeFleet,
   routeSchedule,
+  routeCoverage,
   serviceMetrics,
   routesGeojson,
   dayOfWeek,
@@ -73,6 +81,7 @@ export default function RouteDrawer({
   const fleetData   = useMemo(() => routeFleet?.byRoute?.[clickedRouteId], [clickedRouteId, routeFleet]);
   const scheduleData = useMemo(() => routeSchedule?.byRoute?.[clickedRouteId], [clickedRouteId, routeSchedule]);
   const scheduleRange = useMemo(() => scheduleRangeFromMetrics(serviceMetrics, clickedRouteId, dayOfWeek), [serviceMetrics, clickedRouteId, dayOfWeek]);
+  const coverage300 = routeCoverage?.byRoute?.[clickedRouteId]?.['300'] ?? null;
 
   const row0 = serviceMetrics?.byRoute?.[clickedRouteId]?.[String(dayOfWeek)]?.['0'];
   const row1 = serviceMetrics?.byRoute?.[clickedRouteId]?.[String(dayOfWeek)]?.['1'];
@@ -146,6 +155,12 @@ export default function RouteDrawer({
                 <div className="rd-stat">
                   <span className="rd-stat-label">Amplitud (lab.)</span>
                   <span className="rd-stat-value">{formatSpanMinutes(scheduleData.LA)}</span>
+                </div>
+              )}
+              {coverage300 !== null && (
+                <div className="rd-stat">
+                  <span className="rd-stat-label">Cobertura a 300 m</span>
+                  <span className="rd-stat-value">{formatPax(coverage300)} hab</span>
                 </div>
               )}
             </div>

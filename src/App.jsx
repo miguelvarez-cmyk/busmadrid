@@ -466,6 +466,7 @@ export default function App() {
         routeDemand={routeDemand}
         routeFleet={routeFleet}
         routeSchedule={routeSchedule}
+        routeCoverage={routeCoverage}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
         dayOfWeek={timeFilter.dayOfWeek}
