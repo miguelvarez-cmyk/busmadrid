@@ -43,7 +43,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT_PATH = ROOT / "public" / "data" / "route_coverage.json"
 
-STAT_DISTANCES = [100, 200, 400, 800]
+STAT_DISTANCES = list(range(50, 850, 50))  # 50, 100, ..., 800
 
 
 def _route_id_to_key(route_id: str) -> str:
@@ -80,7 +80,7 @@ def adapt(input_path: Path) -> None:
     print(f"Escrito: {OUT_PATH}")
     print(f"  Líneas: {len(by_route)}")
     print(f"  Distancias: {distances}")
-    for d in STAT_DISTANCES:
+    for d in [100, 200, 400, 800]:
         if f"min_{d}" in out:
             print(f"  [{d}m] {out[f'min_{d}']:,} – {out[f'max_{d}']:,} hab")
 
