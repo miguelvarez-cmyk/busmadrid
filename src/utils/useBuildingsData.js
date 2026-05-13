@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { geojson } from 'flatgeobuf';
+import { pointInAnyGeometry } from './pointInPolygon.js';
 
 const FGB_URL = '/data/edificios_poblacion.fgb';
-const MIN_ZOOM = 13;
+// Zoom 12 shows an entire bus line while keeping building count manageable
+const MIN_ZOOM = 12;
 
 function viewportRect(viewState) {
   const { longitude, latitude, zoom } = viewState;
@@ -15,13 +17,51 @@ function viewportRect(viewState) {
   };
 }
 
-export function useBuildingsData(viewState, enabled) {
+function featureCentroid(feature) {
+  const geom = feature.geometry;
+  if (!geom) return null;
+  let ring;
+  if (geom.type === 'Polygon') ring = geom.coordinates[0];
+  else if (geom.type === 'MultiPolygon') ring = geom.coordinates[0]?.[0];
+  if (!ring?.length) return null;
+  let sx = 0, sy = 0;
+  for (const [x, y] of ring) { sx += x; sy += y; }
+  return [sx / ring.length, sy / ring.length];
+}
+
+function getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance) {
+  if (!routeBuffers || !selectedRouteIds?.size) return null;
+  const geoms = [];
+  for (const routeId of selectedRouteIds) {
+    const byDist = routeBuffers.get(routeId);
+    if (!byDist) continue;
+    const geom = byDist.get(coverageDistance);
+    if (geom) geoms.push(geom);
+  }
+  return geoms.length ? geoms : null;
+}
+
+function applyFilter(raw, routeBuffers, selectedRouteIds, coverageDistance) {
+  const geoms = getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance);
+  if (!geoms) return raw;
+  return raw.filter((f) => {
+    const c = featureCentroid(f);
+    return c && pointInAnyGeometry(c[0], c[1], geoms);
+  });
+}
+
+export function useBuildingsData(viewState, enabled, routeBuffers, selectedRouteIds, coverageDistance) {
   const [features, setFeatures] = useState([]);
+  const rawRef = useRef([]); // raw viewport buildings, unfiltered
   const debounceRef = useRef(null);
   const cancelledRef = useRef(false);
+  const zoomRef = useRef(viewState.zoom);
+  zoomRef.current = viewState.zoom;
 
+  // Effect 1: reload from FGB when viewport or enabled changes
   useEffect(() => {
     if (!enabled || viewState.zoom < MIN_ZOOM) {
+      rawRef.current = [];
       setFeatures([]);
       return;
     }
@@ -32,15 +72,14 @@ export function useBuildingsData(viewState, enabled) {
       const rect = viewportRect(viewState);
       const collected = [];
       try {
-        console.log('[buildings] cargando rect:', rect, 'zoom:', viewState.zoom);
-        // geojson.deserialize(url, rect, ...) internamente usa HTTP range requests
-        // cuando el primer arg es un string URL y hay un rect bbox
         for await (const feature of geojson.deserialize(FGB_URL, rect)) {
           if (cancelledRef.current) return;
           collected.push(feature);
         }
-        console.log('[buildings] cargados:', collected.length);
-        if (!cancelledRef.current) setFeatures(collected);
+        if (!cancelledRef.current) {
+          rawRef.current = collected;
+          setFeatures(applyFilter(collected, routeBuffers, selectedRouteIds, coverageDistance));
+        }
       } catch (e) {
         console.error('[buildings] error:', e);
       }
@@ -55,7 +94,13 @@ export function useBuildingsData(viewState, enabled) {
     Math.round(viewState.zoom * 2),
     Math.round(viewState.longitude * 1000),
     Math.round(viewState.latitude * 1000),
-  ]);
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect 2: re-filter raw data when selection/distance changes (no network call)
+  useEffect(() => {
+    if (!enabled || zoomRef.current < MIN_ZOOM) return;
+    setFeatures(applyFilter(rawRef.current, routeBuffers, selectedRouteIds, coverageDistance));
+  }, [routeBuffers, selectedRouteIds, coverageDistance, enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return features;
 }

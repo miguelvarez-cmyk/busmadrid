@@ -44,6 +44,7 @@ import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
 import { createBuildingsLayer } from './layers/createBuildingsLayer.js';
 import { useBuildingsData } from './utils/useBuildingsData.js';
+import { useRouteBuffers } from './utils/useRouteBuffers.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
@@ -105,7 +106,8 @@ export default function App() {
 
   useUrlSync();
 
-  const buildingFeatures = useBuildingsData(viewState, showBuildings);
+  const routeBuffers = useRouteBuffers(showBuildings);
+  const buildingFeatures = useBuildingsData(viewState, showBuildings, routeBuffers, selectedRouteIds, coverageDistance);
 
   const {
     routesGeojson,
