@@ -13,6 +13,8 @@ import {
   passesFleetFilter,
   passesTortuosityFilter,
   passesScheduleFilter,
+  coverageColorForRoute,
+  passesCoverageFilter,
 } from '../utils/service.js';
 
 /**
@@ -29,6 +31,7 @@ export function applyModeFilter({
   routeTortuosity,
   routeSchedule,
   occupancyData,
+  routeCoverage,
   timeFilter,
   freqFilter,
   speedFilter,
@@ -39,6 +42,8 @@ export function applyModeFilter({
   scheduleFilter,
   scheduleDayType,
   occupancyFilter,
+  coverageFilter,
+  coverageDistance,
 }) {
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
@@ -100,6 +105,13 @@ export function applyModeFilter({
     }
     return out;
   }
+  if (colorMode === 'coverage' && routeCoverage && coverageFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesCoverageFilter(routeCoverage, id, coverageDistance, coverageFilter)) out.add(id);
+    }
+    return out;
+  }
   return routeIds;
 }
 
@@ -133,6 +145,8 @@ export function createRoutesLayer({
   routeTortuosity,
   routeSchedule,
   occupancyData,
+  routeCoverage,
+  coverageDistance,
   timeFilter,
   fleetDayType,
   scheduleDayType,
@@ -188,6 +202,11 @@ export function createRoutesLayer({
       ...occupancyColorForRoute(occupancyData, f.properties.route_id),
       230,
     ];
+  } else if (colorMode === 'coverage' && routeCoverage) {
+    getLineColor = (f) => [
+      ...coverageColorForRoute(routeCoverage, f.properties.route_id, coverageDistance),
+      230,
+    ];
   } else {
     getLineColor = (f) => [...hexToRgb(f.properties.route_color), 220];
   }
@@ -209,6 +228,7 @@ export function createRoutesLayer({
         timeFilter.endHour,
         fleetDayType,
         scheduleDayType,
+        coverageDistance,
       ],
     },
   });

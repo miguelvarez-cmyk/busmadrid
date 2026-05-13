@@ -46,6 +46,7 @@ export default function Sidebar({
   stopsGeojson,
   stopExpeditions,
   occupancyData,
+  routeCoverage,
 }) {
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
   const [isOpen, setIsOpen] = useState(!isMobile);
@@ -66,7 +67,7 @@ export default function Sidebar({
   const boxSelectMode = useMapStore((s) => s.boxSelectMode);
   const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
-  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule;
+  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule || routeCoverage;
 
   return (
     <>
@@ -134,6 +135,7 @@ export default function Sidebar({
                 serviceMetrics={serviceMetrics}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
+                routeCoverage={routeCoverage}
                 inSidebar
               />
             </AccordionSection>

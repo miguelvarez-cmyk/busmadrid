@@ -5,6 +5,8 @@ import {
   useFleetFilter,
   useScheduleFilter,
   useOccupancyFilter,
+  useCoverageFilter,
+  useCoverageDistance,
 } from '../../store/useMapStore.js';
 import {
   FREQUENCY_CATEGORIES,
@@ -27,6 +29,7 @@ const MODE_CONFIG = {
   fleet:     { title: 'Flota',           fmt: (v) => `${Math.round(v)} buses` },
   schedule:  { title: 'Horario de paso', fmt: (v) => formatSpanMinutes(Math.round(v)) },
   occupancy: { title: 'Ocupación media', fmt: (v) => `${Math.round(v)} pax` },
+  coverage:  { title: 'Cobertura poblacional', fmt: (v) => `${fmtDemand(v)} hab` },
 };
 
 function GradientLegend({ title, filter, fmt }) {
@@ -68,6 +71,8 @@ export default function ColorLegend() {
   const fleetFilter   = useFleetFilter();
   const scheduleFilter = useScheduleFilter();
   const occupancyFilter = useOccupancyFilter();
+  const coverageFilter = useCoverageFilter();
+  const coverageDistance = useCoverageDistance();
 
   if (!colorMode) return null;
 
@@ -87,9 +92,14 @@ export default function ColorLegend() {
     fleet: fleetFilter,
     schedule: scheduleFilter,
     occupancy: occupancyFilter,
+    coverage: coverageFilter,
   };
   const filter = filterMap[colorMode];
   if (!filter) return null;
 
-  return <GradientLegend title={cfg.title} filter={filter} fmt={cfg.fmt} />;
+  const title = colorMode === 'coverage'
+    ? `Cobertura a ${coverageDistance} m`
+    : cfg.title;
+
+  return <GradientLegend title={title} filter={filter} fmt={cfg.fmt} />;
 }

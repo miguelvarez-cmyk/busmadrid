@@ -608,3 +608,69 @@ export function passesStopRoutesFilter(stop, filter) {
   const n = stopRouteCount(stop);
   return n >= fMin && n <= fMax;
 }
+
+// ── Cobertura poblacional por línea ─────────────────────────────────────────
+
+const NO_COVERAGE_COLOR = [150, 150, 150];
+
+function coverageGradient(t) {
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [Math.round(50 + 170 * k), 200, 50];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [220, Math.round(200 - 150 * k), 50];
+}
+
+export function coverageColorForRoute(routeCoverage, routeId, distance) {
+  const entry = routeCoverage?.byRoute?.[routeId];
+  if (!entry) return NO_COVERAGE_COLOR;
+  const val = entry[String(distance)] ?? 0;
+  const minVal = routeCoverage[`min_${distance}`] ?? 0;
+  const maxVal = routeCoverage[`max_${distance}`] ?? val;
+  const t = maxVal > minVal ? Math.min((val - minVal) / (maxVal - minVal), 1) : 0;
+  return coverageGradient(t);
+}
+
+export function passesCoverageFilter(routeCoverage, routeId, distance, filter) {
+  const entry = routeCoverage?.byRoute?.[routeId];
+  if (!entry) return false;
+  const val = entry[String(distance)] ?? 0;
+  return val >= filter[0] && val <= filter[1];
+}
+
+const COVERAGE_BUCKETS = [
+  { lo: 0, hi: 1_000, label: '< 1k' },
+  { lo: 1_000, hi: 3_000, label: '1k–3k' },
+  { lo: 3_000, hi: 10_000, label: '3k–10k' },
+  { lo: 10_000, hi: 30_000, label: '10k–30k' },
+  { lo: 30_000, hi: 100_000, label: '30k–100k' },
+  { lo: 100_000, hi: 200_000, label: '100k–200k' },
+  { lo: 200_000, hi: 500_000, label: '200k–500k' },
+  { lo: 500_000, hi: Infinity, label: '> 500k' },
+];
+
+export function coverageHistogram(routeCoverage, routeIds, distance, filter) {
+  if (!routeCoverage) return [];
+  const minVal = routeCoverage[`min_${distance}`] ?? 0;
+  const maxVal = routeCoverage[`max_${distance}`] ?? 1;
+  const counts = COVERAGE_BUCKETS.map(() => 0);
+  for (const id of routeIds) {
+    const entry = routeCoverage.byRoute?.[id];
+    if (!entry) continue;
+    const val = entry[String(distance)] ?? 0;
+    const i = COVERAGE_BUCKETS.findIndex((b) => val >= b.lo && val < b.hi);
+    if (i >= 0) counts[i] += 1;
+  }
+  const [fMin, fMax] = filter;
+  return COVERAGE_BUCKETS.map((b, i) => {
+    const mid = b.hi === Infinity ? b.lo : (b.lo + b.hi) / 2;
+    const t = maxVal > minVal ? Math.min((mid - minVal) / (maxVal - minVal), 1) : 0;
+    return {
+      label: b.label,
+      count: counts[i],
+      color: coverageGradient(Math.max(0, t)),
+      inRange: b.lo <= fMax && (b.hi === Infinity ? b.lo >= fMin : b.hi > fMin),
+    };
+  });
+}

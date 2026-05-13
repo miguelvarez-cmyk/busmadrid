@@ -11,6 +11,8 @@ import {
   useTortuosityFilter,
   useScheduleFilter,
   useScheduleDayType,
+  useCoverageFilter,
+  useCoverageDistance,
 } from '../../store/useMapStore.js';
 import {
   frequencyHistogram,
@@ -20,6 +22,7 @@ import {
   tortuosityHistogram,
   scheduleHistogram,
   formatSpanMinutes,
+  coverageHistogram,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -31,7 +34,10 @@ const MODES = [
   { id: 'schedule', label: 'Horario de Paso' },
   { id: 'speed', label: 'Velocidad' },
   { id: 'tortuosity', label: 'Tortuosidad' },
+  { id: 'coverage', label: 'Cobertura' },
 ];
+
+const COVERAGE_DISTANCES = [100, 200, 400, 800];
 
 const FLEET_DAY_TYPES = [
   { id: 'LA', label: 'Laborable' },
@@ -58,6 +64,7 @@ export default function VisualizationControls({
   serviceMetrics,
   selectedRouteIds,
   visibleRouteIds,
+  routeCoverage,
   inSidebar = false,
 }) {
   const colorMode = useColorMode();
@@ -81,6 +88,10 @@ export default function VisualizationControls({
   const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
   const scheduleDayType = useScheduleDayType();
   const setScheduleDayType = useMapStore((s) => s.setScheduleDayType);
+  const coverageFilter = useCoverageFilter();
+  const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
+  const coverageDistance = useCoverageDistance();
+  const setCoverageDistance = useMapStore((s) => s.setCoverageDistance);
 
   const [collapsed, setCollapsed] = useState(
     !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
@@ -167,6 +178,14 @@ export default function VisualizationControls({
         ? scheduleHistogram(routeSchedule, selectedRouteIds, scheduleDayType, scheduleFilter)
         : [],
     [colorMode, routeSchedule, selectedRouteIds, scheduleDayType, scheduleFilter]
+  );
+
+  const coverageBuckets = useMemo(
+    () =>
+      colorMode === 'coverage' && routeCoverage && coverageFilter
+        ? coverageHistogram(routeCoverage, selectedRouteIds, coverageDistance, coverageFilter)
+        : [],
+    [colorMode, routeCoverage, selectedRouteIds, coverageDistance, coverageFilter]
   );
 
   const content = (
@@ -399,6 +418,50 @@ export default function VisualizationControls({
               Media de (última salida − primera salida) desde cada cabecera,
               por tipo de día. Más horas = verde · Menos horas = rojo.
               Rango {formatSpanMinutes(routeSchedule.min)}–{formatSpanMinutes(routeSchedule.max)}.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {colorMode === 'coverage' && routeCoverage && coverageFilter && (
+        <div className="body">
+          <div className="row days">
+            {COVERAGE_DISTANCES.map((d) => (
+              <button
+                key={d}
+                className={coverageDistance === d ? 'active' : ''}
+                onClick={() => {
+                  setCoverageDistance(d);
+                  const minKey = `min_${d}`;
+                  const maxKey = `max_${d}`;
+                  setCoverageFilter([routeCoverage[minKey] ?? 0, routeCoverage[maxKey] ?? 1]);
+                }}
+              >
+                {d} m
+              </button>
+            ))}
+          </div>
+
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Personas servidas a {coverageDistance} m</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={coverageBuckets} />
+            <RangeSlider
+              min={routeCoverage[`min_${coverageDistance}`] ?? 0}
+              max={routeCoverage[`max_${coverageDistance}`] ?? 1}
+              step={500}
+              value={coverageFilter}
+              onChange={setCoverageFilter}
+              format={(v) => formatPax(v) + ' hab'}
+            />
+            <div className="caption muted">
+              Población que vive a menos de {coverageDistance} m caminando de
+              alguna parada de la línea (isócronas peatonales sobre la red OSM).
+              Verde = más cobertura · Rojo = menos cobertura.
             </div>
           </div>
         </div>
