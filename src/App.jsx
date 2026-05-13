@@ -31,6 +31,7 @@ import {
   useOccupancyFilter,
   useCoverageFilter,
   useCoverageDistance,
+  useShowBuildings,
   useHighlightedZoneIds,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
@@ -41,6 +42,8 @@ import {
 } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
+import { createBuildingsLayer } from './layers/createBuildingsLayer.js';
+import { useBuildingsData } from './utils/useBuildingsData.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
@@ -95,10 +98,14 @@ export default function App() {
   const coverageFilter = useCoverageFilter();
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
   const coverageDistance = useCoverageDistance();
+  const showBuildings = useShowBuildings();
+  const setShowBuildings = useMapStore((s) => s.setShowBuildings);
   const highlightedZoneIds = useHighlightedZoneIds();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
 
   useUrlSync();
+
+  const buildingFeatures = useBuildingsData(viewState, showBuildings);
 
   const {
     routesGeojson,
@@ -297,6 +304,7 @@ export default function App() {
   const layers = useMemo(
     () =>
       [
+        createBuildingsLayer({ features: buildingFeatures }),
         createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
@@ -341,6 +349,7 @@ export default function App() {
       occupancyData,
       routeCoverage,
       coverageDistance,
+      buildingFeatures,
       timeFilter,
       fleetDayType,
       scheduleDayType,
@@ -428,6 +437,8 @@ export default function App() {
         stopExpeditions={stopExpeditions}
         occupancyData={occupancyData}
         routeCoverage={routeCoverage}
+        showBuildings={showBuildings}
+        setShowBuildings={setShowBuildings}
       />
 
       <RouteTooltip

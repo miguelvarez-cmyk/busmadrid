@@ -48,6 +48,8 @@ export default function Sidebar({
   stopExpeditions,
   occupancyData,
   routeCoverage,
+  showBuildings,
+  setShowBuildings,
 }) {
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
   const [isOpen, setIsOpen] = useState(!isMobile);
@@ -194,6 +196,8 @@ export default function Sidebar({
                 routeCoverage={routeCoverage}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
+                showBuildings={showBuildings}
+                setShowBuildings={setShowBuildings}
               />
             </AccordionSection>
           )}

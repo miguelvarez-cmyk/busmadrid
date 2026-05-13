@@ -92,6 +92,10 @@ export const useMapStore = create((set) => ({
   setCoverageFilter: (range) => set({ coverageFilter: range }),
   setCoverageDistance: (d) => set({ coverageDistance: d }),
 
+  // Capa de edificios residenciales con población
+  showBuildings: false,
+  setShowBuildings: (v) => set({ showBuildings: v }),
+
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
@@ -143,6 +147,7 @@ export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditio
 export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
 export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
 export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
+export const useShowBuildings = () => useMapStore((s) => s.showBuildings);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
