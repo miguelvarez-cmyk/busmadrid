@@ -3,7 +3,7 @@ import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { BASEMAPS } from './config/mapConfig.js';
+import { BASEMAPS, INITIAL_VIEW_STATE } from './config/mapConfig.js';
 import {
   useMapStore,
   useViewState,
@@ -333,6 +333,12 @@ export default function App() {
   );
 
 
+  function handleReset() {
+    setViewState({ ...INITIAL_VIEW_STATE, transitionDuration: 600 });
+    if (routesMeta) selectAllRoutes(routesMeta.map((r) => r.id));
+    setClickedRouteId(null);
+  }
+
   return (
     <div className="app">
       <DeckGL
@@ -403,6 +409,8 @@ export default function App() {
         stopsGeojson={stopsGeojson}
         stopExpeditions={stopExpeditions}
         occupancyData={occupancyData}
+        isLoading={loading}
+        onReset={handleReset}
       />
 
       <RouteTooltip

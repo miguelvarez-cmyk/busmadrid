@@ -54,6 +54,8 @@ export default function Sidebar({
   stopsGeojson,
   stopExpeditions,
   occupancyData,
+  isLoading,
+  onReset,
 }) {
   const isMobile = useMediaQuery('(max-width: 720px)');
   const [isOpen, setIsOpen] = useState(
@@ -99,7 +101,19 @@ export default function Sidebar({
     <>
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <span className="sidebar-title">Visualizador Bus Madrid</span>
+          <button
+            type="button"
+            className="sidebar-title-btn"
+            onClick={onReset}
+            title="Volver al inicio"
+          >
+            Visualizador Bus Madrid
+            <span
+              className={`sidebar-status-dot ${isLoading ? 'loading' : 'ready'}`}
+              aria-label={isLoading ? 'Cargando datos' : 'Datos cargados'}
+              title={isLoading ? 'Cargando datos…' : 'Datos listos'}
+            />
+          </button>
           <button
             type="button"
             className="sidebar-hamburger"
