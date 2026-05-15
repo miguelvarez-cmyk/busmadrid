@@ -61,7 +61,7 @@ export default function SearchBar({ stopsGeojson }) {
   const results = [...stopResults, ...addressResults];
 
   useEffect(() => {
-    setIsOpen(query.trim().length >= 2 && results.length > 0);
+    setIsOpen(query.trim().length >= 2);
   }, [query, results.length]);
 
   // Close on click outside
@@ -122,6 +122,15 @@ export default function SearchBar({ stopsGeojson }) {
               </span>
             </li>
           ))}
+          {results.length === 0 && (
+            <li className="sb-result sb-empty">
+              <span className="sb-result-icon">○</span>
+              <span className="sb-result-text">
+                <span className="sb-result-label">Sin resultados para &ldquo;{query}&rdquo;</span>
+                <span className="sb-result-sub">Prueba con el número de línea o el nombre de la parada</span>
+              </span>
+            </li>
+          )}
         </ul>
       )}
     </div>

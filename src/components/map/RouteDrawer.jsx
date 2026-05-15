@@ -32,7 +32,9 @@ function HourChart({ row0, row1, color }) {
             key={h}
             className="rd-hour-bar"
             style={{ height: `${Math.max(2, Math.round((v / maxV) * 72))}px`, background: color, opacity: v > 0 ? 1 : 0.12 }}
-            title={`${h}:00 — ${v} exp.`}
+            title={`${h}:00 h — ${v} expedición${v !== 1 ? 'es' : ''}`}
+            role="img"
+            aria-label={`${h}:00 h: ${v} expedicion${v !== 1 ? 'es' : ''}`}
           />
         ))}
       </div>

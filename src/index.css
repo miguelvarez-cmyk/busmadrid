@@ -2065,6 +2065,9 @@ button {
   color: #888;
 }
 
+.sb-empty { cursor: default; opacity: 0.7; }
+.sb-empty:hover { background: transparent; }
+
 /* ── OtrosPanel ───────────────────────────────────────────── */
 
 .otros-empty {
