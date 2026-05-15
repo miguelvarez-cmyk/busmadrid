@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMapStore } from '../../store/useMapStore.js';
+import { useMediaQuery } from '../../utils/useMediaQuery.js';
 import LineSelector from './LineSelector.jsx';
 import VisualizationControls from './VisualizationControls.jsx';
 import LayerToggles from './LayerToggles.jsx';
@@ -9,20 +10,27 @@ import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
+  const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
+
+  const handleToggle = () => {
+    if (!hasBeenOpened) setHasBeenOpened(true);
+    onToggle(id);
+  };
+
   return (
     <div className="accordion-section">
       <button
         type="button"
         className={`accordion-header ${isOpen ? 'open' : ''}`}
-        onClick={() => onToggle(id)}
+        onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <span className="accordion-icon">{icon}</span>
+        <span className="accordion-icon" aria-hidden="true">{icon}</span>
         <span>{title}</span>
-        <span className="accordion-arrow">▼</span>
+        <span className="accordion-arrow" aria-hidden="true">▼</span>
       </button>
       <div className={`accordion-content ${isOpen ? 'open' : ''}`}>
-        {children}
+        {hasBeenOpened && <div>{children}</div>}
       </div>
     </div>
   );
@@ -47,9 +55,28 @@ export default function Sidebar({
   stopExpeditions,
   occupancyData,
 }) {
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches;
-  const [isOpen, setIsOpen] = useState(!isMobile);
-  const [openSections, setOpenSections] = useState(() => new Set());
+  const isMobile = useMediaQuery('(max-width: 720px)');
+  const [isOpen, setIsOpen] = useState(
+    () => typeof window !== 'undefined' ? !window.matchMedia('(max-width: 720px)').matches : true
+  );
+  const [openSections, setOpenSections] = useState(() => new Set(['lineas']));
+
+  useEffect(() => {
+    if (isMobile) setIsOpen(false);
+  }, [isMobile]);
+
+  // Atajo de teclado [ para toggle del sidebar
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const active = document.activeElement;
+        const isInput = active.tagName === 'INPUT' || active.tagName === 'TEXTAREA';
+        if (!isInput) setIsOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   const toggleSection = (id) => {
     setOpenSections((prev) => {
@@ -79,7 +106,7 @@ export default function Sidebar({
             onClick={() => setIsOpen(false)}
             aria-label="Cerrar panel"
           >
-            ☰
+            ✕
           </button>
         </div>
 
@@ -146,39 +173,43 @@ export default function Sidebar({
             isOpen={openSections.has('paradas')}
             onToggle={toggleSection}
           >
-            <label style={{ marginBottom: '12px' }}>
+            <label
+              style={{ marginBottom: '12px', opacity: stopsGeojson ? 1 : 0.5 }}
+              title={!stopsGeojson ? 'Cargando datos de paradas…' : undefined}
+            >
               <input
+                id="show-stops-checkbox"
                 type="checkbox"
                 checked={showStops}
                 onChange={(e) => setShowStops(e.target.checked)}
                 disabled={!stopsGeojson}
+                aria-describedby={!stopsGeojson ? 'stops-loading-hint' : undefined}
               />
               <span>Mostrar paradas</span>
-              {stopsGeojson && (
-                <span className="muted"> ({stopsGeojson.features.length})</span>
-              )}
+              {stopsGeojson
+                ? <span className="muted"> ({stopsGeojson.features.length})</span>
+                : <span id="stops-loading-hint" className="muted"> (cargando…)</span>
+              }
             </label>
             <StopRoutesPanel stopsGeojson={stopsGeojson} />
             <StopExpeditionsPanel stopExpeditions={stopExpeditions} />
           </AccordionSection>
 
-          {(routeFleet || routeDemand || occupancyData) && (
-            <AccordionSection
-              id="otros"
-              icon="★"
-              title="Otros"
-              isOpen={openSections.has('otros')}
-              onToggle={toggleSection}
-            >
-              <OtrosPanel
-                routeFleet={routeFleet}
-                routeDemand={routeDemand}
-                occupancyData={occupancyData}
-                routesMeta={routesMeta}
-                selectedRouteIds={selectedRouteIds}
-              />
-            </AccordionSection>
-          )}
+          <AccordionSection
+            id="otros"
+            icon="★"
+            title="Otros"
+            isOpen={openSections.has('otros')}
+            onToggle={toggleSection}
+          >
+            <OtrosPanel
+              routeFleet={routeFleet}
+              routeDemand={routeDemand}
+              occupancyData={occupancyData}
+              routesMeta={routesMeta}
+              selectedRouteIds={selectedRouteIds}
+            />
+          </AccordionSection>
 
           <AccordionSection
             id="fondo"

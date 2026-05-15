@@ -127,7 +127,9 @@ export default function OtrosPanel({
     });
   }, [colorMode, occupancyData, occupancyFilter, maxOccupancy]);
 
-  if (!routeFleet && !routeDemand && !occupancyData) return null;
+  if (!routeFleet && !routeDemand && !occupancyData) {
+    return <div className="otros-empty">Sin datos disponibles</div>;
+  }
 
   return (
     <div className="otros-panel">
