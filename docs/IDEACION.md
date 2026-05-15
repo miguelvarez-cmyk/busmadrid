@@ -3,8 +3,8 @@
 Documento vivo con ideas de mejora para el **Visualizador GTFS Madrid**.
 Cada bloque indica **prioridad** (alta/media/baja), **complejidad** (S/M/L/XL) y **valor**.
 
-> Última actualización: 2026-05-13
-> Estado actual: tooltip enriquecido, leyenda de color flotante, URL sync, drawer de detalle de línea y buscador de paradas/direcciones implementados.
+> Última actualización: 2026-05-15
+> Estado actual: tooltip enriquecido, leyenda de color flotante, URL sync, drawer de detalle de línea, buscador de paradas/direcciones + refactor UI/UX completo (50 correcciones de accesibilidad, tokens CSS, lazy accordion, indicador de carga y botón de reset).
 
 ---
 
@@ -126,11 +126,13 @@ El bottom-sheet móvil funciona pero le falta:
 - Snap a alturas (25%, 50%, 90%)
 - Cierre por swipe-down
 
-### 6.6 Accesibilidad — media · M
-Ya hay `aria-*` en algunos sitios. Auditar con axe:
-- Foco visible en botones del sidebar
-- Skip-to-content
+### 6.6 Accesibilidad — ⚠️ parcialmente completado (2026-05-15) · pendiente · baja · S
+Aplicado en esta sesión: `aria-hidden` en flechas del acordeón, `aria-expanded` en cabeceras, `:focus-visible` en todos los botones del sidebar, `pointer-events: none` en tooltip, `prefers-reduced-motion`, `role`/`aria-label` en barras del gráfico horario, accesibilidad del checkbox de paradas.
+
+Pendiente:
+- Skip-to-content link
 - `aria-live` en histogramas que cambian al ajustar slider
+- Auditoría completa con axe-core
 
 ---
 
