@@ -1,3 +1,24 @@
+:root {
+  /* Color de acento único para estados activos e interactivos */
+  --color-accent: #1a6ee6;
+  --color-accent-hover: #1258c0;
+  --color-accent-light: #e6f1fb;
+
+  /* Escala de border-radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 20px;
+
+  /* Z-index documentados */
+  --z-base: 10;
+  --z-overlay: 12;
+  --z-panel: 15;
+  --z-drawer: 25;
+  --z-search: 30;
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -34,7 +55,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 10;
+  z-index: var(--z-base);
   font-size: 13px;
 }
 
@@ -257,7 +278,7 @@ html, body, #root {
   flex-direction: column;
   gap: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 15;
+  z-index: var(--z-panel);
   max-width: 380px;
   cursor: default;
   pointer-events: none;
@@ -383,7 +404,7 @@ html, body, #root {
   color: #1a1a1a;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  z-index: 10;
+  z-index: var(--z-base);
   font-size: 13px;
   overflow: hidden;
 }
@@ -581,7 +602,7 @@ html, body, #root {
 
 .hist-row {
   display: grid;
-  grid-template-columns: 70px 1fr 24px;
+  grid-template-columns: minmax(60px, 70px) 1fr 24px;
   align-items: center;
   gap: 6px;
   font-size: 10px;
@@ -595,6 +616,9 @@ html, body, #root {
 .hist-label {
   color: #555;
   text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hist-bar-wrap {
@@ -636,7 +660,7 @@ html, body, #root {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: #1976d2;
+  background: var(--color-accent);
   border-radius: 2px;
 }
 
@@ -659,7 +683,7 @@ html, body, #root {
   height: 14px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #1976d2;
+  border: 2px solid var(--color-accent);
   cursor: pointer;
   pointer-events: auto;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -670,7 +694,7 @@ html, body, #root {
   height: 14px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #1976d2;
+  border: 2px solid var(--color-accent);
   cursor: pointer;
   pointer-events: auto;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -741,8 +765,13 @@ html, body, #root {
   color: #333;
 }
 
+.basemap-switch button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
 .basemap-switch button:last-child {
   border-right: none;
+  border-radius: 0 4px 4px 0;
 }
 
 .basemap-switch button:hover {
@@ -750,7 +779,7 @@ html, body, #root {
 }
 
 .basemap-switch button.active {
-  background: #1976d2;
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -762,15 +791,15 @@ html, body, #root {
 .box-select-overlay {
   position: absolute;
   inset: 0;
-  z-index: 12;
+  z-index: var(--z-overlay);
   cursor: crosshair;
   user-select: none;
 }
 
 .box-select-rect {
   position: absolute;
-  border: 2px dashed #1976d2;
-  background: rgba(25, 118, 210, 0.15);
+  border: 2px dashed var(--color-accent);
+  background: rgba(26, 110, 230, 0.15);
   pointer-events: none;
 }
 
@@ -1052,7 +1081,7 @@ button {
   width: 340px;
   background: #fff;
   color: #1a1a1a;
-  z-index: 10;
+  z-index: var(--z-base);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1077,10 +1106,23 @@ button {
 
 .sidebar-title {
   flex: 1;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #1a1a1a;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .sidebar-hamburger {
@@ -1772,7 +1814,7 @@ button {
   height: 100dvh;
   background: #fff;
   color: #1a1a1a;
-  z-index: 25;
+  z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1891,7 +1933,7 @@ button {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 48px;
+  height: 80px;
   background: #f3f4f6;
   border-radius: 6px;
   padding: 4px 6px 0;
@@ -1913,7 +1955,7 @@ button {
 
 .rd-center-btn {
   margin-top: auto;
-  background: #1a6ee6;
+  background: var(--color-accent);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -1925,7 +1967,7 @@ button {
   transition: background 0.15s;
 }
 
-.rd-center-btn:hover { background: #1258c0; }
+.rd-center-btn:hover { background: var(--color-accent-hover); }
 
 /* ── SearchBar ────────────────────────────────────────────── */
 
@@ -1936,7 +1978,7 @@ button {
   transform: translateX(-50%);
   width: 320px;
   max-width: calc(100vw - 32px);
-  z-index: 30;
+  z-index: var(--z-search);
   font-size: 13px;
 }
 
@@ -2018,6 +2060,15 @@ button {
 .sb-result-sub {
   font-size: 11px;
   color: #888;
+}
+
+/* ── OtrosPanel ───────────────────────────────────────────── */
+
+.otros-empty {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
 }
 
 /* ── Accesibilidad: foco visible en sidebar ───────────────── */

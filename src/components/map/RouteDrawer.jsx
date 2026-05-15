@@ -31,7 +31,7 @@ function HourChart({ row0, row1, color }) {
           <div
             key={h}
             className="rd-hour-bar"
-            style={{ height: `${Math.max(2, Math.round((v / maxV) * 44))}px`, background: color, opacity: v > 0 ? 1 : 0.12 }}
+            style={{ height: `${Math.max(2, Math.round((v / maxV) * 72))}px`, background: color, opacity: v > 0 ? 1 : 0.12 }}
             title={`${h}:00 — ${v} exp.`}
           />
         ))}
