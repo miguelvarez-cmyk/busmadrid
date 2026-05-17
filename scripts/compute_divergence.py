@@ -40,6 +40,14 @@ ROOT = Path(__file__).resolve().parents[1]
 GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
 OUT_DIR = ROOT / "public" / "data"
 
+# Pares de líneas circulares: se tratan como una única línea bidireccional.
+# Se compara direction_id=0 del primer miembro contra direction_id=0 del segundo.
+CIRCULAR_PAIRS: list[tuple[str, str]] = [
+    ("068", "069"),  # C1 ↔ C2
+    ("529", "530"),  # NC1 ↔ NC2
+    ("869", "870"),  # SC1 ↔ SC2
+]
+
 BUFFER_TIGHT  = 15   # m — mismo carril (buffer original)
 BUFFER_WIDE   = 80   # m — avenidas divididas como Castellana (~60-80 m entre vías de servicio)
 ANGLE_AP_TOL  = 35   # º — tolerancia para considerar antiparalelo
@@ -148,7 +156,31 @@ def main() -> None:
     by_route: dict[str, dict] = {}
     processed = skipped = 0
 
+    # Pares circulares: probar las 4 combinaciones de sentidos y tomar la de mínima divergencia.
+    # Los dir=0 de ambos miembros pueden ir en la misma dirección geográfica (paralelos),
+    # así que la combinación óptima varía por par y no se puede fijar a priori.
+    _paired: set[str] = {r for pair in CIRCULAR_PAIRS for r in pair}
+    for route_a, route_b in CIRCULAR_PAIRS:
+        candidates: list[float] = []
+        for dir_a in ("0", "1"):
+            for dir_b in ("0", "1"):
+                shape_a = best.get(route_a, {}).get(dir_a)
+                shape_b = best.get(route_b, {}).get(dir_b)
+                if shape_a and shape_b:
+                    try:
+                        l0 = line_utm(shape_coords[shape_a])
+                        l1 = line_utm(shape_coords[shape_b])
+                        candidates.append(compute_divergence(l0, l1))
+                    except Exception as exc:
+                        print(f"  [WARN] par {route_a}/{route_b} ({dir_a},{dir_b}): {exc}")
+        div = round(min(candidates), 1) if candidates else 0.0
+        processed += 2
+        by_route[route_a] = {"divergence": div}
+        by_route[route_b] = {"divergence": div}
+
     for route, directions in best.items():
+        if route in _paired:
+            continue
         shape0 = directions.get("0")
         shape1 = directions.get("1")
 
