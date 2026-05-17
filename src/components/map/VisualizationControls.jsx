@@ -8,7 +8,6 @@ import {
   useDemandFilter,
   useFleetFilter,
   useFleetDayType,
-  useTortuosityFilter,
   useScheduleFilter,
   useScheduleDayType,
 } from '../../store/useMapStore.js';
@@ -17,7 +16,6 @@ import {
   speedHistogram,
   demandHistogram,
   fleetHistogram,
-  tortuosityHistogram,
   scheduleHistogram,
   formatSpanMinutes,
 } from '../../utils/service.js';
@@ -30,7 +28,6 @@ const MODES = [
   { id: 'offer', label: 'Frecuencia' },
   { id: 'schedule', label: 'Horario de Paso' },
   { id: 'speed', label: 'Velocidad' },
-  { id: 'tortuosity', label: 'Tortuosidad' },
 ];
 
 const FLEET_DAY_TYPES = [
@@ -52,7 +49,6 @@ export default function VisualizationControls({
   routeSpeed,
   routeDemand,
   routeFleet,
-  routeTortuosity,
   routeSchedule,
   routesMeta,
   serviceMetrics,
@@ -75,8 +71,6 @@ export default function VisualizationControls({
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
   const setFleetDayType = useMapStore((s) => s.setFleetDayType);
-  const tortuosityFilter = useTortuosityFilter();
-  const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
   const scheduleFilter = useScheduleFilter();
   const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
   const scheduleDayType = useScheduleDayType();
@@ -151,14 +145,6 @@ export default function VisualizationControls({
         ? fleetHistogram(routeFleet, selectedRouteIds, fleetDayType, fleetFilter)
         : [],
     [colorMode, routeFleet, selectedRouteIds, fleetDayType, fleetFilter]
-  );
-
-  const tortuosityBuckets = useMemo(
-    () =>
-      colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter
-        ? tortuosityHistogram(routeTortuosity, selectedRouteIds, tortuosityFilter)
-        : [],
-    [colorMode, routeTortuosity, selectedRouteIds, tortuosityFilter]
   );
 
   const scheduleBuckets = useMemo(
@@ -331,35 +317,6 @@ export default function VisualizationControls({
               promediado entre fechas del mismo tipo. Rojo = flota pequeña,
               verde = flota grande. El rango {routeFleet.min}–{routeFleet.max}
               {' '}cubre {Object.keys(routeFleet.byRoute).length} líneas.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter && (
-        <div className="body">
-          <div className="filter-block">
-            <div className="filter-title">
-              <span>Distribución de tortuosidad</span>
-              <span className="muted">
-                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
-              </span>
-            </div>
-            <Histogram buckets={tortuosityBuckets} />
-            <RangeSlider
-              min={1}
-              max={Math.max(3, Math.ceil(routeTortuosity.max * 10) / 10)}
-              step={0.1}
-              value={tortuosityFilter}
-              onChange={setTortuosityFilter}
-              format={(v) => v.toFixed(2)}
-            />
-            <div className="caption muted">
-              Tortuosidad = longitud del recorrido / distancia en línea recta
-              entre los dos extremos del sentido (media de ambos sentidos).
-              1.00 = línea recta · valores altos = trayecto sinuoso o circular.
-              Rango {routeTortuosity.min.toFixed(2)}–
-              {routeTortuosity.max.toFixed(2)}.
             </div>
           </div>
         </div>

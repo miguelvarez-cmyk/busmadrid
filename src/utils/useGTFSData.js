@@ -9,6 +9,7 @@ export function useGTFSData() {
   const [routeDemand, setRouteDemand] = useState(null);
   const [routeFleet, setRouteFleet] = useState(null);
   const [routeTortuosity, setRouteTortuosity] = useState(null);
+  const [routeDivergence, setRouteDivergence] = useState(null);
   const [routeSchedule, setRouteSchedule] = useState(null);
   const [routeDistricts, setRouteDistricts] = useState(null);
   const [barriosGeojson, setBarriosGeojson] = useState(null);
@@ -29,6 +30,7 @@ export function useGTFSData() {
       fetch('/data/route_demand.json').then((r) => r.json()),
       fetch('/data/route_fleet.json').then((r) => r.json()),
       fetch('/data/route_tortuosity.json').then((r) => r.json()),
+      fetch('/data/route_divergence.json').then((r) => r.json()).catch(() => null),
       fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null),
       fetch('/data/route_districts.json').then((r) => r.json()).catch(() => null),
       fetch('/data/barrios.geojson').then((r) => r.json()).catch(() => null),
@@ -37,7 +39,7 @@ export function useGTFSData() {
       fetch('/data/metro_cercanias_routes.geojson').then((r) => r.json()).catch(() => null),
       fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -47,6 +49,7 @@ export function useGTFSData() {
         setRouteDemand(demand);
         setRouteFleet(fleet);
         setRouteTortuosity(tortuosity);
+        setRouteDivergence(divergence);
         setRouteSchedule(schedule);
         setRouteDistricts(districts);
         setBarriosGeojson(barrios);
@@ -70,6 +73,7 @@ export function useGTFSData() {
     routeDemand,
     routeFleet,
     routeTortuosity,
+    routeDivergence,
     routeSchedule,
     routeDistricts,
     barriosGeojson,

@@ -70,6 +70,8 @@
 
 | ID | Tarea | Completado |
 |---|---|---|
+| ✅ | Análisis de itinerarios: Tortuosidad + Divergencia ida/vuelta | 2026-05-17 |
+| ✅ | Tortuosidad extraída de Calidad de la Oferta a nuevo acordeón | 2026-05-17 |
 | ✅ | Tooltip: radio 150 m, resalte azul, Enter → drawer | 2026-05-17 |
 | ✅ | Tooltip enriquecido con detección de líneas superpuestas | 2026-05-12 |
 | ✅ | Búsqueda por dirección/parada (Nominatim + local) | 2026-05-13 |

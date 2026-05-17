@@ -23,6 +23,7 @@ import {
   useFleetFilter,
   useFleetDayType,
   useTortuosityFilter,
+  useDivergenceFilter,
   useScheduleFilter,
   useScheduleDayType,
   useStopRoutesFilter,
@@ -122,6 +123,8 @@ export default function App() {
   const fleetDayType = useFleetDayType();
   const tortuosityFilter = useTortuosityFilter();
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
+  const divergenceFilter = useDivergenceFilter();
+  const setDivergenceFilter = useMapStore((s) => s.setDivergenceFilter);
   const scheduleFilter = useScheduleFilter();
   const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
   const scheduleDayType = useScheduleDayType();
@@ -153,6 +156,7 @@ export default function App() {
     routeDemand,
     routeFleet,
     routeTortuosity,
+    routeDivergence,
     routeSchedule,
     routeDistricts,
     barriosGeojson,
@@ -239,6 +243,12 @@ export default function App() {
   }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
 
   useEffect(() => {
+    if (routeDivergence && !divergenceFilter) {
+      setDivergenceFilter([0, 100]);
+    }
+  }, [routeDivergence, divergenceFilter, setDivergenceFilter]);
+
+  useEffect(() => {
     if (routeSchedule && !scheduleFilter) {
       setScheduleFilter([0, Math.ceil(routeSchedule.max / 60) * 60]);
     }
@@ -311,6 +321,7 @@ export default function App() {
         routeDemand,
         routeFleet,
         routeTortuosity,
+        routeDivergence,
         routeSchedule,
         occupancyData,
         routeCoverage,
@@ -321,6 +332,7 @@ export default function App() {
         fleetFilter,
         fleetDayType,
         tortuosityFilter,
+        divergenceFilter,
         scheduleFilter,
         scheduleDayType,
         occupancyFilter,
@@ -335,6 +347,7 @@ export default function App() {
       routeDemand,
       routeFleet,
       routeTortuosity,
+      routeDivergence,
       routeSchedule,
       occupancyData,
       routeCoverage,
@@ -345,6 +358,7 @@ export default function App() {
       fleetFilter,
       fleetDayType,
       tortuosityFilter,
+      divergenceFilter,
       scheduleFilter,
       scheduleDayType,
       occupancyFilter,
@@ -376,6 +390,7 @@ export default function App() {
           routeDemand,
           routeFleet,
           routeTortuosity,
+          routeDivergence,
           routeSchedule,
           occupancyData,
           routeCoverage,
@@ -411,6 +426,7 @@ export default function App() {
       routeDemand,
       routeFleet,
       routeTortuosity,
+      routeDivergence,
       routeSchedule,
       occupancyData,
       routeCoverage,
@@ -506,6 +522,7 @@ export default function App() {
         routeDemand={routeDemand}
         routeFleet={routeFleet}
         routeTortuosity={routeTortuosity}
+        routeDivergence={routeDivergence}
         routeSchedule={routeSchedule}
         routeDistricts={routeDistricts}
         serviceMetrics={serviceMetrics}

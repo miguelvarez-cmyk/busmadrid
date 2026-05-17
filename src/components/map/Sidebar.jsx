@@ -8,6 +8,7 @@ import StopRoutesPanel from './StopRoutesPanel.jsx';
 import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
+import ItinerariosPanel from './ItinerariosPanel.jsx';
 import CoveragePanel from './CoveragePanel.jsx';
 import MetroCercaniasPanel from './MetroCercaniasPanel.jsx';
 
@@ -44,6 +45,7 @@ export default function Sidebar({
   routeDemand,
   routeFleet,
   routeTortuosity,
+  routeDivergence,
   routeSchedule,
   routeDistricts,
   serviceMetrics,
@@ -102,7 +104,7 @@ export default function Sidebar({
   const boxSelectMode = useMapStore((s) => s.boxSelectMode);
   const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
-  const hasViz = serviceMetrics || routeSpeed || routeTortuosity || routeSchedule;
+  const hasViz = serviceMetrics || routeSpeed || routeSchedule;
 
   return (
     <>
@@ -176,13 +178,29 @@ export default function Sidebar({
             >
               <VisualizationControls
                 routeSpeed={routeSpeed}
-                routeTortuosity={routeTortuosity}
                 routeSchedule={routeSchedule}
                 routesMeta={routesMeta}
                 serviceMetrics={serviceMetrics}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
                 inSidebar
+              />
+            </AccordionSection>
+          )}
+
+          {(routeTortuosity || routeDivergence) && (
+            <AccordionSection
+              id="itinerarios"
+              title="Análisis de itinerarios"
+              icon="↗"
+              isOpen={openSections.has('itinerarios')}
+              onToggle={toggleSection}
+            >
+              <ItinerariosPanel
+                routeTortuosity={routeTortuosity}
+                routeDivergence={routeDivergence}
+                selectedRouteIds={selectedRouteIds}
+                visibleRouteIds={visibleRouteIds}
               />
             </AccordionSection>
           )}

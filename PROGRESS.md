@@ -8,13 +8,30 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-17
-**Última tarea completada:** Tooltip con radio 150 m, resalte azul, Enter → drawer
+**Última tarea completada:** Nuevo apartado "Análisis de itinerarios" con Tortuosidad + Divergencia ida/vuelta
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación pendiente:**
-- [x] `npm run lint` pasa sin warnings (restaurado `.eslintrc.cjs` + 8 fixes)
-- [x] `QUESTION-GTFS-001` — README.md actualizado con rutas correctas de `public/data/`
+- [x] `npm run lint` pasa sin warnings
 - [ ] Verificar deploy IONOS en producción tras el push de esta sesión
+
+---
+
+## Sesión 2026-05-17 (noche) — Análisis de itinerarios
+
+### Qué se hizo
+- Extraída "Tortuosidad" del acordeón "Calidad de la Oferta" a un nuevo acordeón "Análisis de itinerarios"
+- Nuevo componente `ItinerariosPanel.jsx` con soporte para múltiples modos de análisis
+- Nuevo análisis: **Divergencia ida/vuelta** — % del trayecto combinado que no comparte vial
+  - Script Python `compute_divergence.py`: proyección UTM 30N, buffer 15 m, shapely/geopandas
+  - 235 líneas calculadas, rango 3.9–99.7%
+  - colorMode `divergence`, 7 categorías verde→rojo, histograma + slider 0–100%
+  - Integrado en store, service.js, createRoutesLayer, App.jsx, ColorLegend
+
+### Commit
+```
+(ver git log)
+```
 
 ---
 

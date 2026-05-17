@@ -739,6 +739,81 @@ const BUILDING_LINE_BUCKETS = [
 ];
 const BUILDING_LINE_MAX_REF = 21;
 
+// ── Divergencia ida/vuelta ────────────────────────────────────────────────────
+
+export const DIVERGENCE_CATEGORIES = [
+  { maxPct:  15, label: '0–15 %',   color: [27,  94,  32] },   // verde oscuro
+  { maxPct:  30, label: '15–30 %',  color: [102, 187, 106] },  // verde claro
+  { maxPct:  45, label: '30–45 %',  color: [205, 220,  57] },  // verde-amarillo
+  { maxPct:  60, label: '45–60 %',  color: [255, 210,  63] },  // amarillo
+  { maxPct:  75, label: '60–75 %',  color: [255, 153,  51] },  // naranja
+  { maxPct:  90, label: '75–90 %',  color: [239,  83,  80] },  // rojo claro
+  { maxPct: 100, label: '90–100 %', color: [127,  20,  20] },  // rojo oscuro
+];
+
+export function divergenceForRoute(divergence, routeId) {
+  return divergence?.byRoute?.[routeId]?.divergence ?? null;
+}
+
+export function divergenceCategory(pct) {
+  if (pct == null) return null;
+  for (const cat of DIVERGENCE_CATEGORIES) {
+    if (pct <= cat.maxPct) return cat;
+  }
+  return DIVERGENCE_CATEGORIES[DIVERGENCE_CATEGORIES.length - 1];
+}
+
+export function divergenceColorForRoute(divergence, routeId) {
+  if (!divergence) return NO_SERVICE_COLOR;
+  const v = divergenceForRoute(divergence, routeId);
+  if (v == null) return NO_SERVICE_COLOR;
+  return divergenceCategory(v).color;
+}
+
+export function divergenceHistogram(divergence, routeIds, filter) {
+  if (!divergence) return [];
+  const counts = DIVERGENCE_CATEGORIES.map(() => 0);
+  let noData = 0;
+
+  for (const id of routeIds) {
+    const v = divergenceForRoute(divergence, id);
+    if (v == null) {
+      noData += 1;
+      continue;
+    }
+    const idx = DIVERGENCE_CATEGORIES.findIndex((c) => v <= c.maxPct);
+    counts[idx >= 0 ? idx : counts.length - 1] += 1;
+  }
+
+  const [fMin, fMax] = filter;
+  const buckets = DIVERGENCE_CATEGORIES.map((cat, i) => {
+    const lo = i === 0 ? 0 : DIVERGENCE_CATEGORIES[i - 1].maxPct;
+    return {
+      label: cat.label,
+      count: counts[i],
+      color: cat.color,
+      inRange: cat.maxPct >= fMin && lo <= fMax,
+    };
+  });
+  if (noData > 0) {
+    buckets.push({
+      label: 'Sin datos',
+      count: noData,
+      color: NO_SERVICE_COLOR,
+      inRange: fMin <= 0,
+    });
+  }
+  return buckets;
+}
+
+export function passesDivergenceFilter(divergence, routeId, filter) {
+  if (!divergence) return true;
+  const v = divergenceForRoute(divergence, routeId);
+  const [fMin, fMax] = filter;
+  if (v == null) return fMin <= 0;
+  return v >= fMin && v <= fMax;
+}
+
 export function buildingLineHistogram(geojson) {
   if (!geojson?.features?.length) return [];
 

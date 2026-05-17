@@ -9,6 +9,7 @@ import {
 import {
   FREQUENCY_CATEGORIES,
   TORTUOSITY_CATEGORIES,
+  DIVERGENCE_CATEGORIES,
   formatSpanMinutes,
 } from '../../utils/service.js';
 
@@ -76,6 +77,9 @@ export default function ColorLegend() {
   }
   if (colorMode === 'tortuosity') {
     return <CategoricalLegend title="Tortuosidad" categories={TORTUOSITY_CATEGORIES} />;
+  }
+  if (colorMode === 'divergence') {
+    return <CategoricalLegend title="Divergencia ida/vuelta" categories={DIVERGENCE_CATEGORIES} />;
   }
 
   const cfg = MODE_CONFIG[colorMode];

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: tooltip 150 m + Enter→drawer (2026-05-17)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: análisis de itinerarios — Tortuosidad + Divergencia ida/vuelta (2026-05-17)
 
 ---
 
@@ -35,20 +35,21 @@ Visualizador interactivo del feed **GTFS de la EMT de Madrid** con capas de Metr
 - `createMetroCercaniasStopsLayer` — paradas Metro
 
 **Modos de color de líneas (`colorMode`):**
-`offer | schedule | speed | tortuosity | fleet | demand | occupancy | coverage | null`
+`offer | schedule | speed | tortuosity | divergence | fleet | demand | occupancy | coverage | null`
 Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` inicializado en `App.jsx` cuando carga el dataset.
 
 **Modos de color de paradas (`stopColorMode`):**
 `routes | expeditions | null` — mismo patrón toggle.
 
-**Sidebar: 6 secciones en acordeón (orden vinculante):**
+**Sidebar: 8 secciones en acordeón (orden vinculante):**
 1. Líneas — `LineSelector`
 2. Barrios — botón `▭ Área` + `DistrictsPanel`
-3. Calidad de la Oferta — `VisualizationControls` (4 modos: offer, schedule, speed, tortuosity)
-4. Paradas — checkbox + `StopRoutesPanel` + `StopExpeditionsPanel`
-5. Otros — `OtrosPanel` (flota, demanda, ocupación)
-6. Metro — `MetroCercaniasPanel` (solo Metro; Cercanías pendiente de datos)
-7. Fondo — `LayerToggles` (basemap)
+3. Calidad de la Oferta — `VisualizationControls` (3 modos: offer, schedule, speed)
+4. Análisis de itinerarios — `ItinerariosPanel` (2 modos: tortuosity, divergence)
+5. Paradas — checkbox + `StopRoutesPanel` + `StopExpeditionsPanel`
+6. Otros — `OtrosPanel` (flota, demanda, ocupación)
+7. Metro — `MetroCercaniasPanel` (solo Metro; Cercanías pendiente de datos)
+8. Fondo — `LayerToggles` (basemap)
 
 ---
 
