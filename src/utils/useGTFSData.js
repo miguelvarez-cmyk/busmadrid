@@ -18,26 +18,34 @@ export function useGTFSData() {
   const [metroCercaniasRoutes, setMetroCercaniasRoutes] = useState(null);
   const [metroCercaniasStops, setMetroCercaniasStops] = useState(null);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    let loaded = 0;
+    const total = 16;
+    const track = (p) => p.then((v) => {
+      loaded++;
+      if (!cancelled) setProgress(Math.round((loaded / total) * 100));
+      return v;
+    });
     Promise.all([
-      fetch('/data/routes.geojson').then((r) => r.json()),
-      fetch('/data/routes_meta.json').then((r) => r.json()),
-      fetch('/data/service_metrics.json').then((r) => r.json()),
-      fetch('/data/stops.geojson').then((r) => r.json()),
-      fetch('/data/route_speed.json').then((r) => r.json()),
-      fetch('/data/route_demand.json').then((r) => r.json()),
-      fetch('/data/route_fleet.json').then((r) => r.json()),
-      fetch('/data/route_tortuosity.json').then((r) => r.json()),
-      fetch('/data/route_divergence.json').then((r) => r.json()).catch(() => null),
-      fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null),
-      fetch('/data/route_districts.json').then((r) => r.json()).catch(() => null),
-      fetch('/data/barrios.geojson').then((r) => r.json()).catch(() => null),
-      fetch('/data/stop_expeditions.json').then((r) => r.json()).catch(() => null),
-      fetch('/data/route_coverage.json').then((r) => r.json()).catch(() => null),
-      fetch('/data/metro_cercanias_routes.geojson').then((r) => r.json()).catch(() => null),
-      fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null),
+      track(fetch('/data/routes.geojson').then((r) => r.json())),
+      track(fetch('/data/routes_meta.json').then((r) => r.json())),
+      track(fetch('/data/service_metrics.json').then((r) => r.json())),
+      track(fetch('/data/stops.geojson').then((r) => r.json())),
+      track(fetch('/data/route_speed.json').then((r) => r.json())),
+      track(fetch('/data/route_demand.json').then((r) => r.json())),
+      track(fetch('/data/route_fleet.json').then((r) => r.json())),
+      track(fetch('/data/route_tortuosity.json').then((r) => r.json())),
+      track(fetch('/data/route_divergence.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/route_districts.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/barrios.geojson').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/stop_expeditions.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/route_coverage.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/metro_cercanias_routes.geojson').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null)),
     ])
       .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops]) => {
         if (cancelled) return;
@@ -83,5 +91,6 @@ export function useGTFSData() {
     metroCercaniasStops,
     error,
     loading: !routesGeojson && !error,
+    progress,
   };
 }

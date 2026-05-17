@@ -56,6 +56,7 @@ import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
 import ColorLegend from './components/map/ColorLegend.jsx';
 import RouteDrawer from './components/map/RouteDrawer.jsx';
+import { LoadingScreen } from './components/map/LoadingScreen.jsx';
 import { useUrlSync } from './utils/useUrlSync.js';
 
 function ptSegDistM(lng, lat, a, b, cosLat) {
@@ -170,7 +171,16 @@ export default function App() {
     metroCercaniasStops,
     loading,
     error,
+    progress,
   } = useGTFSData();
+
+  const [showLoader, setShowLoader] = useState(true);
+  useEffect(() => {
+    if (!loading) {
+      const t = setTimeout(() => setShowLoader(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [loading]);
 
   const { data: buildingLineCoverage, loading: buildingCoverageLoading } = useBuildingLineCoverage(buildingCoverageMode);
 
@@ -605,7 +615,7 @@ export default function App() {
         dayOfWeek={timeFilter.dayOfWeek}
       />
 
-{loading && <div className="status-overlay">Cargando datos GTFS...</div>}
+{showLoader && <LoadingScreen loading={loading} progress={progress} />}
       {error && (
         <div className="status-overlay error">
           Error cargando datos: {error.message}
