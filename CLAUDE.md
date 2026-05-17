@@ -61,6 +61,14 @@ npm run preview   # sirve el build localmente
 npm run lint      # ESLint (máx 0 warnings)
 ```
 
+**Deploy a producción:**
+El proyecto usa **IONOS Deploy Now** conectado al repo de GitHub.
+Basta con hacer push a `main` — el deploy se dispara automáticamente.
+No hay script de deploy manual ni rama `gh-pages`.
+```bash
+git push origin main   # → IONOS construye y publica automáticamente
+```
+
 Pipeline Python (en orden):
 ```bash
 python scripts/process_gtfs.py
