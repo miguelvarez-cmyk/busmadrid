@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useMapStore, useStopColorMode, useStopExpeditionsFilter } from '../../store/useMapStore.js';
-import { stopRoutesHistogram } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
 

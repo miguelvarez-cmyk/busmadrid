@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMapStore, useStopRoutesFilter, useStopColorMode, useSelectedRouteIds } from '../../store/useMapStore.js';
+import { useMapStore, useStopRoutesFilter, useStopColorMode } from '../../store/useMapStore.js';
 import { stopRoutesHistogram } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -20,8 +20,6 @@ export default function StopRoutesPanel({ stopsGeojson }) {
     }
     return max;
   }, [stopsGeojson]);
-
-  const totalStops = stopsGeojson?.features?.length ?? 0;
 
   const buckets = useMemo(
     () => stopRoutesHistogram(stopsGeojson, stopRoutesFilter ?? [1, maxRoutes]),

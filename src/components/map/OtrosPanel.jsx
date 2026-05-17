@@ -10,7 +10,6 @@ import {
 import {
   fleetHistogram,
   demandHistogram,
-  formatSpanMinutes,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';

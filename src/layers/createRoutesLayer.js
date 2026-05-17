@@ -246,7 +246,7 @@ export function createHighlightLayer({ geojson, hoveredRouteId }) {
     data: { type: 'FeatureCollection', features: [feature] },
     lineWidthUnits: 'pixels',
     getLineWidth: 7,
-    getLineColor: [...hexToRgb(feature.properties.route_color), 255],
+    getLineColor: [100, 180, 255, 255],
     pickable: false,
     parameters: { depthTest: false },
   });

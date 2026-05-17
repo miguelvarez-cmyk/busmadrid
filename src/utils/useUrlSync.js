@@ -34,7 +34,7 @@ export function useUrlSync() {
     if (p.has('scm')) setStopColorMode(p.get('scm'));
 
     initDoneRef.current = true;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const viewState       = useViewState();
   const colorMode       = useColorMode();

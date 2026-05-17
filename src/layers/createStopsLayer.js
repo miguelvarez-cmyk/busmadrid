@@ -1,9 +1,6 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { passesStopRoutesFilter } from '../utils/service.js';
 
-function lerp(a, b, t) {
-  return Math.round(a + (b - a) * t);
-}
 
 export function createStopsLayer({
   geojson,

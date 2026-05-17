@@ -13,8 +13,6 @@ export default function RouteTooltip({
   onTooltipMouseEnter,
   onTooltipMouseLeave,
 }) {
-  if (!activeRouteId) return null;
-
   const routeMeta = useMemo(
     () => routesMeta?.find((r) => r.id === activeRouteId),
     [activeRouteId, routesMeta]
@@ -35,7 +33,7 @@ export default function RouteTooltip({
     [serviceMetrics, activeRouteId, dayOfWeek]
   );
 
-  if (!routeMeta) return null;
+  if (!activeRouteId || !routeMeta) return null;
 
   return (
     <div

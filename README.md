@@ -43,13 +43,15 @@ pip install pandas geopandas shapely
 
 ### 1. Procesar datos GTFS
 
-Coloca el feed GTFS de Madrid (descomprimido) en [data/raw/](data/raw/) y ejecuta:
+Coloca el feed GTFS de Madrid (descomprimido) en `data/raw/GTFS/` y ejecuta el pipeline completo:
 
 ```bash
 python scripts/process_gtfs.py
+python scripts/compute_service.py
+python scripts/compute_stop_expeditions.py
 ```
 
-Los GeoJSON resultantes se guardan en [data/processed/](data/processed/).
+Los GeoJSON resultantes se guardan en `public/data/` (servidos estáticamente por Vite).
 
 ### 2. Lanzar el visualizador
 

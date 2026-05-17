@@ -56,6 +56,40 @@ import RouteDrawer from './components/map/RouteDrawer.jsx';
 import SearchBar from './components/map/SearchBar.jsx';
 import { useUrlSync } from './utils/useUrlSync.js';
 
+function ptSegDistM(lng, lat, a, b, cosLat) {
+  const ax = (a[0] - lng) * 111000 * cosLat;
+  const ay = (a[1] - lat) * 111000;
+  const bx = (b[0] - lng) * 111000 * cosLat;
+  const by = (b[1] - lat) * 111000;
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq < 1e-10) return Math.sqrt(ax * ax + ay * ay);
+  const t = Math.max(0, Math.min(1, (-ax * dx - ay * dy) / lenSq));
+  return Math.sqrt((ax + t * dx) ** 2 + (ay + t * dy) ** 2);
+}
+
+function nearbyRouteIds(geojson, lng, lat, radiusM, visibleRouteIds) {
+  if (!geojson) return [];
+  const cosLat = Math.cos((lat * Math.PI) / 180);
+  const ids = [];
+  for (const f of geojson.features) {
+    const id = f.properties?.route_id;
+    if (!id || !visibleRouteIds.has(id)) continue;
+    const lines = f.geometry.type === 'MultiLineString'
+      ? f.geometry.coordinates
+      : [f.geometry.coordinates];
+    let found = false;
+    for (const line of lines) {
+      if (found) break;
+      for (let i = 0; i < line.length - 1 && !found; i++) {
+        if (ptSegDistM(lng, lat, line[i], line[i + 1], cosLat) <= radiusM) found = true;
+      }
+    }
+    if (found) ids.push(id);
+  }
+  return ids;
+}
+
 export default function App() {
   const viewState = useViewState();
   const setViewState = useSetViewState();
@@ -94,7 +128,6 @@ export default function App() {
   const stopRoutesFilter = useStopRoutesFilter();
   const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
   const stopColorMode = useStopColorMode();
-  const setStopColorMode = useMapStore((s) => s.setStopColorMode);
   const stopExpeditionsFilter = useStopExpeditionsFilter();
   const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
   const occupancyFilter = useOccupancyFilter();
@@ -151,9 +184,9 @@ export default function App() {
     }
   }, [hoveredRouteIds, hoverActiveIdx, hoveredRouteId, setHoveredRouteId]);
 
-  // Tab / Shift+Tab cicla entre líneas superpuestas
+  // Tab / Shift+Tab cicla entre líneas superpuestas; Enter abre el drawer
   useEffect(() => {
-    if (hoveredRouteIds.length <= 1) return;
+    if (!hoveredRouteIds.length) return;
     const len = hoveredRouteIds.length;
     const handleKeyDown = (e) => {
       if (e.key === 'Tab') {
@@ -161,11 +194,19 @@ export default function App() {
         setHoverActiveIdx((prev) =>
           e.shiftKey ? (prev - 1 + len) % len : (prev + 1) % len
         );
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const activeId = hoveredRouteIds[hoverActiveIdx];
+        if (activeId) {
+          setClickedRouteId(activeId);
+          setHoveredRouteIds([]);
+          setHoverActiveIdx(0);
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [hoveredRouteIds.length]);
+  }, [hoveredRouteIds, hoverActiveIdx, setClickedRouteId, setHoveredRouteIds]);
 
   useEffect(() => {
     if (routeSpeed && !speedFilter) {
@@ -428,8 +469,8 @@ export default function App() {
           setClickedRouteId(info.object?.properties?.route_id ?? null);
         }}
         onHover={(info) => {
-          if (!info.object?.properties?.route_id) {
-            clearTimeout(hoverTimeoutRef.current);
+          clearTimeout(hoverTimeoutRef.current);
+          if (!info.coordinate) {
             hoverTimeoutRef.current = setTimeout(() => {
               if (!isTooltipHoveredRef.current) {
                 setHoveredRouteIds([]);
@@ -438,18 +479,20 @@ export default function App() {
             }, 200);
             return;
           }
-          clearTimeout(hoverTimeoutRef.current);
-          const viewport = deckRef.current?.deck?.getViewports()?.[0];
-          const pixelsPerMeter = viewport?.getDistanceScales()?.pixelsPerMeter?.[0] ?? 1;
-          const radiusPx = Math.max(15, Math.round(80 * pixelsPerMeter));
-          const picks = deckRef.current?.pickObjects({ x: info.x, y: info.y, radius: radiusPx }) ?? [];
-          const routeIds = [...new Set(
-            picks
-              .map((p) => p.object?.properties?.route_id)
-              .filter((id) => id && visibleRouteIds.has(id))
-          )];
-          setHoveredRouteIds(routeIds.length ? routeIds : [info.object.properties.route_id]);
-          setHoverActiveIdx(0);
+          const [lng, lat] = info.coordinate;
+          const ids = nearbyRouteIds(routesGeojson, lng, lat, 150, visibleRouteIds);
+          if (ids.length) {
+            const changed = hoveredRouteIds.length !== ids.length || hoveredRouteIds.some((id, i) => id !== ids[i]);
+            setHoveredRouteIds(ids);
+            if (changed) setHoverActiveIdx(0);
+          } else {
+            hoverTimeoutRef.current = setTimeout(() => {
+              if (!isTooltipHoveredRef.current) {
+                setHoveredRouteIds([]);
+                setHoverActiveIdx(0);
+              }
+            }, 200);
+          }
         }}
       >
         <MapGL mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />

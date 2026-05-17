@@ -1,6 +1,6 @@
 import { useMapStore, useShowMetroLines, useShowMetroStops } from '../../store/useMapStore.js';
 
-export default function MetroCercaniasPanel({ metroCercaniasRoutes, metroCercaniasStops }) {
+export default function MetroCercaniasPanel({ metroCercaniasRoutes }) {
   const showMetroLines = useShowMetroLines();
   const showMetroStops = useShowMetroStops();
   const setShowMetroLines = useMapStore((s) => s.setShowMetroLines);
