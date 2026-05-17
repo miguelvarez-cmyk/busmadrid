@@ -70,6 +70,7 @@
 
 | ID | Tarea | Completado |
 |---|---|---|
+| ✅ | Tooltip: radio 150 m, resalte azul, Enter → drawer | 2026-05-17 |
 | ✅ | Tooltip enriquecido con detección de líneas superpuestas | 2026-05-12 |
 | ✅ | Búsqueda por dirección/parada (Nominatim + local) | 2026-05-13 |
 | ✅ | Estado compartible vía URL (`useUrlSync`) | 2026-05-13 |

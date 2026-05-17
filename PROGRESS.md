@@ -8,13 +8,30 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-17
-**Última tarea completada:** Creación del ecosistema de documentación (SPEC, TODO, ISSUES, SCHEMA, DESIGN, DECISIONS, PROGRESS, memory-bank)
+**Última tarea completada:** Tooltip con radio 150 m, resalte azul, Enter → drawer
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación pendiente:**
-- [ ] `QUESTION-GTFS-001` — actualizar `README.md` para reflejar `public/data/` como salida del pipeline
-- [ ] Verificar que `npm run lint` pasa sin warnings tras la sesión actual
-- [ ] Validar que los enlaces internos entre `.md` son correctos
+- [x] `npm run lint` pasa sin warnings (restaurado `.eslintrc.cjs` + 8 fixes)
+- [x] `QUESTION-GTFS-001` — README.md actualizado con rutas correctas de `public/data/`
+- [ ] Verificar deploy IONOS en producción tras el push de esta sesión
+
+---
+
+## Sesión 2026-05-17 (tarde) — Tooltip mejorado
+
+### Qué se hizo
+- Tooltip activado por proximidad: reemplaza `pickObjects` por cálculo de distancia punto-segmento en metros sobre el GeoJSON (`ptSegDistM` + `nearbyRouteIds` en `App.jsx`)
+- Radio fijo de 150 m en espacio geográfico — funciona en cualquier punto del mapa
+- Línea resaltada con color azul claro `[100,180,255]` en vez del color propio de la ruta
+- Enter sobre el tooltip: abre `RouteDrawer` con detalles de la línea activa y cierra tooltip
+- Tab cicla con 1 sola candidata (condición `length === 0` en lugar de `<= 1`)
+- Restaurado `.eslintrc.cjs` (perdido) y corregidos 8 errores pre-existentes: hooks condicionales en `RouteTooltip`, imports huérfanos en 5 componentes, variable sin usar en `createStopsLayer`
+
+### Commit
+```
+b3d074d mejora tooltip: detección por radio 150 m, resalte azul y Enter→drawer
+```
 
 ---
 

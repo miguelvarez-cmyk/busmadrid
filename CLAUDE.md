@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: tooltip 150 m + Enter→drawer (2026-05-17)
 
 ---
 
