@@ -42,11 +42,8 @@ function ToggleBtn({ active, onClick, children }) {
 
 function BuildingDetail({ building, onClose }) {
   const lineas = useMemo(() => {
-    try {
-      return JSON.parse(building.lineas);
-    } catch {
-      return [];
-    }
+    if (!building.lineas) return [];
+    return building.lineas.split(',').filter(Boolean);
   }, [building.lineas]);
 
   return (
