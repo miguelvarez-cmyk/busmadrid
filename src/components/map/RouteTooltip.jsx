@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
+import { useMapStore } from '../../store/useMapStore.js';
 import { scheduleRangeFromMetrics } from '../../utils/service.js';
 
 export default function RouteTooltip({
   activeRouteId,
   candidateIds,
   activeIdx,
+  onActiveIdxChange,
   routesMeta,
   routeSpeed,
   routeDemand,
@@ -13,6 +15,9 @@ export default function RouteTooltip({
   onTooltipMouseEnter,
   onTooltipMouseLeave,
 }) {
+  const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
+  const setHoveredRouteIds = useMapStore((s) => s.setHoveredRouteIds);
+
   const routeMeta = useMemo(
     () => routesMeta?.find((r) => r.id === activeRouteId),
     [activeRouteId, routesMeta]
@@ -35,6 +40,21 @@ export default function RouteTooltip({
 
   if (!activeRouteId || !routeMeta) return null;
 
+  const hasMultiple = candidateIds.length > 1;
+
+  function handleClose() {
+    setClickedRouteId(null);
+    setHoveredRouteIds([]);
+  }
+
+  function handlePrev() {
+    onActiveIdxChange((activeIdx - 1 + candidateIds.length) % candidateIds.length);
+  }
+
+  function handleNext() {
+    onActiveIdxChange((activeIdx + 1) % candidateIds.length);
+  }
+
   return (
     <div
       className="hover-info"
@@ -50,6 +70,14 @@ export default function RouteTooltip({
           <b>Línea {routeMeta.shortName}</b>
           <span className="long">{routeMeta.longName}</span>
         </div>
+        <button
+          type="button"
+          className="tooltip-close"
+          onClick={handleClose}
+          aria-label="Cerrar información de línea"
+        >
+          ×
+        </button>
       </div>
 
       <div className="route-stats">
@@ -79,11 +107,16 @@ export default function RouteTooltip({
         )}
       </div>
 
-      {candidateIds.length > 1 && (
+      {hasMultiple && (
         <div className="route-pills">
-          <span className="pills-label">
-            Tab ↹ para ciclar · {activeIdx + 1}/{candidateIds.length}
-          </span>
+          <button
+            type="button"
+            className="line-nav-btn"
+            onClick={handlePrev}
+            aria-label="Línea anterior"
+          >
+            ←
+          </button>
           <div className="pills">
             {candidateIds.map((id, idx) => {
               const meta = routesMeta?.find((r) => r.id === id);
@@ -91,12 +124,22 @@ export default function RouteTooltip({
                 <span
                   key={id}
                   className={`route-pill ${idx === activeIdx ? 'active' : ''}`}
+                  onClick={() => onActiveIdxChange(idx)}
                 >
-                  {idx === activeIdx ? '▶ ' : ''}{meta?.shortName}
+                  {meta?.shortName}
                 </span>
               );
             })}
           </div>
+          <span className="pills-label">{activeIdx + 1}/{candidateIds.length}</span>
+          <button
+            type="button"
+            className="line-nav-btn"
+            onClick={handleNext}
+            aria-label="Línea siguiente"
+          >
+            →
+          </button>
         </div>
       )}
     </div>

@@ -162,6 +162,8 @@ export function createRoutesLayer({
   fleetDayType,
   scheduleDayType,
   coverageDistance,
+  hoveredRouteIds = [],
+  clickedRouteId = null,
 }) {
   if (!geojson) return null;
 
@@ -172,67 +174,65 @@ export function createRoutesLayer({
     ),
   };
 
-  let getLineColor;
-  if (colorMode === 'offer' && serviceMetrics) {
-    getLineColor = (f) => [
-      ...frequencyColorForRoute(
-        serviceMetrics,
-        f.properties.route_id,
-        timeFilter.dayOfWeek,
-        timeFilter.startHour,
-        timeFilter.endHour
-      ),
-      230,
-    ];
-  } else if (colorMode === 'speed' && routeSpeed) {
-    getLineColor = (f) => [
-      ...speedColorForRoute(routeSpeed, f.properties.route_id),
-      230,
-    ];
-  } else if (colorMode === 'demand' && routeDemand) {
-    getLineColor = (f) => [
-      ...demandColorForRoute(routeDemand, f.properties.route_id),
-      230,
-    ];
-  } else if (colorMode === 'fleet' && routeFleet) {
-    getLineColor = (f) => [
-      ...fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType),
-      230,
-    ];
-  } else if (colorMode === 'tortuosity' && routeTortuosity) {
-    getLineColor = (f) => [
-      ...tortuosityColorForRoute(routeTortuosity, f.properties.route_id),
-      230,
-    ];
-  } else if (colorMode === 'divergence' && routeDivergence) {
-    getLineColor = (f) => [
-      ...divergenceColorForRoute(routeDivergence, f.properties.route_id),
-      230,
-    ];
-  } else if (colorMode === 'schedule' && routeSchedule) {
-    getLineColor = (f) => [
-      ...scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType),
-      230,
-    ];
-  } else if (colorMode === 'occupancy' && occupancyData) {
-    getLineColor = (f) => [
-      ...occupancyColorForRoute(occupancyData, f.properties.route_id),
-      230,
-    ];
-  } else if (colorMode === 'coverage' && routeCoverage) {
-    getLineColor = (f) => [
-      ...coverageColorForRoute(routeCoverage, f.properties.route_id, coverageDistance),
-      230,
-    ];
-  } else {
-    getLineColor = (f) => [...hexToRgb(f.properties.route_color), 220];
+  const hoveredSet = new Set(hoveredRouteIds);
+
+  function getAlpha(routeId) {
+    if (clickedRouteId) {
+      return routeId === clickedRouteId ? 255 : 25;
+    }
+    if (hoveredSet.size > 0) {
+      return hoveredSet.has(routeId) ? 217 : 38;
+    }
+    return 89;
   }
+
+  function getWidth(routeId) {
+    if (clickedRouteId) {
+      return routeId === clickedRouteId ? 4.0 : 1.5;
+    }
+    if (hoveredSet.size > 0) {
+      return hoveredSet.has(routeId) ? 3.5 : 1.5;
+    }
+    return 2.0;
+  }
+
+  let getBaseColor;
+  if (colorMode === 'offer' && serviceMetrics) {
+    getBaseColor = (f) => frequencyColorForRoute(
+      serviceMetrics,
+      f.properties.route_id,
+      timeFilter.dayOfWeek,
+      timeFilter.startHour,
+      timeFilter.endHour
+    );
+  } else if (colorMode === 'speed' && routeSpeed) {
+    getBaseColor = (f) => speedColorForRoute(routeSpeed, f.properties.route_id);
+  } else if (colorMode === 'demand' && routeDemand) {
+    getBaseColor = (f) => demandColorForRoute(routeDemand, f.properties.route_id);
+  } else if (colorMode === 'fleet' && routeFleet) {
+    getBaseColor = (f) => fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType);
+  } else if (colorMode === 'tortuosity' && routeTortuosity) {
+    getBaseColor = (f) => tortuosityColorForRoute(routeTortuosity, f.properties.route_id);
+  } else if (colorMode === 'divergence' && routeDivergence) {
+    getBaseColor = (f) => divergenceColorForRoute(routeDivergence, f.properties.route_id);
+  } else if (colorMode === 'schedule' && routeSchedule) {
+    getBaseColor = (f) => scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType);
+  } else if (colorMode === 'occupancy' && occupancyData) {
+    getBaseColor = (f) => occupancyColorForRoute(occupancyData, f.properties.route_id);
+  } else if (colorMode === 'coverage' && routeCoverage) {
+    getBaseColor = (f) => coverageColorForRoute(routeCoverage, f.properties.route_id, coverageDistance);
+  } else {
+    getBaseColor = (f) => hexToRgb(f.properties.route_color);
+  }
+
+  const getLineColor = (f) => [...getBaseColor(f), getAlpha(f.properties.route_id)];
+  const getLineWidth = (f) => getWidth(f.properties.route_id);
 
   return new GeoJsonLayer({
     id: 'routes',
     data: filtered,
     lineWidthUnits: 'pixels',
-    getLineWidth: 3,
+    getLineWidth,
     getLineColor,
     pickable: true,
     autoHighlight: false,
@@ -246,7 +246,10 @@ export function createRoutesLayer({
         fleetDayType,
         scheduleDayType,
         coverageDistance,
+        hoveredRouteIds,
+        clickedRouteId,
       ],
+      getLineWidth: [hoveredRouteIds, clickedRouteId],
     },
   });
 }

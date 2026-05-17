@@ -11,6 +11,7 @@ import {
   useSelectedRouteIds,
   useHoveredRouteId,
   useHoveredRouteIds,
+  useClickedRouteId,
   useColorMode,
   useTimeFilter,
   useBoxSelectMode,
@@ -139,6 +140,7 @@ export default function App() {
   const coverageFilter = useCoverageFilter();
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
   const highlightedZoneIds = useHighlightedZoneIds();
+  const clickedRouteId = useClickedRouteId();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
   const buildingCoverageMode = useBuildingCoverageMode();
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
@@ -398,6 +400,8 @@ export default function App() {
           fleetDayType,
           scheduleDayType,
           coverageDistance,
+          hoveredRouteIds,
+          clickedRouteId,
         }),
         !buildingCoverageMode && createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         !buildingCoverageMode && createStopsLayer({
@@ -420,6 +424,8 @@ export default function App() {
       routesGeojson,
       visibleRouteIds,
       hoveredRouteId,
+      hoveredRouteIds,
+      clickedRouteId,
       colorMode,
       serviceMetrics,
       routeSpeed,
@@ -548,6 +554,7 @@ export default function App() {
         activeRouteId={hoveredRouteIds[hoverActiveIdx]}
         candidateIds={hoveredRouteIds}
         activeIdx={hoverActiveIdx}
+        onActiveIdxChange={setHoverActiveIdx}
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}
