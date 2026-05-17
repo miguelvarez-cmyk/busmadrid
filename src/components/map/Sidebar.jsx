@@ -9,6 +9,7 @@ import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
 import CoveragePanel from './CoveragePanel.jsx';
+import MetroCercaniasPanel from './MetroCercaniasPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
@@ -58,6 +59,8 @@ export default function Sidebar({
   routeCoverage,
   buildingLineCoverage,
   buildingCoverageLoading,
+  metroCercaniasRoutes,
+  metroCercaniasStops,
   isLoading,
   onReset,
 }) {
@@ -241,6 +244,19 @@ export default function Sidebar({
               routesMeta={routesMeta}
               buildingLineCoverage={buildingLineCoverage}
               buildingCoverageLoading={buildingCoverageLoading}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            id="metro"
+            title="Metro"
+            icon="🚇"
+            isOpen={openSections.has('metro')}
+            onToggle={toggleSection}
+          >
+            <MetroCercaniasPanel
+              metroCercaniasRoutes={metroCercaniasRoutes}
+              metroCercaniasStops={metroCercaniasStops}
             />
           </AccordionSection>
 

@@ -107,6 +107,11 @@ export const useMapStore = create((set) => ({
   showStops: false,
   setShowStops: (v) => set({ showStops: v }),
 
+  showMetroLines: false,
+  showMetroStops: false,
+  setShowMetroLines: (v) => set({ showMetroLines: v }),
+  setShowMetroStops: (v) => set({ showMetroStops: v }),
+
   basemap: DEFAULT_BASEMAP,
   setBasemap: (id) => set({ basemap: id }),
 
@@ -156,5 +161,7 @@ export const useSelectedBuilding = () => useMapStore((s) => s.selectedBuilding);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
+export const useShowMetroLines = () => useMapStore((s) => s.showMetroLines);
+export const useShowMetroStops = () => useMapStore((s) => s.showMetroStops);
 export const useBasemap = () => useMapStore((s) => s.basemap);
 export const useHighlightedZoneIds = () => useMapStore((s) => s.highlightedZoneIds);

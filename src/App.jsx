@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import DeckGL from '@deck.gl/react';
-import { Map } from 'react-map-gl/maplibre';
+import { Map as MapGL } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { BASEMAPS, INITIAL_VIEW_STATE } from './config/mapConfig.js';
@@ -33,6 +33,8 @@ import {
   useCoverageDistance,
   useCoverageFilter,
   useBuildingCoverageMode,
+  useShowMetroLines,
+  useShowMetroStops,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import { useBuildingLineCoverage } from './utils/useBuildingLineCoverage.js';
@@ -44,6 +46,8 @@ import {
 import { createBuildingCoverageLayer } from './layers/createBuildingCoverageLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
+import { createMetroCercaniasRoutesLayer } from './layers/createMetroCercaniasRoutesLayer.js';
+import { createMetroCercaniasStopsLayer } from './layers/createMetroCercaniasStopsLayer.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
@@ -102,6 +106,8 @@ export default function App() {
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
   const buildingCoverageMode = useBuildingCoverageMode();
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
+  const showMetroLines = useShowMetroLines();
+  const showMetroStops = useShowMetroStops();
 
   useUrlSync();
 
@@ -119,6 +125,8 @@ export default function App() {
     barriosGeojson,
     stopExpeditions,
     routeCoverage,
+    metroCercaniasRoutes,
+    metroCercaniasStops,
     loading,
     error,
   } = useGTFSData();
@@ -304,9 +312,20 @@ export default function App() {
     ]
   );
 
+  const metroCercaniasRouteColorMap = useMemo(() => {
+    const map = new Map();
+    if (!metroCercaniasRoutes) return map;
+    for (const f of metroCercaniasRoutes.features) {
+      map.set(f.properties.route_id, f.properties.route_color);
+    }
+    return map;
+  }, [metroCercaniasRoutes]);
+
   const layers = useMemo(
     () =>
       [
+        showMetroLines && createMetroCercaniasRoutesLayer({ geojson: metroCercaniasRoutes, mode: 'metro' }),
+        showMetroStops && createMetroCercaniasStopsLayer({ geojson: metroCercaniasStops, mode: 'metro', routeColorMap: metroCercaniasRouteColorMap, onHover: setHoveredStop }),
         !buildingCoverageMode && createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
@@ -370,6 +389,11 @@ export default function App() {
       buildingCoverageMode,
       buildingLineCoverage,
       setSelectedBuilding,
+      showMetroLines,
+      showMetroStops,
+      metroCercaniasRoutes,
+      metroCercaniasStops,
+      metroCercaniasRouteColorMap,
     ]
   );
 
@@ -428,7 +452,7 @@ export default function App() {
           setHoverActiveIdx(0);
         }}
       >
-        <Map mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
+        <MapGL mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
       </DeckGL>
 
       <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
@@ -454,6 +478,8 @@ export default function App() {
         routeCoverage={routeCoverage}
         buildingLineCoverage={buildingLineCoverage}
         buildingCoverageLoading={buildingCoverageLoading}
+        metroCercaniasRoutes={metroCercaniasRoutes}
+        metroCercaniasStops={metroCercaniasStops}
         isLoading={loading}
         onReset={handleReset}
       />
