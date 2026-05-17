@@ -3,9 +3,16 @@ Calcula la divergencia ida/vuelta de cada línea EMT.
 
 Divergencia = % del trayecto total (ida + vuelta) que no transcurre por el
 mismo vial. Para cada sentido se usa el shape más frecuente (igual que en
-compute_tortuosity.py). La comparación se hace proyectando a UTM zona 30N
-(EPSG:25830) y usando un buffer de 15 m para absorber ligeras diferencias
-de trazado en paralelo.
+compute_tortuosity.py). La comparación usa buffer híbrido + comprobación
+antiparalela para tratar correctamente avenidas anchas divididas (p. ej.
+Paseo de la Castellana), donde los carriles de ida y vuelta están separados
+30–60 m pero son el mismo vial.
+
+Lógica por punto muestreado:
+  1. distancia ≤ BUFFER_TIGHT → compartido (mismo carril).
+  2. distancia ≤ BUFFER_WIDE y ángulo antiparalelo (≈180°) → compartido
+     (avenida dividida con carriles de sentido contrario).
+  3. otro caso → exclusivo (divergente).
 
 - 0 %   → ida y vuelta comparten exactamente el mismo vial.
 - 100 % → los dos sentidos tienen recorridos completamente distintos.
@@ -21,6 +28,7 @@ Salida: public/data/route_divergence.json
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from pathlib import Path
 
@@ -32,7 +40,10 @@ ROOT = Path(__file__).resolve().parents[1]
 GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
 OUT_DIR = ROOT / "public" / "data"
 
-BUFFER_M = 15          # tolerancia para considerar "mismo vial"
+BUFFER_TIGHT  = 15   # m — mismo carril (buffer original)
+BUFFER_WIDE   = 80   # m — avenidas divididas como Castellana (~60-80 m entre vías de servicio)
+ANGLE_AP_TOL  = 35   # º — tolerancia para considerar antiparalelo
+SAMPLE_STEP   = 20   # m — resolución de muestreo a lo largo de cada línea
 CRS_IN   = "EPSG:4326"
 CRS_WORK = "EPSG:25830"  # UTM zona 30N — España peninsular
 
@@ -81,18 +92,46 @@ def line_utm(coords: list[tuple[float, float]]) -> object:
     return gs.to_crs(CRS_WORK).iloc[0]
 
 
-def compute_divergence(
-    line0: object, line1: object
-) -> float:
-    """% del trayecto total (line0 + line1) que no comparte vial."""
-    buf0 = line0.buffer(BUFFER_M)
-    buf1 = line1.buffer(BUFFER_M)
-    excl0 = line0.difference(buf1).length
-    excl1 = line1.difference(buf0).length
+def _local_bearing(line: object, dist: float) -> float:
+    """Bearing (grados) de la línea en el punto a `dist` metros del inicio."""
+    d1 = max(0.0, dist - 5.0)
+    d2 = min(line.length, dist + 5.0)
+    p1 = line.interpolate(d1)
+    p2 = line.interpolate(d2)
+    return math.degrees(math.atan2(p2.x - p1.x, p2.y - p1.y)) % 360
+
+
+def compute_divergence(line0: object, line1: object) -> float:
+    """% del trayecto total (line0 + line1) que no comparte vial.
+
+    Un tramo se considera 'compartido' si:
+    - Está dentro de BUFFER_TIGHT metros del otro sentido, O
+    - Está dentro de BUFFER_WIDE metros Y los bearings son antiparalelos
+      (avenida dividida: carriles opuestos del mismo vial).
+    """
+    def exclusive_length(src: object, ref: object) -> float:
+        n = max(2, int(src.length / SAMPLE_STEP))
+        excl = 0.0
+        for i in range(n):
+            d = src.length * i / (n - 1)
+            pt = src.interpolate(d)
+            dist_to_ref = pt.distance(ref)
+            if dist_to_ref <= BUFFER_TIGHT:
+                continue
+            if dist_to_ref <= BUFFER_WIDE:
+                b_src = _local_bearing(src, d)
+                b_ref = _local_bearing(ref, ref.project(pt))
+                diff = abs(b_src - b_ref) % 360
+                if abs(diff - 180.0) < ANGLE_AP_TOL:
+                    continue  # antiparalelo → mismo vial dividido
+            excl += SAMPLE_STEP
+        return excl
+
     total = line0.length + line1.length
     if total <= 0:
         return 0.0
-    return round((excl0 + excl1) / total * 100, 1)
+    excl = exclusive_length(line0, line1) + exclusive_length(line1, line0)
+    return round(excl / total * 100, 1)
 
 
 def main() -> None:

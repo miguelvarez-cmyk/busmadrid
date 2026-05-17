@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: rediseño panel Barrios (dark theme + UX) + eliminación filtros temporales header (2026-05-17)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: afinar divergencia ida/vuelta (buffer híbrido 15/80 m + antiparalelo) + elimina SearchBar (2026-05-17)
 
 ---
 

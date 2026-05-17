@@ -55,7 +55,6 @@ import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
 import ColorLegend from './components/map/ColorLegend.jsx';
 import RouteDrawer from './components/map/RouteDrawer.jsx';
-import SearchBar from './components/map/SearchBar.jsx';
 import { useUrlSync } from './utils/useUrlSync.js';
 
 function ptSegDistM(lng, lat, a, b, cosLat) {
@@ -593,9 +592,7 @@ export default function App() {
         dayOfWeek={timeFilter.dayOfWeek}
       />
 
-      <SearchBar stopsGeojson={stopsGeojson} />
-
-      {loading && <div className="status-overlay">Cargando datos GTFS...</div>}
+{loading && <div className="status-overlay">Cargando datos GTFS...</div>}
       {error && (
         <div className="status-overlay error">
           Error cargando datos: {error.message}

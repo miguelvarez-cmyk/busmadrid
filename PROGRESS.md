@@ -7,13 +7,42 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-17 (noche 5)
-**Última tarea completada:** Rediseño panel Barrios (dark theme + UX) + eliminación panel temporal del header
+**Sesión cerrada:** 2026-05-17 (noche 6)
+**Última tarea completada:** Afinar divergencia ida/vuelta (buffer híbrido + antiparalelo) + eliminar SearchBar
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
 - ⏳ Deploy IONOS en progreso
+
+---
+
+## Sesión 2026-05-17 (noche 6) — Afinar divergencia + eliminar SearchBar
+
+### Qué se hizo
+
+- **Eliminación SearchBar**: eliminado el componente `SearchBar` (buscador de paradas/dirección flotante) de `App.jsx` — import y JSX. El archivo `SearchBar.jsx` queda en disco.
+- **Divergencia: buffer híbrido + comprobación antiparalela**: el algoritmo de `compute_divergence.py` confundía "carriles opuestos de una avenida ancha" (Castellana) con "calles distintas" porque el buffer fijo de 15 m no alcanzaba a cubrir la separación entre vías de servicio (~60–80 m). Solución:
+  - `BUFFER_TIGHT = 15 m` (conservado): mismo carril.
+  - `BUFFER_WIDE = 80 m` + check antiparalelo (|diff_bearing − 180°| < 35°): avenida dividida → compartida.
+  - Muestreo cada 20 m con `_local_bearing()` vía `atan2`.
+  - Línea 027 (Castellana): 45,8 % → **15,3 %** ✓
+  - Línea 045 (Castellana): 58,6 % → **34,0 %** (divergencia legítima en terminales) ✓
+  - Líneas sin avenidas anchas (002, 051, 061): sin cambio ✓
+- **`route_divergence.json` regenerado**: mismo esquema, nuevos valores, rango 3,1–99,5 %.
+
+### Archivos modificados
+```
+scripts/compute_divergence.py          (nueva lógica: _local_bearing + buffer híbrido)
+public/data/route_divergence.json      (regenerado)
+src/App.jsx                            (elimina import + JSX de SearchBar)
+SCHEMA.md                              (actualiza descripción del buffer)
+```
+
+### Commits
+```
+(este push)
+```
 
 ---
 

@@ -126,7 +126,7 @@ Nota: `dow="1"` (lunes) se usa como representante de día laborable. El array ti
 ```js
 { byRoute: { [route_id]: number } }  // % del trayecto ida+vuelta que NO comparte vial (0–100)
 ```
-Calculado por `compute_divergence.py`. Proyección UTM 30N, buffer 15 m (shapely). Rango real: 3,9–99,7%.
+Calculado por `compute_divergence.py`. Proyección UTM 30N. Buffer híbrido: 15 m (mismo carril) + 80 m antiparalelo (avenidas divididas tipo Castellana). Rango real: 3,1–99,5%.
 
 ### `route_schedule.json`
 ```js
