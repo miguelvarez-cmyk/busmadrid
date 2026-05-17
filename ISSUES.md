@@ -10,6 +10,16 @@
 
 ## Abiertos
 
+### LIMIT-DEPLOY-001 🟢
+**Descripción:** IONOS Deploy Now tiene una cuota de **50 003 968 bytes (~47,7 MiB)** para el artefacto de deploy (`dist/`). A 2026-05-17 el deploy ocupa ~46,4 MB, dejando solo ~3,5 MB de margen.
+**El mayor fichero es** `buildings_line_coverage.geojson` (~32 MB post-optimización). Añadir datos nuevos grandes podría volver a superar la cuota.
+**Protocolo si se supera la cuota:**
+1. `python scripts/optimize_buildings_geojson.py` — re-optimiza el GeoJSON sin reprocesar GTFS
+2. Si no basta: simplificar geometrías más agresivamente (subir tolerancia en el script) o considerar hosting externo para ese fichero
+**Estado:** 🟢 (limitación conocida, gestionada)
+
+---
+
 ### QUESTION-GTFS-001 ✅
 **Descripción:** `README.md` indicaba que los GeoJSON procesados van a `data/processed/`, pero `CLAUDE.md` y el pipeline real producen los archivos en `public/data/` (servidos estáticamente por Vite). El `README.md` estaba desactualizado.
 **Acción:** `README.md` corregido el 2026-05-17 — ahora refleja `public/data/` y lista todos los scripts del pipeline.

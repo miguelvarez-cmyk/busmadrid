@@ -29,7 +29,7 @@ Servidos estáticamente por Vite en `/data/`. El frontend hace `fetch('/data/...
 `routes.geojson`, `routes_meta.json`, `service_metrics.json`, `stops.geojson`, `route_speed.json`, `route_demand.json`, `route_fleet.json`, `route_tortuosity.json`
 
 **Opcionales** (`.catch(() => null)` — la app funciona sin ellos, las secciones del sidebar muestran estado vacío):
-`route_schedule.json`, `route_districts.json`, `barrios.geojson`, `stop_expeditions.json`, `route_coverage.json`, `metro_cercanias_routes.geojson`, `metro_cercanias_stops.geojson`
+`route_schedule.json`, `route_districts.json`, `barrios.geojson`, `stop_expeditions.json`, `route_coverage.json`, `route_divergence.json`, `buildings_line_coverage.geojson`, `metro_cercanias_routes.geojson`, `metro_cercanias_stops.geojson`
 
 ### `routes.geojson`
 GeoJSON FeatureCollection. Una Feature por `route_id`, geometría MultiLineString (ambos sentidos agregados).
@@ -122,6 +122,12 @@ Nota: `dow="1"` (lunes) se usa como representante de día laborable. El array ti
 { byRoute: { [route_id]: number } }  // índice de tortuosidad (distancia real / distancia euclidea)
 ```
 
+### `route_divergence.json`
+```js
+{ byRoute: { [route_id]: number } }  // % del trayecto ida+vuelta que NO comparte vial (0–100)
+```
+Calculado por `compute_divergence.py`. Proyección UTM 30N, buffer 15 m (shapely). Rango real: 3,9–99,7%.
+
 ### `route_schedule.json`
 ```js
 {
@@ -167,6 +173,27 @@ La clave de distancia coincide con `coverageDistance` del store (string).
 }
 ```
 
+### `buildings_line_coverage.geojson`
+GeoJSON FeatureCollection. Un Feature por edificio residencial de Madrid con población > 0.
+Generado por `compute_building_line_coverage.py` + **post-procesado por `optimize_buildings_geojson.py`** (obligatorio para cumplir cuota IONOS).
+
+```js
+{
+  type: "Feature",
+  geometry: { type: "Polygon", coordinates: [...] },  // precisión 4 decimales (~11 m)
+  properties: {
+    address:   string,   // "Calle Mayor 1" — puede ser vacío
+    poblacion: number,   // habitantes estimados (int, proporcional al área dentro de sección censal)
+    n_lineas:  number,   // nº de líneas EMT con parada a ≤ 350 m del centroide
+    lineas:    string,   // CSV de route_short_names, p.ej. "001,027,N6" — ⚠️ NO es JSON array
+  }
+}
+```
+
+> **⚠️ Formato `lineas`:** es un **string CSV** (no JSON array). Parsear con `.split(',').filter(Boolean)`, nunca con `JSON.parse`.
+> El campo `osm_id` fue eliminado en la optimización de 2026-05-17 (no lo usa el frontend).
+> Si se regenera el GeoJSON con el script original, ejecutar `optimize_buildings_geojson.py` a continuación.
+
 ### `barrios.geojson`
 GeoJSON FeatureCollection de polígonos de barrios/distritos de Madrid con `district_id` y `district_name` en properties.
 
@@ -208,3 +235,7 @@ barrios.geojson.properties.district_id
 | Fecha | Campo | Cambio |
 |---|---|---|
 | 2026-05-17 | Documentación inicial | Primera versión de SCHEMA.md |
+| 2026-05-17 | `buildings_line_coverage.geojson` · `lineas` | Cambiado de JSON array string a CSV string para reducir tamaño (ADR-007). Parser en `CoveragePanel.jsx` actualizado. |
+| 2026-05-17 | `buildings_line_coverage.geojson` · `osm_id` | Campo eliminado — no usado en el frontend. |
+| 2026-05-17 | `buildings_line_coverage.geojson` · geometría | Precisión reducida de 5 a 4 decimales. |
+| 2026-05-17 | `route_divergence.json` | Nuevo campo — % divergencia ida/vuelta (compute_divergence.py). |

@@ -84,6 +84,23 @@
 
 ---
 
+## ADR-007 — Optimización de `buildings_line_coverage.geojson` para cuota IONOS 🟡
+
+**Fecha:** 2026-05-17
+**Estado:** activo
+
+**Decisión:** El GeoJSON de edificios se compacta con `scripts/optimize_buildings_geojson.py` antes de cada deploy cuando el tamaño total se acerca a la cuota de IONOS (50 MB). La compactación aplica: eliminación de `osm_id`, precisión de coordenadas 4 decimales, `lineas` como CSV en lugar de JSON array string.
+
+**Contexto:** El deploy falló con "deployment is larger (58 MB) than the allowed quota (50 MB)". El fichero `buildings_line_coverage.geojson` pesaba 41 MB. Re-ejecutar el pipeline completo tarda horas y requiere datos externos (`asignador_poblacion` GPKG). El script de post-proceso permite reducirlo a ~32 MB sin depender de datos externos.
+
+**Consecuencias:**
+- El campo `lineas` en `buildings_line_coverage.geojson` es un **CSV string** (p.ej. `"001,002,003"`), no un JSON array
+- `CoveragePanel.jsx` parsea con `.split(',').filter(Boolean)`, no con `JSON.parse`
+- Si se regenera el GeoJSON con el script original, hay que volver a ejecutar `optimize_buildings_geojson.py`
+- Al añadir nuevos datasets grandes, verificar `dist/` size con `npm run build` antes del push
+
+---
+
 ## ADR-006 — Pipeline Python local, sin CI/CD de datos 🟢
 
 **Fecha:** inicio del proyecto

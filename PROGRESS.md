@@ -8,12 +8,32 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-17
-**Última tarea completada:** Nuevo apartado "Análisis de itinerarios" con Tortuosidad + Divergencia ida/vuelta
+**Última tarea completada:** Fix deploy IONOS — buildings GeoJSON reducido de 41 MB a 32 MB
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación pendiente:**
 - [x] `npm run lint` pasa sin warnings
-- [ ] Verificar deploy IONOS en producción tras el push de esta sesión
+- [x] Deploy IONOS verificado — fix subido y deploy en progreso (commit `6a9c69d`)
+
+---
+
+## Sesión 2026-05-17 (noche 2) — Fix deploy IONOS cuota 50 MB
+
+### Qué se hizo
+- **Diagnóstico:** deploy fallaba con "deployment is larger (58 MB) than the allowed quota (50 MB)"
+- **Causa raíz:** `buildings_line_coverage.geojson` ocupaba 41 MB
+- **Fix aplicado** (sin re-procesar datos GTFS):
+  - Nuevo script `scripts/optimize_buildings_geojson.py` (post-proceso sobre el GeoJSON existente)
+  - Eliminado campo `osm_id` (no usado en frontend)
+  - Precisión de coordenadas reducida 5 → 4 decimales (~11 m, suficiente para edificios)
+  - Campo `lineas` convertido de JSON array string a CSV string (`["001","002"]` → `"001,002"`)
+  - `CoveragePanel.jsx`: cambia `JSON.parse(building.lineas)` a `building.lineas.split(',')`
+- **Resultado:** 41 MB → 32 MB; deploy total 46,4 MB < 50 MB cuota ✓
+
+### Commits
+```
+6a9c69d reduce buildings_line_coverage.geojson de 41 MB a 32 MB para entrar en cuota IONOS
+```
 
 ---
 

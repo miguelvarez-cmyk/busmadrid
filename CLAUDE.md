@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: análisis de itinerarios — Tortuosidad + Divergencia ida/vuelta (2026-05-17)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: fix deploy IONOS cuota 50 MB — buildings GeoJSON 41→32 MB (2026-05-17)
 
 ---
 
@@ -68,6 +68,14 @@ Basta con hacer push a `main` — el deploy se dispara automáticamente.
 No hay script de deploy manual ni rama `gh-pages`.
 ```bash
 git push origin main   # → IONOS construye y publica automáticamente
+```
+
+**⚠️ Cuota de deploy IONOS: 50 MB (~47,7 MiB)**
+A 2026-05-17 el `dist/` ocupa ~46,4 MB. Margen restante: ~3,5 MB.
+Si el deploy falla con "deployment is larger than the allowed quota":
+```bash
+python scripts/optimize_buildings_geojson.py  # reduce buildings GeoJSON sin reprocesar datos
+npm run build                                 # verificar tamaño antes del push
 ```
 
 Pipeline Python (en orden):
