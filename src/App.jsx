@@ -25,6 +25,7 @@ import {
   useFleetDayType,
   useTortuosityFilter,
   useDivergenceFilter,
+  useLengthFilter,
   useScheduleFilter,
   useScheduleDayType,
   useStopRoutesFilter,
@@ -125,6 +126,8 @@ export default function App() {
   const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
   const divergenceFilter = useDivergenceFilter();
   const setDivergenceFilter = useMapStore((s) => s.setDivergenceFilter);
+  const lengthFilter = useLengthFilter();
+  const setLengthFilter = useMapStore((s) => s.setLengthFilter);
   const scheduleFilter = useScheduleFilter();
   const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
   const scheduleDayType = useScheduleDayType();
@@ -250,6 +253,14 @@ export default function App() {
   }, [routeDivergence, divergenceFilter, setDivergenceFilter]);
 
   useEffect(() => {
+    if (routeTortuosity && !lengthFilter) {
+      const allLengths = Object.values(routeTortuosity.byRoute).map((v) => v.lengthKm);
+      const maxLen = Math.ceil(Math.max(...allLengths));
+      setLengthFilter([0, maxLen]);
+    }
+  }, [routeTortuosity, lengthFilter, setLengthFilter]);
+
+  useEffect(() => {
     if (routeSchedule && !scheduleFilter) {
       setScheduleFilter([0, Math.ceil(routeSchedule.max / 60) * 60]);
     }
@@ -334,6 +345,7 @@ export default function App() {
         fleetDayType,
         tortuosityFilter,
         divergenceFilter,
+        lengthFilter,
         scheduleFilter,
         scheduleDayType,
         occupancyFilter,
@@ -360,6 +372,7 @@ export default function App() {
       fleetDayType,
       tortuosityFilter,
       divergenceFilter,
+      lengthFilter,
       scheduleFilter,
       scheduleDayType,
       occupancyFilter,

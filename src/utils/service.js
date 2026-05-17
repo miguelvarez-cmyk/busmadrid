@@ -814,6 +814,81 @@ export function passesDivergenceFilter(divergence, routeId, filter) {
   return v >= fMin && v <= fMax;
 }
 
+// ── Longitud media del recorrido ──────────────────────────────────────────────
+
+export const LENGTH_CATEGORIES = [
+  { maxKm:  5, label: '< 5 km',    color: [27,  94,  32] },   // verde oscuro
+  { maxKm:  8, label: '5–8 km',    color: [102, 187, 106] },  // verde claro
+  { maxKm: 10, label: '8–10 km',   color: [205, 220,  57] },  // verde-amarillo
+  { maxKm: 12, label: '10–12 km',  color: [255, 210,  63] },  // amarillo
+  { maxKm: 15, label: '12–15 km',  color: [255, 153,  51] },  // naranja
+  { maxKm: 18, label: '15–18 km',  color: [239,  83,  80] },  // rojo claro
+  { maxKm: Infinity, label: '> 18 km', color: [127,  20,  20] }, // rojo oscuro
+];
+
+export function lengthForRoute(tortuosity, routeId) {
+  return tortuosity?.byRoute?.[routeId]?.lengthKm ?? null;
+}
+
+export function lengthColorForRoute(tortuosity, routeId) {
+  if (!tortuosity) return NO_SERVICE_COLOR;
+  const v = lengthForRoute(tortuosity, routeId);
+  if (v == null) return NO_SERVICE_COLOR;
+  for (const cat of LENGTH_CATEGORIES) {
+    if (v <= cat.maxKm) return cat.color;
+  }
+  return LENGTH_CATEGORIES[LENGTH_CATEGORIES.length - 1].color;
+}
+
+export function lengthHistogram(tortuosity, routeIds, filter) {
+  if (!tortuosity) return [];
+  const counts = LENGTH_CATEGORIES.map(() => 0);
+  let noData = 0;
+
+  for (const id of routeIds) {
+    const v = lengthForRoute(tortuosity, id);
+    if (v == null) {
+      noData += 1;
+      continue;
+    }
+    const idx = LENGTH_CATEGORIES.findIndex((c) => v <= c.maxKm);
+    counts[idx >= 0 ? idx : counts.length - 1] += 1;
+  }
+
+  const [fMin, fMax] = filter;
+  const inFilter = (lo, hi) => {
+    const bucketHi = isFinite(hi) ? hi : Infinity;
+    return bucketHi >= fMin && lo <= fMax;
+  };
+
+  const buckets = LENGTH_CATEGORIES.map((cat, i) => {
+    const lo = i === 0 ? 0 : LENGTH_CATEGORIES[i - 1].maxKm;
+    return {
+      label: cat.label,
+      count: counts[i],
+      color: cat.color,
+      inRange: inFilter(lo, cat.maxKm),
+    };
+  });
+  if (noData > 0) {
+    buckets.push({
+      label: 'Sin datos',
+      count: noData,
+      color: NO_SERVICE_COLOR,
+      inRange: fMin <= 0,
+    });
+  }
+  return buckets;
+}
+
+export function passesLengthFilter(tortuosity, routeId, filter) {
+  if (!tortuosity) return true;
+  const v = lengthForRoute(tortuosity, routeId);
+  const [fMin, fMax] = filter;
+  if (v == null) return fMin <= 0;
+  return v >= fMin && v <= fMax;
+}
+
 export function buildingLineHistogram(geojson) {
   if (!geojson?.features?.length) return [];
 

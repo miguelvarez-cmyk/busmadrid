@@ -4,8 +4,9 @@ import {
   useColorMode,
   useTortuosityFilter,
   useDivergenceFilter,
+  useLengthFilter,
 } from '../../store/useMapStore.js';
-import { tortuosityHistogram, divergenceHistogram } from '../../utils/service.js';
+import { tortuosityHistogram, divergenceHistogram, lengthHistogram } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
 
@@ -24,6 +25,9 @@ export default function ItinerariosPanel({
   const divergenceFilter = useDivergenceFilter();
   const setDivergenceFilter = useMapStore((s) => s.setDivergenceFilter);
 
+  const lengthFilter = useLengthFilter();
+  const setLengthFilter = useMapStore((s) => s.setLengthFilter);
+
   const tortuosityBuckets = useMemo(
     () =>
       colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter
@@ -38,6 +42,14 @@ export default function ItinerariosPanel({
         ? divergenceHistogram(routeDivergence, selectedRouteIds, divergenceFilter)
         : [],
     [colorMode, routeDivergence, selectedRouteIds, divergenceFilter]
+  );
+
+  const lengthBuckets = useMemo(
+    () =>
+      colorMode === 'length' && routeTortuosity && lengthFilter
+        ? lengthHistogram(routeTortuosity, selectedRouteIds, lengthFilter)
+        : [],
+    [colorMode, routeTortuosity, selectedRouteIds, lengthFilter]
   );
 
   return (
@@ -61,6 +73,16 @@ export default function ItinerariosPanel({
             onClick={() => setColorMode('divergence')}
           >
             Divergencia ida/vuelta
+          </button>
+        )}
+        {routeTortuosity && (
+          <button
+            role="radio"
+            aria-checked={colorMode === 'length'}
+            className={colorMode === 'length' ? 'active' : ''}
+            onClick={() => setColorMode('length')}
+          >
+            Longitud media
           </button>
         )}
       </div>
@@ -117,6 +139,33 @@ export default function ItinerariosPanel({
               o vuelta). 0% = mismo vial en ambos sentidos ·
               100% = recorridos completamente distintos.
               Rango {routeDivergence.min}–{routeDivergence.max}%.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {colorMode === 'length' && routeTortuosity && lengthFilter && (
+        <div className="body">
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Distribución de longitud media</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={lengthBuckets} />
+            <RangeSlider
+              min={0}
+              max={Math.ceil(Math.max(...Object.values(routeTortuosity.byRoute).map((v) => v.lengthKm)))}
+              step={0.5}
+              value={lengthFilter}
+              onChange={setLengthFilter}
+              format={(v) => `${v.toFixed(1)} km`}
+            />
+            <div className="caption muted">
+              Longitud media del trazado = (longitud de ida + longitud de
+              vuelta) / 2. Mide el recorrido real siguiendo el callejero,
+              no la distancia en línea recta.
             </div>
           </div>
         </div>

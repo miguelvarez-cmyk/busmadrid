@@ -53,6 +53,7 @@ export const useMapStore = create((set) => ({
   fleetFilter: null,       // [min, max] buses; null hasta cargar route_fleet
   tortuosityFilter: null,  // [min, max] ratio; null hasta cargar route_tortuosity
   divergenceFilter: null,  // [min, max] %; null hasta cargar route_divergence
+  lengthFilter: null,      // [min, max] km; null hasta cargar route_tortuosity
   scheduleFilter: null,    // [min, max] minutos; null hasta cargar route_schedule
   setFreqFilter: (range) => set({ freqFilter: range }),
   setSpeedFilter: (range) => set({ speedFilter: range }),
@@ -60,6 +61,7 @@ export const useMapStore = create((set) => ({
   setFleetFilter: (range) => set({ fleetFilter: range }),
   setTortuosityFilter: (range) => set({ tortuosityFilter: range }),
   setDivergenceFilter: (range) => set({ divergenceFilter: range }),
+  setLengthFilter: (range) => set({ lengthFilter: range }),
   setScheduleFilter: (range) => set({ scheduleFilter: range }),
 
   // Tipo de día para el modo Flota: LA=laborable, SA=sábado, FE=festivo
@@ -151,6 +153,7 @@ export const useFleetFilter = () => useMapStore((s) => s.fleetFilter);
 export const useFleetDayType = () => useMapStore((s) => s.fleetDayType);
 export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);
 export const useDivergenceFilter = () => useMapStore((s) => s.divergenceFilter);
+export const useLengthFilter = () => useMapStore((s) => s.lengthFilter);
 export const useScheduleFilter = () => useMapStore((s) => s.scheduleFilter);
 export const useScheduleDayType = () => useMapStore((s) => s.scheduleDayType);
 export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);

@@ -7,6 +7,7 @@ import {
   fleetColorForRoute,
   tortuosityColorForRoute,
   divergenceColorForRoute,
+  lengthColorForRoute,
   scheduleColorForRoute,
   coverageColorForRoute,
   passesFrequencyFilter,
@@ -15,6 +16,7 @@ import {
   passesFleetFilter,
   passesTortuosityFilter,
   passesDivergenceFilter,
+  passesLengthFilter,
   passesScheduleFilter,
   passesCoverageFilter,
 } from '../utils/service.js';
@@ -43,6 +45,7 @@ export function applyModeFilter({
   fleetDayType,
   tortuosityFilter,
   divergenceFilter,
+  lengthFilter,
   scheduleFilter,
   scheduleDayType,
   occupancyFilter,
@@ -97,6 +100,13 @@ export function applyModeFilter({
     const out = new Set();
     for (const id of routeIds) {
       if (passesDivergenceFilter(routeDivergence, id, divergenceFilter)) out.add(id);
+    }
+    return out;
+  }
+  if (colorMode === 'length' && routeTortuosity && lengthFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesLengthFilter(routeTortuosity, id, lengthFilter)) out.add(id);
     }
     return out;
   }
@@ -215,6 +225,8 @@ export function createRoutesLayer({
     getBaseColor = (f) => tortuosityColorForRoute(routeTortuosity, f.properties.route_id);
   } else if (colorMode === 'divergence' && routeDivergence) {
     getBaseColor = (f) => divergenceColorForRoute(routeDivergence, f.properties.route_id);
+  } else if (colorMode === 'length' && routeTortuosity) {
+    getBaseColor = (f) => lengthColorForRoute(routeTortuosity, f.properties.route_id);
   } else if (colorMode === 'schedule' && routeSchedule) {
     getBaseColor = (f) => scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType);
   } else if (colorMode === 'occupancy' && occupancyData) {
