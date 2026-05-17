@@ -221,7 +221,7 @@ export default function Sidebar({
           <AccordionSection
             id="lineas"
             title="Líneas"
-            icon="≡"
+            icon="🔎"
             isOpen={openSections.has('lineas')}
             onToggle={toggleSection}
           >
@@ -231,7 +231,7 @@ export default function Sidebar({
           <AccordionSection
             id="barrios"
             title="Barrios"
-            icon="◉"
+            icon="🏙️"
             isOpen={openSections.has('barrios')}
             onToggle={toggleSection}
           >
@@ -256,7 +256,7 @@ export default function Sidebar({
             <AccordionSection
               id="calidad"
               title="Calidad de la Oferta"
-              icon="⚙"
+              icon="🕑"
               isOpen={openSections.has('calidad')}
               onToggle={toggleSection}
             >
@@ -276,7 +276,7 @@ export default function Sidebar({
             <AccordionSection
               id="itinerarios"
               title="Análisis de itinerarios"
-              icon="↗"
+              icon="🔃"
               isOpen={openSections.has('itinerarios')}
               onToggle={toggleSection}
             >
@@ -292,7 +292,7 @@ export default function Sidebar({
           <AccordionSection
             id="paradas"
             title="Paradas"
-            icon="⬤"
+            icon="🚏"
             isOpen={openSections.has('paradas')}
             onToggle={toggleSection}
           >
@@ -320,7 +320,7 @@ export default function Sidebar({
 
           <AccordionSection
             id="otros"
-            icon="★"
+            icon="⭐"
             title="Otros"
             isOpen={openSections.has('otros')}
             onToggle={toggleSection}
@@ -336,8 +336,8 @@ export default function Sidebar({
 
           <AccordionSection
             id="cobertura"
-            title="Cobertura"
-            icon="◎"
+            title="Población"
+            icon="👨‍👩‍👧‍👦"
             isOpen={openSections.has('cobertura')}
             onToggle={toggleSection}
           >
@@ -365,7 +365,7 @@ export default function Sidebar({
           <AccordionSection
             id="fondo"
             title="Fondo"
-            icon="◧"
+            icon="🗺️"
             isOpen={openSections.has('fondo')}
             onToggle={toggleSection}
           >

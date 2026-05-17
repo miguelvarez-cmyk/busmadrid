@@ -2,13 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Quick Status 🔒
+## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
 Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: fix deploy IONOS cuota 50 MB — buildings GeoJSON 41→32 MB (2026-05-17)
 
 ---
 
-## Arquitectura 🔒
+## 🏗️ Arquitectura 🔒
 
 Visualizador interactivo del feed **GTFS de la EMT de Madrid** con capas de Metro y Cercanías. Renderiza paradas y recorridos sobre mapa con filtros por línea, modo y franja horaria.
 
@@ -53,7 +53,7 @@ Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` i
 
 ---
 
-## Comandos 🔒
+## ⌨️ Comandos 🔒
 
 ```bash
 npm run dev       # servidor de desarrollo http://localhost:5173
@@ -88,7 +88,7 @@ python scripts/compute_stop_expeditions.py
 
 ---
 
-## Estilo 🔓
+## 🎨 Estilo 🔓
 
 ### Restricciones (obligatorias)
 - Sin TypeScript — JS puro
@@ -111,7 +111,7 @@ python scripts/compute_stop_expeditions.py
 
 ---
 
-## Lista de Nunca 🔒
+## 🚫 Lista de Nunca 🔒
 
 - No refactorizar código no solicitado
 - No instalar dependencias sin confirmar con el usuario
@@ -122,7 +122,7 @@ python scripts/compute_stop_expeditions.py
 
 ---
 
-## Etiqueta de Repo 🔒
+## 📌 Etiqueta de Repo 🔒
 
 - Rama principal: `main`
 - Commits en castellano, imperativo: *"añade X"*, *"corrige Y"*
@@ -130,7 +130,7 @@ python scripts/compute_stop_expeditions.py
 
 ---
 
-## Disparadores de Entrevista 🔒
+## ❓ Disparadores de Entrevista 🔒
 
 Usar `AskUserQuestion` antes de:
 - Cambios en la arquitectura de capas Deck.gl o el store Zustand
@@ -141,7 +141,7 @@ Usar `AskUserQuestion` antes de:
 
 ---
 
-## Índice de Documentación 🔓
+## 📚 Índice de Documentación 🔓
 
 | Archivo | Contenido |
 |---|---|
