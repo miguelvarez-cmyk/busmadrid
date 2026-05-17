@@ -346,6 +346,20 @@ def compute_coverage(
 # Exportacion
 # ---------------------------------------------------------------------------
 
+def round_coords(geom: dict, precision: int = 5) -> dict:
+    t = geom["type"]
+    c = geom["coordinates"]
+    if t == "Point":
+        return {"type": t, "coordinates": [round(v, precision) for v in c]}
+    if t in ("MultiPoint", "LineString"):
+        return {"type": t, "coordinates": [[round(v, precision) for v in pt] for pt in c]}
+    if t in ("MultiLineString", "Polygon"):
+        return {"type": t, "coordinates": [[[round(v, precision) for v in pt] for pt in ring] for ring in c]}
+    if t == "MultiPolygon":
+        return {"type": t, "coordinates": [[[[round(v, precision) for v in pt] for pt in ring] for ring in poly] for poly in c]}
+    return geom
+
+
 def build_address(row: pd.Series) -> str:
     if row.get("addr_street") and row.get("addr_number"):
         return f"{row['addr_street']} {row['addr_number']}"
@@ -366,8 +380,8 @@ def export_geojson(buildings: gpd.GeoDataFrame) -> None:
     if buildings.crs != CRS_WGS84:
         buildings = buildings.to_crs(CRS_WGS84)
 
-    # Simplificar geometrias (0.000005 grados ~ 0.5 m) para reducir tamano
-    buildings["geometry"] = buildings.geometry.simplify(0.000005, preserve_topology=True)
+    # Simplificar geometrias (0.00003 grados ~ 3 m) para reducir tamano
+    buildings["geometry"] = buildings.geometry.simplify(0.00003, preserve_topology=True)
     buildings = buildings[~buildings.geometry.is_empty]
 
     # Filtrar solo edificios con poblacion > 0
@@ -379,7 +393,7 @@ def export_geojson(buildings: gpd.GeoDataFrame) -> None:
         address = build_address(row)
         features.append({
             "type": "Feature",
-            "geometry": row.geometry.__geo_interface__,
+            "geometry": round_coords(row.geometry.__geo_interface__, precision=5),
             "properties": {
                 "osm_id":    row["osm_id"],
                 "address":   address,
