@@ -7,15 +7,37 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-17 (noche 3)
-**Última tarea completada:** Rediseño UX/UI completado — dark theme, IBM Plex Sans, opacidad dinámica, filtros temporales visibles, bottom sheet móvil
-**Próxima acción:** Verificar deploy IONOS → animación temporal horaria — TODO.md #A1
+**Sesión cerrada:** 2026-05-17 (noche 4)
+**Última tarea completada:** Rediseño selector día/hora en panel Frecuencia — 3 tipos semánticos (Laborable/Sábado/Domingo) + controles +/− + dark theme
+**Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación:**
-- [x] `npm run build` pasa sin warnings — 42.8 MB (margen: 7.2 MB)
-- [x] Dev server corriendo sin issues (http://localhost:5182+)
-- [x] Commit `e74414a` pusheado a `main`
-- ⏳ Deploy IONOS en progreso — esperar confirmación de construcción
+- [x] `npm run build` pasa sin errores — build limpio
+- [x] Commit pusheado a `main`
+- ⏳ Deploy IONOS en progreso
+
+---
+
+## Sesión 2026-05-17 (noche 4) — Rediseño selector día/hora (panel Frecuencia)
+
+### Qué se hizo
+
+- **Análisis de datos**: confirmado que lunes–viernes son idénticos en `service_metrics.json` (10/10 rutas); sábado y domingo sí difieren → 3 tipos son suficientes
+- **Simplificación**: 7 botones de día reemplazados por 3 semánticos: **Laborable** (dow=0), **Sábado** (dow=5), **Domingo** (dow=6)
+- **Control de horas**: `<input type="number">` feos sustituidos por pares −/+ con valor formateado (`07:00`)
+- **Dark theme**: toda la sección `.viz-controls .days` y `.hour-input` migrada a variables CSS del design system (`--bg-surface-2`, `--border-normal`, `--accent-dim`, etc.)
+- Sin cambios en store ni en `service.js` — compatible hacia atrás
+
+### Archivos modificados
+```
+src/components/map/VisualizationControls.jsx   (DAY_NAMES→DAY_TYPES, JSX días y horas)
+src/index.css                                  (CSS dark theme para días y hora-control)
+```
+
+### Commits
+```
+(este push)
+```
 
 ---
 
