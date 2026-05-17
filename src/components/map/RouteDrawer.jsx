@@ -53,6 +53,7 @@ export default function RouteDrawer({
   routeSchedule,
   serviceMetrics,
   routesGeojson,
+  routeCoverage,
   dayOfWeek,
 }) {
   const clickedRouteId = useClickedRouteId();
@@ -74,6 +75,7 @@ export default function RouteDrawer({
   const demandData  = useMemo(() => routeDemand?.byRoute?.[clickedRouteId], [clickedRouteId, routeDemand]);
   const fleetData   = useMemo(() => routeFleet?.byRoute?.[clickedRouteId], [clickedRouteId, routeFleet]);
   const scheduleData = useMemo(() => routeSchedule?.byRoute?.[clickedRouteId], [clickedRouteId, routeSchedule]);
+  const coverage300 = useMemo(() => routeCoverage?.byRoute?.[clickedRouteId]?.['300'] ?? null, [clickedRouteId, routeCoverage]);
   const scheduleRange = useMemo(() => scheduleRangeFromMetrics(serviceMetrics, clickedRouteId, dayOfWeek), [serviceMetrics, clickedRouteId, dayOfWeek]);
 
   const row0 = serviceMetrics?.byRoute?.[clickedRouteId]?.[String(dayOfWeek)]?.['0'];
@@ -148,6 +150,12 @@ export default function RouteDrawer({
                 <div className="rd-stat">
                   <span className="rd-stat-label">Amplitud (lab.)</span>
                   <span className="rd-stat-value">{formatSpanMinutes(scheduleData.LA)}</span>
+                </div>
+              )}
+              {coverage300 != null && (
+                <div className="rd-stat">
+                  <span className="rd-stat-label">Población a 300 m</span>
+                  <span className="rd-stat-value">{Math.round(coverage300).toLocaleString('es-ES')} hab</span>
                 </div>
               )}
             </div>

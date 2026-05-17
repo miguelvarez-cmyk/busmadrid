@@ -30,6 +30,8 @@ import {
   useStopExpeditionsFilter,
   useOccupancyFilter,
   useHighlightedZoneIds,
+  useCoverageDistance,
+  useCoverageFilter,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import {
@@ -90,6 +92,9 @@ export default function App() {
   const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
   const occupancyFilter = useOccupancyFilter();
   const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
+  const coverageDistance = useCoverageDistance();
+  const coverageFilter = useCoverageFilter();
+  const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
   const highlightedZoneIds = useHighlightedZoneIds();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
 
@@ -108,6 +113,7 @@ export default function App() {
     routeDistricts,
     barriosGeojson,
     stopExpeditions,
+    routeCoverage,
     loading,
     error,
   } = useGTFSData();
@@ -228,6 +234,17 @@ export default function App() {
     }
   }, [occupancyData, occupancyFilter, setOccupancyFilter]);
 
+  useEffect(() => {
+    if (routeCoverage && !coverageFilter) {
+      const distKey = String(coverageDistance);
+      const values = Object.values(routeCoverage.byRoute)
+        .map((r) => r[distKey] ?? 0)
+        .filter((v) => v > 0);
+      const maxCov = values.length > 0 ? Math.max(...values) : 0;
+      setCoverageFilter([0, maxCov]);
+    }
+  }, [routeCoverage, coverageFilter, coverageDistance, setCoverageFilter]);
+
   const visibleRouteIds = useMemo(
     () =>
       applyModeFilter({
@@ -240,6 +257,7 @@ export default function App() {
         routeTortuosity,
         routeSchedule,
         occupancyData,
+        routeCoverage,
         timeFilter,
         freqFilter,
         speedFilter,
@@ -250,6 +268,8 @@ export default function App() {
         scheduleFilter,
         scheduleDayType,
         occupancyFilter,
+        coverageFilter,
+        coverageDistance,
       }),
     [
       selectedRouteIds,
@@ -261,6 +281,7 @@ export default function App() {
       routeTortuosity,
       routeSchedule,
       occupancyData,
+      routeCoverage,
       timeFilter,
       freqFilter,
       speedFilter,
@@ -271,6 +292,8 @@ export default function App() {
       scheduleFilter,
       scheduleDayType,
       occupancyFilter,
+      coverageFilter,
+      coverageDistance,
     ]
   );
 
@@ -288,9 +311,11 @@ export default function App() {
           routeTortuosity,
           routeSchedule,
           occupancyData,
+          routeCoverage,
           timeFilter,
           fleetDayType,
           scheduleDayType,
+          coverageDistance,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         createStopsLayer({
@@ -317,9 +342,11 @@ export default function App() {
       routeTortuosity,
       routeSchedule,
       occupancyData,
+      routeCoverage,
       timeFilter,
       fleetDayType,
       scheduleDayType,
+      coverageDistance,
       stopsGeojson,
       showStops,
       setHoveredStop,
@@ -409,6 +436,7 @@ export default function App() {
         stopsGeojson={stopsGeojson}
         stopExpeditions={stopExpeditions}
         occupancyData={occupancyData}
+        routeCoverage={routeCoverage}
         isLoading={loading}
         onReset={handleReset}
       />
@@ -451,6 +479,7 @@ export default function App() {
         routeSchedule={routeSchedule}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
+        routeCoverage={routeCoverage}
         dayOfWeek={timeFilter.dayOfWeek}
       />
 

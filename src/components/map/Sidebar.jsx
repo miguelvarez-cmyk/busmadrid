@@ -8,6 +8,7 @@ import StopRoutesPanel from './StopRoutesPanel.jsx';
 import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
 import OtrosPanel from './OtrosPanel.jsx';
+import CoveragePanel from './CoveragePanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
@@ -54,6 +55,7 @@ export default function Sidebar({
   stopsGeojson,
   stopExpeditions,
   occupancyData,
+  routeCoverage,
   isLoading,
   onReset,
 }) {
@@ -222,6 +224,19 @@ export default function Sidebar({
               occupancyData={occupancyData}
               routesMeta={routesMeta}
               selectedRouteIds={selectedRouteIds}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            id="cobertura"
+            title="Cobertura"
+            icon="◎"
+            isOpen={openSections.has('cobertura')}
+            onToggle={toggleSection}
+          >
+            <CoveragePanel
+              routeCoverage={routeCoverage}
+              routesMeta={routesMeta}
             />
           </AccordionSection>
 

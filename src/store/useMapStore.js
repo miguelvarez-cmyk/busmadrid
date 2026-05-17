@@ -86,6 +86,12 @@ export const useMapStore = create((set) => ({
   occupancyFilter: null,
   setOccupancyFilter: (range) => set({ occupancyFilter: range }),
 
+  // Cobertura de población: distancia activa (m) y filtro [min, max] hab
+  coverageDistance: 300,
+  coverageFilter: null,
+  setCoverageDistance: (d) => set({ coverageDistance: d }),
+  setCoverageFilter: (range) => set({ coverageFilter: range }),
+
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
@@ -135,6 +141,8 @@ export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
 export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
 export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditionsFilter);
 export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
+export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
+export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
