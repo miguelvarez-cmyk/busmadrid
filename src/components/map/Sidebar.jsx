@@ -143,9 +143,24 @@ export default function Sidebar({
 
   const hasViz = serviceMetrics || routeSpeed || routeSchedule;
 
+  useEffect(() => {
+    if (window.innerWidth > 720) return;
+    const el = sidebarRef.current;
+    if (!el) return;
+    el.addEventListener('touchstart', handleTouchStart, false);
+    el.addEventListener('touchmove', handleTouchMove, false);
+    el.addEventListener('touchend', handleTouchEnd, false);
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart, false);
+      el.removeEventListener('touchmove', handleTouchMove, false);
+      el.removeEventListener('touchend', handleTouchEnd, false);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
   return (
     <>
-      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <div ref={sidebarRef} className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sheet-handle" />
         <div className="sidebar-header">
           <button
             type="button"

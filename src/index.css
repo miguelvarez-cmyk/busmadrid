@@ -1984,19 +1984,38 @@ button {
   flex-shrink: 0;
 }
 
+/* ── Sheet handle para drag en móvil ──────────────────────── */
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: var(--r-full);
+  margin: var(--sp-2) auto var(--sp-3);
+  cursor: grab;
+  flex-shrink: 0;
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .sheet-handle {
+    display: block;
+  }
+}
+
 /* ── Sidebar en móvil (bottom-sheet) ─────────────────────── */
 
 @media (max-width: 720px) {
   .sidebar {
     width: 100%;
-    height: 72%;
-    height: 72dvh;
+    height: 45vh;
     top: auto;
     bottom: 0;
     left: 0;
     transform: translateY(100%);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    flex-direction: column;
   }
 
   .sidebar.open {
@@ -2009,13 +2028,16 @@ button {
   }
 
   .sidebar-open-btn {
+    position: fixed;
+    bottom: calc(45vh + var(--sp-5) + env(safe-area-inset-bottom, 0px));
+    right: var(--sp-5);
+    left: auto;
     top: auto;
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translateX(-50%);
-    width: 56px;
-    height: 40px;
-    border-radius: 20px;
+    transform: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-full);
+    z-index: 101;
   }
 
   .color-legend {
