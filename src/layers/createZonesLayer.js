@@ -13,9 +13,9 @@ export function createZonesLayer({ geojson, highlightedZoneIds }) {
     data: { type: 'FeatureCollection', features },
     filled: true,
     stroked: true,
-    getFillColor: [255, 255, 255, 65],
-    getLineColor: [255, 255, 255, 210],
-    lineWidthMinPixels: 2,
+    getFillColor: [100, 160, 255, 70],
+    getLineColor: [255, 255, 255, 240],
+    lineWidthMinPixels: 1.5,
     parameters: { depthTest: false },
   });
 }

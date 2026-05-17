@@ -4,6 +4,12 @@
   --color-accent-hover: #1258c0;
   --color-accent-light: #e6f1fb;
 
+  /* Bordes, fondos y texto */
+  --color-border: #e5e5e5;
+  --color-border-focus: var(--color-accent);
+  --bg-subtle: #f7f8fa;
+  --color-text-muted: #888;
+
   /* Escala de border-radius */
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -64,7 +70,7 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-border);
   background: #f7f7f9;
 }
 
@@ -84,7 +90,7 @@ html, body, #root {
 
 .line-selector .controls {
   padding: 10px 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -133,7 +139,7 @@ html, body, #root {
 }
 
 .line-list section {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .line-list section h3 {
@@ -235,7 +241,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 12px;
+  padding: 5px 14px;
   cursor: pointer;
   user-select: none;
 }
@@ -245,9 +251,9 @@ html, body, #root {
 }
 
 .line-list .swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
   flex: 0 0 auto;
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
@@ -259,7 +265,7 @@ html, body, #root {
 
 .line-list .long {
   color: #555;
-  font-size: 12px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -271,17 +277,19 @@ html, body, #root {
   right: 16px;
   background: rgba(255, 255, 255, 0.97);
   color: #1a1a1a;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 8px;
+  border: 1px solid var(--color-border);
   font-size: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
   z-index: var(--z-panel);
   max-width: 380px;
   cursor: default;
   pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 .hover-info .route-pills {
@@ -310,7 +318,7 @@ html, body, #root {
 }
 
 .hover-info .route-name b {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -362,7 +370,7 @@ html, body, #root {
   gap: 6px;
   align-items: center;
   padding-top: 4px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--color-border);
 }
 
 .hover-info .pills-label {
@@ -374,7 +382,7 @@ html, body, #root {
 
 .hover-info .pills {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -383,7 +391,7 @@ html, body, #root {
   border: 2px solid #d0d0d0;
   color: #666;
   padding: 4px 9px;
-  border-radius: 5px;
+  border-radius: 7px;
   font-size: 12px;
   font-weight: 700;
   user-select: none;
@@ -412,26 +420,28 @@ html, body, #root {
 
 .viz-controls header {
   padding: 10px 12px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-border);
   background: #f7f7f9;
   font-weight: 600;
 }
 
 .viz-controls .modes {
   display: flex;
-  border-bottom: 1px solid #eee;
+  gap: 2px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .viz-controls .modes button {
   flex: 1;
-  padding: 8px 0;
+  padding: 9px 4px;
   border: none;
   background: #fff;
-  border-right: 1px solid #eee;
+  border-right: 1px solid var(--color-border);
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
   color: #555;
+  transition: background 0.15s, color 0.15s;
 }
 
 .viz-controls .modes button:last-child {
@@ -443,7 +453,7 @@ html, body, #root {
 }
 
 .viz-controls .modes button.active {
-  background: #1976d2;
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -471,9 +481,9 @@ html, body, #root {
 }
 
 .viz-controls .days button.active {
-  background: #1976d2;
+  background: var(--color-accent);
   color: #fff;
-  border-color: #1976d2;
+  border-color: var(--color-accent);
 }
 
 .viz-controls .hours {
@@ -508,7 +518,7 @@ html, body, #root {
 }
 
 .viz-controls .legend {
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   padding-top: 8px;
   display: flex;
   flex-direction: column;
@@ -574,7 +584,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   padding-top: 8px;
 }
 
@@ -717,7 +727,7 @@ html, body, #root {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #1976d2;
+  color: var(--color-accent);
   font-weight: 600;
 }
 
@@ -872,7 +882,7 @@ html, body, #root {
   gap: 8px;
   margin: -8px -12px 4px;
   padding: 8px 12px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-border);
   background: #f7f7f9;
   font-weight: 600;
   font-size: 12px;
@@ -982,7 +992,7 @@ button {
   .viz-controls .modes button {
     flex: 1 1 33.333%;
     min-width: 33.333%;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-border);
   }
 
   /* ----- Layer toggles ----- */
@@ -1100,7 +1110,7 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #e8eaed;
+  border-bottom: 1px solid var(--color-border);
   background: #fafbfc;
   flex-shrink: 0;
 }
@@ -1202,7 +1212,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   transition: background 0.15s, box-shadow 0.15s;
 }
 
@@ -1220,7 +1230,7 @@ button {
 /* ── Acordeón ────────────────────────────────────────────── */
 
 .accordion-section {
-  border-bottom: 1px solid #eaecef;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .accordion-header {
@@ -1238,7 +1248,7 @@ button {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
 .accordion-header:hover {
@@ -1247,8 +1257,9 @@ button {
 }
 
 .accordion-header.open {
-  color: #1a1a1a;
+  color: var(--color-accent);
   background: #f9fafb;
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .accordion-icon {
@@ -1258,7 +1269,7 @@ button {
 
 .accordion-arrow {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 12px;
   transition: transform 0.2s ease;
   display: inline-block;
   color: #9ca3af;
@@ -1287,7 +1298,7 @@ button {
 
 .sidebar .controls {
   padding: 12px 14px;
-  border-bottom: 1px solid #eaecef;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1390,7 +1401,7 @@ button {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.03em;
   color: #6b7280;
   transition: color 0.15s;
 }
@@ -1445,9 +1456,14 @@ button {
   color: #1a1a1a;
 }
 
+.sidebar .line-list li.active label {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 11px;
+}
+
 .sidebar .line-list li:hover,
 .sidebar .line-list li.hovered {
-  background: #fffbeb;
+  background: var(--color-accent-light);
 }
 
 .sidebar .line-list li label {
@@ -1463,7 +1479,7 @@ button {
   flex-wrap: wrap;
   gap: 6px;
   padding: 12px 14px 8px;
-  border-bottom: 1px solid #eaecef;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .sidebar .modes button {
@@ -1514,7 +1530,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid #eaecef;
+  border-top: 1px solid var(--color-border);
   padding-top: 10px;
 }
 
@@ -1593,7 +1609,7 @@ button {
 }
 
 .district-item {
-  border-bottom: 1px solid #eaecef;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .district-header {
@@ -1653,7 +1669,7 @@ button {
 
 .barrios-list {
   background: #f9fafb;
-  border-top: 1px solid #eaecef;
+  border-top: 1px solid var(--color-border);
 }
 
 .barrio-item {
@@ -1797,10 +1813,11 @@ button {
   background: rgba(255, 255, 255, 0.96);
   color: #1a1a1a;
   border-radius: 8px;
+  border: 1px solid var(--color-border);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
   padding: 10px 14px;
   font-size: 12px;
-  min-width: 190px;
+  min-width: 210px;
   max-width: 260px;
   pointer-events: none;
 }
@@ -1815,9 +1832,9 @@ button {
 }
 
 .gradient-legend .cl-bar {
-  height: 10px;
-  border-radius: 4px;
-  margin-bottom: 4px;
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 6px;
 }
 
 .gradient-legend .cl-labels {
@@ -1880,7 +1897,7 @@ button {
   align-items: flex-start;
   gap: 10px;
   padding: 16px;
-  border-bottom: 1px solid #e8eaed;
+  border-bottom: 1px solid var(--color-border);
   background: #fafbfc;
   flex-shrink: 0;
 }
@@ -1951,6 +1968,10 @@ button {
   gap: 2px;
 }
 
+.rd-stats .rd-stat:nth-child(odd) {
+  border-right: 1px solid var(--color-border);
+}
+
 .rd-stat-label {
   font-size: 10px;
   color: #888;
@@ -1960,9 +1981,13 @@ button {
 }
 
 .rd-stat-value {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
+}
+
+.rd-stat.active .rd-stat-value {
+  color: var(--color-accent);
 }
 
 .rd-section { display: flex; flex-direction: column; gap: 6px; }
@@ -1989,9 +2014,9 @@ button {
 
 .rd-hour-bar {
   flex: 1;
-  border-radius: 2px 2px 0 0;
+  border-radius: 3px 3px 0 0;
   min-width: 0;
-  transition: opacity 0.1s;
+  transition: opacity 0.15s ease;
 }
 
 .rd-hour-labels {
@@ -2035,9 +2060,15 @@ button {
   align-items: center;
   background: rgba(255, 255, 255, 0.97);
   border-radius: 10px;
+  border: 1px solid var(--color-border);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
   padding: 0 10px;
   gap: 6px;
+  transition: box-shadow 0.15s;
+}
+
+.search-bar:focus-within .sb-input-wrap {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
 }
 
 .sb-icon { font-size: 14px; color: #888; flex-shrink: 0; }
