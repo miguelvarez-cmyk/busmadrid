@@ -70,7 +70,7 @@ export default function Sidebar({
   const [isOpen, setIsOpen] = useState(
     () => typeof window !== 'undefined' ? !window.matchMedia('(max-width: 720px)').matches : true
   );
-  const [openSections, setOpenSections] = useState(() => new Set(['lineas']));
+  const [openSections, setOpenSections] = useState(() => new Set());
 
   useEffect(() => {
     if (isMobile) setIsOpen(false);
