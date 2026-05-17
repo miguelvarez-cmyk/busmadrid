@@ -56,6 +56,8 @@ export default function Sidebar({
   stopExpeditions,
   occupancyData,
   routeCoverage,
+  buildingLineCoverage,
+  buildingCoverageLoading,
   isLoading,
   onReset,
 }) {
@@ -237,6 +239,8 @@ export default function Sidebar({
             <CoveragePanel
               routeCoverage={routeCoverage}
               routesMeta={routesMeta}
+              buildingLineCoverage={buildingLineCoverage}
+              buildingCoverageLoading={buildingCoverageLoading}
             />
           </AccordionSection>
 

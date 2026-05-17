@@ -92,6 +92,14 @@ export const useMapStore = create((set) => ({
   setCoverageDistance: (d) => set({ coverageDistance: d }),
   setCoverageFilter: (range) => set({ coverageFilter: range }),
 
+  // Visualización: líneas por edificio residencial (350 m)
+  buildingCoverageMode: false,
+  setBuildingCoverageMode: (v) => set((s) => ({
+    buildingCoverageMode: s.buildingCoverageMode === v ? false : v,
+  })),
+  selectedBuilding: null,
+  setSelectedBuilding: (b) => set({ selectedBuilding: b }),
+
   // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
@@ -143,6 +151,8 @@ export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditio
 export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
 export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
 export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
+export const useBuildingCoverageMode = () => useMapStore((s) => s.buildingCoverageMode);
+export const useSelectedBuilding = () => useMapStore((s) => s.selectedBuilding);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);

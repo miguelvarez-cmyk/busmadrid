@@ -32,13 +32,16 @@ import {
   useHighlightedZoneIds,
   useCoverageDistance,
   useCoverageFilter,
+  useBuildingCoverageMode,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
+import { useBuildingLineCoverage } from './utils/useBuildingLineCoverage.js';
 import {
   createRoutesLayer,
   createHighlightLayer,
   applyModeFilter,
 } from './layers/createRoutesLayer.js';
+import { createBuildingCoverageLayer } from './layers/createBuildingCoverageLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
@@ -97,6 +100,8 @@ export default function App() {
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
   const highlightedZoneIds = useHighlightedZoneIds();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
+  const buildingCoverageMode = useBuildingCoverageMode();
+  const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
 
   useUrlSync();
 
@@ -117,6 +122,8 @@ export default function App() {
     loading,
     error,
   } = useGTFSData();
+
+  const { data: buildingLineCoverage, loading: buildingCoverageLoading } = useBuildingLineCoverage(buildingCoverageMode);
 
   const didInitRoutes = useRef(false);
   useEffect(() => {
@@ -300,7 +307,7 @@ export default function App() {
   const layers = useMemo(
     () =>
       [
-        createRoutesLayer({
+        !buildingCoverageMode && createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
           colorMode,
@@ -317,8 +324,8 @@ export default function App() {
           scheduleDayType,
           coverageDistance,
         }),
-        createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
-        createStopsLayer({
+        !buildingCoverageMode && createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
+        !buildingCoverageMode && createStopsLayer({
           geojson: stopsGeojson,
           visibleRouteIds,
           visible: showStops,
@@ -329,6 +336,10 @@ export default function App() {
           stopExpeditionsFilter,
         }),
         createZonesLayer({ geojson: barriosGeojson, highlightedZoneIds }),
+        buildingCoverageMode && createBuildingCoverageLayer({
+          geojson: buildingLineCoverage,
+          onClickBuilding: (feat) => setSelectedBuilding(feat?.properties ?? null),
+        }),
       ].filter(Boolean),
     [
       routesGeojson,
@@ -356,6 +367,9 @@ export default function App() {
       stopExpeditionsFilter,
       barriosGeojson,
       highlightedZoneIds,
+      buildingCoverageMode,
+      buildingLineCoverage,
+      setSelectedBuilding,
     ]
   );
 
@@ -386,6 +400,7 @@ export default function App() {
         glOptions={{ powerPreference: 'default' }}
         onClick={(info) => {
           if (boxSelectMode) return;
+          if (info.layer?.id === 'building-coverage') return;
           setClickedRouteId(info.object?.properties?.route_id ?? null);
         }}
         onHover={(info) => {
@@ -437,6 +452,8 @@ export default function App() {
         stopExpeditions={stopExpeditions}
         occupancyData={occupancyData}
         routeCoverage={routeCoverage}
+        buildingLineCoverage={buildingLineCoverage}
+        buildingCoverageLoading={buildingCoverageLoading}
         isLoading={loading}
         onReset={handleReset}
       />
