@@ -67,16 +67,20 @@ export default function DistrictsPanel({ routeDistricts }) {
               />
               <button
                 type="button"
-                className={`district-toggle${distHighlighted ? ' zone-highlighted' : ''}`}
-                onClick={() => {
-                  toggleExpand(dist.id);
-                  toggleZoneHighlight(distBarrioIds);
-                }}
+                className={`district-name-btn${distHighlighted ? ' zone-highlighted' : ''}`}
+                onClick={() => toggleZoneHighlight(distBarrioIds)}
               >
                 <span className="district-name">{dist.nombre}</span>
                 <span className="district-count">
                   {selectedN}/{dist.routeIds.length}
                 </span>
+              </button>
+              <button
+                type="button"
+                className="district-expand-btn"
+                onClick={() => toggleExpand(dist.id)}
+                aria-label={isExpanded ? 'Colapsar' : 'Expandir'}
+              >
                 <span className="district-arrow">{isExpanded ? '▾' : '▸'}</span>
               </button>
             </div>

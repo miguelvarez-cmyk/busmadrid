@@ -7,14 +7,39 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-17 (noche 4)
-**Última tarea completada:** Rediseño selector día/hora en panel Frecuencia — 3 tipos semánticos (Laborable/Sábado/Domingo) + controles +/− + dark theme
+**Sesión cerrada:** 2026-05-17 (noche 5)
+**Última tarea completada:** Rediseño panel Barrios (dark theme + UX) + eliminación panel temporal del header
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación:**
-- [x] `npm run build` pasa sin errores — build limpio
 - [x] Commit pusheado a `main`
 - ⏳ Deploy IONOS en progreso
+
+---
+
+## Sesión 2026-05-17 (noche 5) — Rediseño panel Barrios + eliminación filtros temporales header
+
+### Qué se hizo
+
+- **Panel Barrios — dark theme**: reemplazados todos los colores hardcoded de tema claro (`#f9fafb`, `#374151`, `#1a1a1a`…) por variables CSS del design system (`--text-primary`, `--text-secondary`, `--bg-surface-3`, `--accent-dim`…). Los nombres de distrito ahora son legibles sobre fondo oscuro.
+- **Panel Barrios — UX separación de acciones**: el botón de distrito se dividió en dos controles:
+  - `.district-name-btn` (nombre + contador) → solo ilumina zona en el mapa (`toggleZoneHighlight`)
+  - `.district-expand-btn` (flecha ▾) → solo expande/colapsa la lista de barrios
+  - Checkbox → selección de rutas (sin cambios)
+- **Eliminación panel temporal del header**: el bloque `.temporal-filters` (DÍA/HORA) que aparecía en la cabecera del sidebar se ha eliminado. El estado `timeFilter` sigue activo en el store (lo usa `VisualizationControls` y las capas).
+- **CSS limpieza**: eliminados ~100 líneas de estilos huérfanos (`.temporal-filters`, `.tf-*`, `.dow-pill`) de `index.css`.
+
+### Archivos modificados
+```
+src/components/map/DistrictsPanel.jsx   (separación expand/highlight, nuevas clases)
+src/components/map/Sidebar.jsx          (elimina bloque temporal-filters + imports)
+src/index.css                           (dark theme barrios + eliminación estilos TF)
+```
+
+### Commits
+```
+(este push)
+```
 
 ---
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useMapStore, useTimeFilter } from '../../store/useMapStore.js';
+import { useMapStore } from '../../store/useMapStore.js';
 import { useMediaQuery } from '../../utils/useMediaQuery.js';
 import LineSelector from './LineSelector.jsx';
 import VisualizationControls from './VisualizationControls.jsx';
@@ -104,9 +104,6 @@ export default function Sidebar({
   const boxSelectMode = useMapStore((s) => s.boxSelectMode);
   const setBoxSelectMode = useMapStore((s) => s.setBoxSelectMode);
 
-  const { dayOfWeek, startHour, endHour } = useTimeFilter();
-  const setDayOfWeek = useMapStore((s) => s.setDayOfWeek);
-  const setHourRange = useMapStore((s) => s.setHourRange);
 
   const sidebarRef = useRef(null);
   const dragRef = useRef({ startY: 0, startHeight: 0, dragging: false });
@@ -183,38 +180,6 @@ export default function Sidebar({
           >
             ✕
           </button>
-        </div>
-
-        <div className="temporal-filters">
-          <div className="tf-row">
-            <span className="tf-label">Día</span>
-            <div className="dow-pills">
-              {['L','M','X','J','V','S','D'].map((name, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`dow-pill ${dayOfWeek === i ? 'active' : ''}`}
-                  onClick={() => setDayOfWeek(i)}
-                  aria-pressed={dayOfWeek === i}
-                  aria-label={['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'][i]}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="tf-row">
-            <span className="tf-label">Hora</span>
-            <span className="tf-value">
-              {String(startHour).padStart(2,'0')}:00 – {String(endHour).padStart(2,'0')}:00
-            </span>
-            <div className="tf-hour-btns">
-              <button type="button" className="tf-hour-btn" aria-label="Hora inicio anterior"
-                onClick={() => setHourRange(Math.max(0, startHour - 1), endHour)}>−</button>
-              <button type="button" className="tf-hour-btn" aria-label="Hora inicio siguiente"
-                onClick={() => setHourRange(Math.min(endHour - 1, startHour + 1), endHour)}>+</button>
-            </div>
-          </div>
         </div>
 
         <div className="sidebar-body">
