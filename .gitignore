@@ -35,3 +35,7 @@ venv/
 *.log
 *.tmp
 *.bak
+
+# Claude Code internos
+.claude/worktrees/
+.clone/

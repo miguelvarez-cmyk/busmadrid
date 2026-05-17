@@ -4,7 +4,7 @@ Guía para que Claude Code colabore en este proyecto.
 
 ## Propósito
 
-Visualizador interactivo del feed **GTFS de la EMT (Empresa Municipal de Transportes) de Madrid**. Renderiza paradas, recorridos y — cuando esté disponible — posiciones de vehículos en tiempo real sobre un mapa, con filtros por línea, modo y franja horaria. Pensado para análisis de cobertura y exploración del transporte público.
+Visualizador interactivo del feed **GTFS de la EMT (Empresa Municipal de Transportes) de Madrid**. Renderiza paradas, recorridos sobre un mapa, con filtros por línea, modo y franja horaria. Pensado para análisis y planificación del transporte público.
 
 ## Stack
 
