@@ -36,7 +36,7 @@ const SATELLITE_STYLE = {
 const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 // Light (CARTO): mapa base con tonos neutros, intermedio entre Positron y Dark Matter
-const LIGHT_STYLE = 'https://basemaps.cartocdn.com/gl/light-gl-style/style.json';
+const LIGHT_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
 export const BASEMAPS = {
   dark: { id: 'dark', label: 'Oscuro', style: DARK_STYLE },
