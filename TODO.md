@@ -70,6 +70,7 @@
 
 | ID | Tarea | Completado |
 |---|---|---|
+| ✅ | Modo **Longitud media** en Análisis de itinerarios — histograma + slider, 7 tramos (< 5 km … > 18 km), reutiliza `lengthKm` de `route_tortuosity.json` | 2026-05-17 |
 | ✅ | **Rediseño UX/UI**: Dark theme + IBM Plex Sans + Opacidad dinámica + Filtros temporales visibles + Bottom sheet móvil | 2026-05-17 |
 | ✅ | Análisis de itinerarios: Tortuosidad + Divergencia ida/vuelta | 2026-05-17 |
 | ✅ | Tortuosidad extraída de Calidad de la Oferta a nuevo acordeón | 2026-05-17 |

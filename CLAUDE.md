@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: afinar divergencia ida/vuelta (buffer híbrido 15/80 m + antiparalelo) + elimina SearchBar (2026-05-17)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: añade modo longitud media al panel de itinerarios (2026-05-17)
 
 ---
 
@@ -35,7 +35,7 @@ Visualizador interactivo del feed **GTFS de la EMT de Madrid** con capas de Metr
 - `createMetroCercaniasStopsLayer` — paradas Metro
 
 **Modos de color de líneas (`colorMode`):**
-`offer | schedule | speed | tortuosity | divergence | fleet | demand | occupancy | coverage | null`
+`offer | schedule | speed | tortuosity | divergence | length | fleet | demand | occupancy | coverage | null`
 Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` inicializado en `App.jsx` cuando carga el dataset.
 
 **Modos de color de paradas (`stopColorMode`):**
@@ -45,7 +45,7 @@ Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` i
 1. Líneas — `LineSelector`
 2. Barrios — botón `▭ Área` + `DistrictsPanel`
 3. Calidad de la Oferta — `VisualizationControls` (3 modos: offer, schedule, speed)
-4. Análisis de itinerarios — `ItinerariosPanel` (2 modos: tortuosity, divergence)
+4. Análisis de itinerarios — `ItinerariosPanel` (3 modos: tortuosity, divergence, length)
 5. Paradas — checkbox + `StopRoutesPanel` + `StopExpeditionsPanel`
 6. Otros — `OtrosPanel` (flota, demanda, ocupación)
 7. Metro — `MetroCercaniasPanel` (solo Metro; Cercanías pendiente de datos)
