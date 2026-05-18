@@ -42,8 +42,9 @@ function getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance) {
 }
 
 function applyFilter(raw, routeBuffers, selectedRouteIds, coverageDistance) {
+  if (!routeBuffers) return [];
   const geoms = getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance);
-  if (!geoms) return raw;
+  if (!geoms) return [];
   return raw.filter((f) => {
     const c = featureCentroid(f);
     return c && pointInAnyGeometry(c[0], c[1], geoms);
