@@ -8,11 +8,29 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-18
-**Última tarea completada:** Filtro de edificios por líneas seleccionadas en `buildingCoverageMode`
-**Próxima acción:** Animación temporal horaria — TODO.md #A1
+**Última tarea completada:** Reducción de `buildings_line_coverage.geojson` (28.7 MB → 25.0 MB) eliminando campo `address`
+**Próxima acción:** Verificar si el deploy IONOS sigue funcionando con `dist/` de 108 MB (ver ISSUES.md LIMIT-DEPLOY-001 🔴) y atacar la cuota si falla
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
+
+---
+
+## Sesión 2026-05-18 (noche) — Reducción buildings_line_coverage.geojson
+
+### Qué se hizo
+
+- **Análisis de opciones de reducción**: 8 estrategias evaluadas para reducir `buildings_line_coverage.geojson` (28.7 MB). Descartada compresión HTTP (no reduce cuota en disco). Descartada conversión a `.gz` pre-build (requiere dependencia).
+- **Eliminación campo `address`** (opción 2): campo `"Edificio en 21015"` no usado en la visualización; eliminado de los 118,242 features → **28.7 MB → 25.0 MB (-13%)**.
+- **Script actualizado**: `compute_building_line_coverage.py` — eliminado `address` y `osm_id` del output; `round_coords` explícito a `precision=4`.
+- **Diagnóstico de cuota real**: el `dist/` completo pesa 108 MB (cuota 50 MB). Los archivos `.fgb` (`edificios_poblacion.fgb` 34.5 MB, `route_buffers.fgb` 26.4 MB) son los mayores contribuyentes. Pendiente verificar si IONOS los contabiliza. Ver ISSUES.md LIMIT-DEPLOY-001 🔴.
+
+### Archivos modificados
+```
+public/data/buildings_line_coverage.geojson   (campo address eliminado; 28.7→25.0 MB)
+scripts/compute_building_line_coverage.py      (elimina address/osm_id del export; precision=4)
+ISSUES.md                                      (LIMIT-DEPLOY-001 actualizado a 🔴 con desglose)
+```
 
 ---
 

@@ -10,13 +10,34 @@
 
 ## Abiertos
 
-### LIMIT-DEPLOY-001 🟢
-**Descripción:** IONOS Deploy Now tiene una cuota de **50 003 968 bytes (~47,7 MiB)** para el artefacto de deploy (`dist/`). A 2026-05-17 el deploy ocupa ~46,4 MB, dejando solo ~3,5 MB de margen.
-**El mayor fichero es** `buildings_line_coverage.geojson` (~32 MB post-optimización). Añadir datos nuevos grandes podría volver a superar la cuota.
-**Protocolo si se supera la cuota:**
-1. `python scripts/optimize_buildings_geojson.py` — re-optimiza el GeoJSON sin reprocesar GTFS
-2. Si no basta: simplificar geometrías más agresivamente (subir tolerancia en el script) o considerar hosting externo para ese fichero
-**Estado:** 🟢 (limitación conocida, gestionada)
+### LIMIT-DEPLOY-001 🔴
+**Descripción:** IONOS Deploy Now tiene una cuota de **50 003 968 bytes (~47,7 MiB)** para el artefacto de deploy (`dist/`). A 2026-05-18 el `dist/` ocupa **108 MB**, muy por encima de la cuota.
+
+**Desglose de los archivos más pesados:**
+| Fichero | Tamaño |
+|---|---|
+| `edificios_poblacion.fgb` | 34.5 MB |
+| `buildings_line_coverage.geojson` | 25.0 MB (era 28.7 MB; se eliminó campo `address`) |
+| `route_buffers.fgb` | 26.4 MB |
+| `parking_bands.geojson` | 8.6 MB |
+| `routes.geojson` | 7.3 MB |
+
+**Hipótesis:** el deploy actual funciona o IONOS no contabiliza los `.fgb` (cargados en runtime, no en el build HTML). Hay que verificarlo.
+
+**Opciones priorizadas para reducir tamaño (próxima sesión):**
+1. Verificar qué mide exactamente IONOS (¿solo assets referenciados en `index.html`?)
+2. Eliminar `address` de `buildings_line_coverage.geojson` ✅ ya hecho (-3.7 MB)
+3. Simplificar `parking_bands.geojson` (8.6 MB) con tolerancia mayor en el script
+4. Convertir `buildings_line_coverage.geojson` a FlatGeobuf (~60% menos)
+5. Particionar `buildings_line_coverage.geojson` por distrito con carga lazy
+6. Hosting externo (CDN) para los tres ficheros `.fgb` y el GeoJSON de edificios
+
+**Protocolo urgente si el deploy falla:**
+```bash
+python scripts/optimize_buildings_geojson.py  # reduce GeoJSON sin reprocesar
+npm run build && du -sh dist/                 # verificar antes de push
+```
+**Estado:** 🔴 (cuota técnicamente superada; pendiente confirmar si el deploy actual sigue funcionando)
 
 ---
 

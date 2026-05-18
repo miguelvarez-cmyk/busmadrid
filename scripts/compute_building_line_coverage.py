@@ -393,10 +393,8 @@ def export_geojson(buildings: gpd.GeoDataFrame) -> None:
         address = build_address(row)
         features.append({
             "type": "Feature",
-            "geometry": round_coords(row.geometry.__geo_interface__, precision=5),
+            "geometry": round_coords(row.geometry.__geo_interface__, precision=4),
             "properties": {
-                "osm_id":    row["osm_id"],
-                "address":   address,
                 "poblacion": int(round(row["poblacion"])),
                 "n_lineas":  int(row["n_lineas"]),
                 "lineas":    row["lineas"],
