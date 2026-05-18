@@ -1,12 +1,6 @@
 import { GeoJsonLayer } from '@deck.gl/layers';
 
-const PARKING_COLORS = {
-  'Azul':          [0,   100, 220, 200],
-  'Verde':         [30,  160,  60, 200],
-  'Alta Rotación': [200, 200,   0, 200],
-  'Rojo':          [210,  30,  30, 200],
-  'Naranja':       [230, 130,   0, 200],
-};
+const PARKING_COLOR = [80, 160, 220, 200];
 
 export function createParkingBandsLayer({ geojson, visibleRouteIds, visible }) {
   if (!geojson || !visible || !visibleRouteIds) return null;
@@ -30,11 +24,8 @@ export function createParkingBandsLayer({ geojson, visibleRouteIds, visible }) {
     lineWidthUnits: 'pixels',
     lineWidthMinPixels: 1,
     getLineWidth: 2,
-    getLineColor: (f) => PARKING_COLORS[f.properties.Color] ?? [120, 120, 120, 160],
+    getLineColor: PARKING_COLOR,
     pickable: false,
     parameters: { depthTest: false },
-    updateTriggers: {
-      getLineColor: [],
-    },
   });
 }

@@ -1,13 +1,5 @@
 import { useMapStore, useShowBusLanes, useShowParkingBands } from '../../store/useMapStore.js';
 
-const PARKING_LEGEND = [
-  { color: '#0064dc', label: 'Zona Azul' },
-  { color: '#1ea03c', label: 'Zona Verde' },
-  { color: '#c8c800', label: 'Alta Rotación' },
-  { color: '#d21e1e', label: 'Zona Roja' },
-  { color: '#e68200', label: 'Zona Naranja' },
-];
-
 export default function ElementosVialesPanel({ busLanesGeojson, parkingBandsGeojson }) {
   const showBusLanes = useShowBusLanes();
   const setShowBusLanes = useMapStore((s) => s.setShowBusLanes);
@@ -53,16 +45,9 @@ export default function ElementosVialesPanel({ busLanesGeojson, parkingBandsGeoj
       </label>
 
       {showParkingBands && (
-        <div style={{ paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <p className="muted" style={{ fontSize: '11px', margin: '0 0 4px' }}>
-            En calles de un carril: ambos lados. En calles de varios carriles: solo lado derecho.
-          </p>
-          {PARKING_LEGEND.map(({ color, label }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-              <span style={{ display: 'inline-block', width: '28px', height: '4px', borderRadius: '2px', background: color, flexShrink: 0 }} />
-              <span>{label}</span>
-            </div>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-4px', paddingLeft: '22px' }}>
+          <span style={{ display: 'inline-block', width: '28px', height: '4px', borderRadius: '2px', background: '#50a0dc', flexShrink: 0 }} />
+          <span className="muted" style={{ fontSize: '11px' }}>Bandas en calles con bus</span>
         </div>
       )}
 
