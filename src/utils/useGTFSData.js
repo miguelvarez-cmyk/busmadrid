@@ -17,13 +17,15 @@ export function useGTFSData() {
   const [routeCoverage, setRouteCoverage] = useState(null);
   const [metroCercaniasRoutes, setMetroCercaniasRoutes] = useState(null);
   const [metroCercaniasStops, setMetroCercaniasStops] = useState(null);
+  const [busLanesGeojson, setBusLanesGeojson] = useState(null);
+  const [parkingBandsGeojson, setParkingBandsGeojson] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let loaded = 0;
-    const total = 16;
+    const total = 18;
     const track = (p) => p.then((v) => {
       loaded++;
       if (!cancelled) setProgress(Math.round((loaded / total) * 100));
@@ -46,8 +48,10 @@ export function useGTFSData() {
       track(fetch('/data/route_coverage.json').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/metro_cercanias_routes.geojson').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/bus_lanes.geojson').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/parking_bands.geojson').then((r) => r.json()).catch(() => null)),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -65,6 +69,8 @@ export function useGTFSData() {
         setRouteCoverage(coverage);
         setMetroCercaniasRoutes(mcRoutes);
         setMetroCercaniasStops(mcStops);
+        setBusLanesGeojson(busLanes);
+        setParkingBandsGeojson(parkingBands);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -89,6 +95,8 @@ export function useGTFSData() {
     routeCoverage,
     metroCercaniasRoutes,
     metroCercaniasStops,
+    busLanesGeojson,
+    parkingBandsGeojson,
     error,
     loading: !routesGeojson && !error,
     progress,

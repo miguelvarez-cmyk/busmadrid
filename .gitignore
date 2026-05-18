@@ -14,6 +14,10 @@ data/processed/*.geojson
 data/processed/*.json
 !data/processed/.gitkeep
 
+# Archivos de datos pesados en public/data (se generan con scripts/)
+public/data/*.fgb
+public/data/*.geojson
+
 # Editor / SO
 .vscode/*
 !.vscode/extensions.json

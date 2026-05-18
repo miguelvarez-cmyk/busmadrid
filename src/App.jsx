@@ -32,12 +32,15 @@ import {
   useStopColorMode,
   useStopExpeditionsFilter,
   useOccupancyFilter,
-  useHighlightedZoneIds,
-  useCoverageDistance,
   useCoverageFilter,
+  useCoverageDistance,
+  useShowBuildings,
+  useHighlightedZoneIds,
   useBuildingCoverageMode,
   useShowMetroLines,
   useShowMetroStops,
+  useShowBusLanes,
+  useShowParkingBands,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import { useBuildingLineCoverage } from './utils/useBuildingLineCoverage.js';
@@ -51,6 +54,11 @@ import { createStopsLayer } from './layers/createStopsLayer.js';
 import { createZonesLayer } from './layers/createZonesLayer.js';
 import { createMetroCercaniasRoutesLayer } from './layers/createMetroCercaniasRoutesLayer.js';
 import { createMetroCercaniasStopsLayer } from './layers/createMetroCercaniasStopsLayer.js';
+import { createBuildingsLayer } from './layers/createBuildingsLayer.js';
+import { createBusLanesLayer } from './layers/createBusLanesLayer.js';
+import { createParkingBandsLayer } from './layers/createParkingBandsLayer.js';
+import { useBuildingsData } from './utils/useBuildingsData.js';
+import { useRouteBuffers } from './utils/useRouteBuffers.js';
 import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
 import Sidebar from './components/map/Sidebar.jsx';
 import RouteTooltip from './components/map/RouteTooltip.jsx';
@@ -139,9 +147,11 @@ export default function App() {
   const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
   const occupancyFilter = useOccupancyFilter();
   const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
-  const coverageDistance = useCoverageDistance();
   const coverageFilter = useCoverageFilter();
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
+  const coverageDistance = useCoverageDistance();
+  const showBuildings = useShowBuildings();
+  const setShowBuildings = useMapStore((s) => s.setShowBuildings);
   const highlightedZoneIds = useHighlightedZoneIds();
   const clickedRouteId = useClickedRouteId();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
@@ -149,8 +159,13 @@ export default function App() {
   const setSelectedBuilding = useMapStore((s) => s.setSelectedBuilding);
   const showMetroLines = useShowMetroLines();
   const showMetroStops = useShowMetroStops();
+  const showBusLanes = useShowBusLanes();
+  const showParkingBands = useShowParkingBands();
 
   useUrlSync();
+
+  const routeBuffers = useRouteBuffers(showBuildings);
+  const buildingFeatures = useBuildingsData(viewState, showBuildings, routeBuffers, selectedRouteIds, coverageDistance);
 
   const {
     routesGeojson,
@@ -169,6 +184,8 @@ export default function App() {
     routeCoverage,
     metroCercaniasRoutes,
     metroCercaniasStops,
+    busLanesGeojson,
+    parkingBandsGeojson,
     loading,
     error,
     progress,
@@ -324,12 +341,9 @@ export default function App() {
 
   useEffect(() => {
     if (routeCoverage && !coverageFilter) {
-      const distKey = String(coverageDistance);
-      const values = Object.values(routeCoverage.byRoute)
-        .map((r) => r[distKey] ?? 0)
-        .filter((v) => v > 0);
-      const maxCov = values.length > 0 ? Math.max(...values) : 0;
-      setCoverageFilter([0, maxCov]);
+      const minKey = `min_${coverageDistance}`;
+      const maxKey = `max_${coverageDistance}`;
+      setCoverageFilter([routeCoverage[minKey] ?? 0, routeCoverage[maxKey] ?? 1]);
     }
   }, [routeCoverage, coverageFilter, coverageDistance, setCoverageFilter]);
 
@@ -405,6 +419,9 @@ export default function App() {
       [
         showMetroLines && createMetroCercaniasRoutesLayer({ geojson: metroCercaniasRoutes, mode: 'metro' }),
         showMetroStops && createMetroCercaniasStopsLayer({ geojson: metroCercaniasStops, mode: 'metro', routeColorMap: metroCercaniasRouteColorMap, onHover: setHoveredStop }),
+        createBuildingsLayer({ features: buildingFeatures }),
+        createBusLanesLayer({ geojson: busLanesGeojson, visible: showBusLanes }),
+        createParkingBandsLayer({ geojson: parkingBandsGeojson, visibleRouteIds, visible: showParkingBands }),
         !buildingCoverageMode && createRoutesLayer({
           geojson: routesGeojson,
           visibleRouteIds,
@@ -418,10 +435,10 @@ export default function App() {
           routeSchedule,
           occupancyData,
           routeCoverage,
+          coverageDistance,
           timeFilter,
           fleetDayType,
           scheduleDayType,
-          coverageDistance,
           hoveredRouteIds,
           clickedRouteId,
         }),
@@ -458,10 +475,11 @@ export default function App() {
       routeSchedule,
       occupancyData,
       routeCoverage,
+      coverageDistance,
+      buildingFeatures,
       timeFilter,
       fleetDayType,
       scheduleDayType,
-      coverageDistance,
       stopsGeojson,
       showStops,
       setHoveredStop,
@@ -479,6 +497,10 @@ export default function App() {
       metroCercaniasRoutes,
       metroCercaniasStops,
       metroCercaniasRouteColorMap,
+      busLanesGeojson,
+      showBusLanes,
+      parkingBandsGeojson,
+      showParkingBands,
     ]
   );
 
@@ -568,6 +590,10 @@ export default function App() {
         buildingCoverageLoading={buildingCoverageLoading}
         metroCercaniasRoutes={metroCercaniasRoutes}
         metroCercaniasStops={metroCercaniasStops}
+        showBuildings={showBuildings}
+        setShowBuildings={setShowBuildings}
+        busLanesGeojson={busLanesGeojson}
+        parkingBandsGeojson={parkingBandsGeojson}
         isLoading={loading}
         onReset={handleReset}
       />
@@ -609,9 +635,9 @@ export default function App() {
         routeDemand={routeDemand}
         routeFleet={routeFleet}
         routeSchedule={routeSchedule}
+        routeCoverage={routeCoverage}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
-        routeCoverage={routeCoverage}
         dayOfWeek={timeFilter.dayOfWeek}
       />
 

@@ -45,15 +45,22 @@ function HourChart({ row0, row1, color }) {
   );
 }
 
+function formatPax(v) {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 10_000) return `${Math.round(v / 1_000)}k`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return String(Math.round(v));
+}
+
 export default function RouteDrawer({
   routesMeta,
   routeSpeed,
   routeDemand,
   routeFleet,
   routeSchedule,
+  routeCoverage,
   serviceMetrics,
   routesGeojson,
-  routeCoverage,
   dayOfWeek,
 }) {
   const clickedRouteId = useClickedRouteId();
@@ -152,10 +159,10 @@ export default function RouteDrawer({
                   <span className="rd-stat-value">{formatSpanMinutes(scheduleData.LA)}</span>
                 </div>
               )}
-              {coverage300 != null && (
+              {coverage300 !== null && (
                 <div className="rd-stat">
-                  <span className="rd-stat-label">Población a 300 m</span>
-                  <span className="rd-stat-value">{Math.round(coverage300).toLocaleString('es-ES')} hab</span>
+                  <span className="rd-stat-label">Cobertura a 300 m</span>
+                  <span className="rd-stat-value">{formatPax(coverage300)} hab</span>
                 </div>
               )}
             </div>

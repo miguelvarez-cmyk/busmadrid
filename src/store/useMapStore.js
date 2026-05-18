@@ -90,13 +90,17 @@ export const useMapStore = create((set) => ({
   occupancyFilter: null,
   setOccupancyFilter: (range) => set({ occupancyFilter: range }),
 
-  // Cobertura de población: distancia activa (m) y filtro [min, max] hab
-  coverageDistance: 300,
+  // Cobertura poblacional por línea
   coverageFilter: null,
-  setCoverageDistance: (d) => set({ coverageDistance: d }),
+  coverageDistance: 400,
   setCoverageFilter: (range) => set({ coverageFilter: range }),
+  setCoverageDistance: (d) => set({ coverageDistance: d }),
 
-  // Visualización: líneas por edificio residencial (350 m)
+  // Capa de edificios residenciales con población
+  showBuildings: false,
+  setShowBuildings: (v) => set({ showBuildings: v }),
+
+  // Visualización: líneas por edificio residencial
   buildingCoverageMode: false,
   setBuildingCoverageMode: (v) => set((s) => ({
     buildingCoverageMode: s.buildingCoverageMode === v ? false : v,
@@ -131,6 +135,12 @@ export const useMapStore = create((set) => ({
       else barrioIds.forEach((id) => next.add(id));
       return { highlightedZoneIds: next };
     }),
+
+  // Elementos viales
+  showBusLanes: false,
+  setShowBusLanes: (v) => set({ showBusLanes: v }),
+  showParkingBands: false,
+  setShowParkingBands: (v) => set({ showParkingBands: v }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
@@ -160,8 +170,9 @@ export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
 export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
 export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditionsFilter);
 export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
-export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
 export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
+export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
+export const useShowBuildings = () => useMapStore((s) => s.showBuildings);
 export const useBuildingCoverageMode = () => useMapStore((s) => s.buildingCoverageMode);
 export const useSelectedBuilding = () => useMapStore((s) => s.selectedBuilding);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
@@ -171,3 +182,5 @@ export const useShowMetroLines = () => useMapStore((s) => s.showMetroLines);
 export const useShowMetroStops = () => useMapStore((s) => s.showMetroStops);
 export const useBasemap = () => useMapStore((s) => s.basemap);
 export const useHighlightedZoneIds = () => useMapStore((s) => s.highlightedZoneIds);
+export const useShowBusLanes = () => useMapStore((s) => s.showBusLanes);
+export const useShowParkingBands = () => useMapStore((s) => s.showParkingBands);

@@ -168,10 +168,10 @@ export function createRoutesLayer({
   routeSchedule,
   occupancyData,
   routeCoverage,
+  coverageDistance,
   timeFilter,
   fleetDayType,
   scheduleDayType,
-  coverageDistance,
   hoveredRouteIds = [],
   clickedRouteId = null,
 }) {

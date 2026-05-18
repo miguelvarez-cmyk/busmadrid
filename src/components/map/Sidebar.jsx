@@ -11,6 +11,7 @@ import OtrosPanel from './OtrosPanel.jsx';
 import ItinerariosPanel from './ItinerariosPanel.jsx';
 import CoveragePanel from './CoveragePanel.jsx';
 import MetroCercaniasPanel from './MetroCercaniasPanel.jsx';
+import ElementosVialesPanel from './ElementosVialesPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
@@ -63,6 +64,10 @@ export default function Sidebar({
   buildingCoverageLoading,
   metroCercaniasRoutes,
   metroCercaniasStops,
+  showBuildings,
+  setShowBuildings,
+  busLanesGeojson,
+  parkingBandsGeojson,
   isLoading,
   onReset,
 }) {
@@ -254,6 +259,27 @@ export default function Sidebar({
             </AccordionSection>
           )}
 
+          {routeCoverage && (
+            <AccordionSection
+              id="cobertura"
+              title="Cobertura Poblacional"
+              icon="◎"
+              isOpen={openSections.has('cobertura')}
+              onToggle={toggleSection}
+            >
+              <CoveragePanel
+                routeCoverage={routeCoverage}
+                selectedRouteIds={selectedRouteIds}
+                visibleRouteIds={visibleRouteIds}
+                showBuildings={showBuildings}
+                setShowBuildings={setShowBuildings}
+                routesMeta={routesMeta}
+                buildingLineCoverage={buildingLineCoverage}
+                buildingCoverageLoading={buildingCoverageLoading}
+              />
+            </AccordionSection>
+          )}
+
           <AccordionSection
             id="paradas"
             title="Paradas"
@@ -284,6 +310,19 @@ export default function Sidebar({
           </AccordionSection>
 
           <AccordionSection
+            id="elementos-viales"
+            title="Elementos Viales"
+            icon="⊟"
+            isOpen={openSections.has('elementos-viales')}
+            onToggle={toggleSection}
+          >
+            <ElementosVialesPanel
+              busLanesGeojson={busLanesGeojson}
+              parkingBandsGeojson={parkingBandsGeojson}
+            />
+          </AccordionSection>
+
+          <AccordionSection
             id="otros"
             icon="⭐"
             title="Otros"
@@ -296,21 +335,6 @@ export default function Sidebar({
               occupancyData={occupancyData}
               routesMeta={routesMeta}
               selectedRouteIds={selectedRouteIds}
-            />
-          </AccordionSection>
-
-          <AccordionSection
-            id="cobertura"
-            title="Población"
-            icon="👨‍👩‍👧‍👦"
-            isOpen={openSections.has('cobertura')}
-            onToggle={toggleSection}
-          >
-            <CoveragePanel
-              routeCoverage={routeCoverage}
-              routesMeta={routesMeta}
-              buildingLineCoverage={buildingLineCoverage}
-              buildingCoverageLoading={buildingCoverageLoading}
             />
           </AccordionSection>
 

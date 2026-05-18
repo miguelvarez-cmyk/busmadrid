@@ -34,6 +34,7 @@ const MODES = [
   { id: 'speed', label: 'Velocidad' },
 ];
 
+
 const FLEET_DAY_TYPES = [
   { id: 'LA', label: 'Laborable' },
   { id: 'SA', label: 'Sábado' },
@@ -366,6 +367,7 @@ export default function VisualizationControls({
           </div>
         </div>
       )}
+
 
     </>
   );
