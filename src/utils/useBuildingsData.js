@@ -3,8 +3,7 @@ import { geojson } from 'flatgeobuf';
 import { pointInAnyGeometry } from './pointInPolygon.js';
 
 const FGB_URL = '/data/edificios_poblacion.fgb';
-// Zoom 12 shows an entire bus line while keeping building count manageable
-const MIN_ZOOM = 12;
+const MIN_ZOOM = 11;
 
 function viewportRect(viewState) {
   const { longitude, latitude, zoom } = viewState;
@@ -42,9 +41,11 @@ function getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance) {
 }
 
 function applyFilter(raw, routeBuffers, selectedRouteIds, coverageDistance) {
-  if (!routeBuffers) return [];
+  // Sin buffers cargados aún: mostrar todos los edificios del viewport
+  if (!routeBuffers) return raw;
   const geoms = getActiveGeometries(routeBuffers, selectedRouteIds, coverageDistance);
-  if (!geoms) return [];
+  // Sin rutas seleccionadas o sin buffer para la distancia: mostrar todos
+  if (!geoms) return raw;
   return raw.filter((f) => {
     const c = featureCentroid(f);
     return c && pointInAnyGeometry(c[0], c[1], geoms);

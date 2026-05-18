@@ -7,13 +7,47 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-17 (noche 6)
-**Última tarea completada:** Afinar divergencia ida/vuelta (buffer híbrido + antiparalelo) + eliminar SearchBar
+**Sesión cerrada:** 2026-05-18
+**Última tarea completada:** Merge de `feature/coverage-poblacional` → `main` + corrección MIN_ZOOM edificios
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
-- ⏳ Deploy IONOS en progreso
+
+---
+
+## Sesión 2026-05-18 — Merge feature/coverage-poblacional + corrección edificios
+
+### Qué se hizo
+
+- **Merge de `feature/coverage-poblacional` en `main`**: integración manual de 10 conflictos resolviendo la convivencia entre el trabajo local (cobertura poblacional, edificios, elementos viales) y los 32 commits nuevos de `main` (dark theme, metro/cercanías, itinerarios, pantalla de carga, etc.).
+- **Cobertura poblacional**: `CoveragePanel` con slider de distancia (50–800 m), histograma de buckets fijos (`< 1k … > 500k`), coloración de líneas por `coverageColorForRoute` usando `min_N`/`max_N` del JSON (nuevo modelo de datos).
+- **Capa de edificios residenciales**: hook `useBuildingsData` carga FlatGeobuf por viewport (debounced 400 ms) y filtra por buffers de ruta cuando están disponibles. Corregidos dos bugs post-merge: `MIN_ZOOM` bajado de 12 → 11 (zoom inicial del mapa) y `applyFilter` devuelve `raw` en lugar de `[]` cuando los buffers aún están cargando.
+- **Elementos viales**: carriles bus exclusivos (naranja) + bandas aparcamiento SER (colores por zona), con toggles en sección "Elementos Viales" del sidebar.
+- **Corrección lint post-merge**: eliminados props duplicados (`routeCoverage` en `RouteDrawer` y `App`), `coverage300` duplicado en `RouteDrawer`, y directivas `eslint-disable` mal posicionadas.
+
+### Archivos clave modificados/añadidos
+```
+src/utils/useBuildingsData.js          (MIN_ZOOM 12→11, applyFilter devuelve raw)
+src/utils/useRouteBuffers.js           (nuevo)
+src/utils/pointInPolygon.js            (nuevo)
+src/layers/createBuildingsLayer.js     (nuevo)
+src/layers/createBusLanesLayer.js      (nuevo)
+src/layers/createParkingBandsLayer.js  (nuevo)
+src/components/map/CoveragePanel.jsx   (versión feature: concepto simplificado)
+src/components/map/ElementosVialesPanel.jsx (nuevo)
+src/utils/service.js                   (coverage functions: min_N/max_N + COVERAGE_BUCKETS)
+src/store/useMapStore.js               (showBuildings, showBusLanes, showParkingBands)
+src/utils/useGTFSData.js               (+bus_lanes, parking_bands, metro_cercanias)
+scripts/adapt_coverage.py, compute_elementos_viales.py, descargar_*, generate_*  (nuevos)
+```
+
+### Commits
+```
+7aa9cca corrige applyFilter: devuelve array vacío si no hay buffers de cobertura
+8e9d0e8 fusiona feature/coverage-poblacional: cobertura poblacional, edificios y elementos viales
+(este push) corrección MIN_ZOOM y applyFilter para visualización de edificios
+```
 
 ---
 
