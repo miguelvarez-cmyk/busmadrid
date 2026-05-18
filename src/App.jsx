@@ -201,6 +201,18 @@ export default function App() {
 
   const { data: buildingLineCoverage, loading: buildingCoverageLoading } = useBuildingLineCoverage(buildingCoverageMode);
 
+  const filteredBuildingCoverage = useMemo(() => {
+    if (!buildingLineCoverage || !selectedRouteIds?.size) return buildingLineCoverage;
+    return {
+      ...buildingLineCoverage,
+      features: buildingLineCoverage.features.filter((f) => {
+        const lineas = f.properties.lineas;
+        if (!lineas) return false;
+        return lineas.split(',').some((id) => selectedRouteIds.has(id.trim()));
+      }),
+    };
+  }, [buildingLineCoverage, selectedRouteIds]);
+
   const didInitRoutes = useRef(false);
   useEffect(() => {
     if (routesMeta && !didInitRoutes.current) {
@@ -455,7 +467,7 @@ export default function App() {
         }),
         createZonesLayer({ geojson: barriosGeojson, highlightedZoneIds }),
         buildingCoverageMode && createBuildingCoverageLayer({
-          geojson: buildingLineCoverage,
+          geojson: filteredBuildingCoverage,
           onClickBuilding: (feat) => setSelectedBuilding(feat?.properties ?? null),
         }),
       ].filter(Boolean),
@@ -490,7 +502,7 @@ export default function App() {
       barriosGeojson,
       highlightedZoneIds,
       buildingCoverageMode,
-      buildingLineCoverage,
+      filteredBuildingCoverage,
       setSelectedBuilding,
       showMetroLines,
       showMetroStops,

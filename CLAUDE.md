@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: añade modo longitud media al panel de itinerarios (2026-05-17)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: filtra edificios residenciales por líneas seleccionadas (2026-05-18)
 
 ---
 
@@ -84,6 +84,13 @@ python scripts/process_gtfs.py
 python scripts/compute_service.py
 python scripts/compute_stop_expeditions.py
 # adicionales: compute_speed.py, compute_demand.py, compute_fleet.py, compute_tortuosity.py, compute_schedule.py
+```
+
+Pipeline Metro/Cercanías (el GTFS del CRTM omite L3; hay que parchear antes de procesar):
+```bash
+python scripts/download_gtfs_crtm.py         # descarga GTFS Metro + Cercanías
+python scripts/fetch_metro_l3_osm.py         # inyecta geometría y paradas de L3 desde OSM
+python scripts/process_metro_cercanias.py    # genera metro_cercanias_routes/stops.geojson
 ```
 
 ---

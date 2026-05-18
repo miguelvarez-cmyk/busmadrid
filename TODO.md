@@ -70,6 +70,7 @@
 
 | ID | Tarea | Completado |
 |---|---|---|
+| ✅ | **Filtro edificios por líneas seleccionadas** — `buildingCoverageMode` muestra solo los edificios cubiertos por las líneas activas; `filteredBuildingCoverage` en `App.jsx` con `useMemo` | 2026-05-18 |
 | ✅ | **Cobertura poblacional por línea** — slider distancia 50–800 m, histograma, coloración de rutas; edificios residenciales (FlatGeobuf por viewport, filtrado por buffers de ruta) | 2026-05-18 |
 | ✅ | **Elementos viales** — carriles bus exclusivos (naranja) + aparcamiento SER por zona/color | 2026-05-18 |
 | ✅ | Modo **Longitud media** en Análisis de itinerarios — histograma + slider, 7 tramos (< 5 km … > 18 km), reutiliza `lengthKm` de `route_tortuosity.json` | 2026-05-17 |

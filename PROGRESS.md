@@ -8,11 +8,27 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-18
-**Última tarea completada:** Merge de `feature/coverage-poblacional` → `main` + corrección MIN_ZOOM edificios
+**Última tarea completada:** Filtro de edificios por líneas seleccionadas en `buildingCoverageMode`
 **Próxima acción:** Animación temporal horaria — TODO.md #A1
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
+
+---
+
+## Sesión 2026-05-18 (tarde) — Filtro edificios por líneas seleccionadas
+
+### Qué se hizo
+
+- **Filtro `buildingCoverageMode` por `selectedRouteIds`**: al activar "Mostrar edificios residenciales", la capa ahora solo muestra los edificios cubiertos por las líneas que el usuario tiene seleccionadas en ese momento. Si se deseleccionan líneas, los edificios de esas líneas desaparecen; si no hay ninguna seleccionada, la capa queda vacía.
+- **Implementación**: nuevo `useMemo` (`filteredBuildingCoverage`) en `App.jsx` que filtra `buildingLineCoverage.features` comprobando que el campo `lineas` (CSV, e.g. `"101,200,N27"`) incluya al menos un id presente en `selectedRouteIds`. Se pasa el GeoJSON filtrado a `createBuildingCoverageLayer`, que recalcula `maxLineas`/`maxPop` automáticamente sobre el subset.
+
+### Archivos modificados
+```
+src/App.jsx   (+useMemo filteredBuildingCoverage; pasa filteredBuildingCoverage a la capa)
+TODO.md       (añade entrada completada)
+PROGRESS.md   (esta entrada)
+```
 
 ---
 
