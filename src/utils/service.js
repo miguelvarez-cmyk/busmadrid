@@ -41,7 +41,7 @@ export const FREQUENCY_CATEGORIES = [
   { maxMin: 20, label: '15–20 min',   color: [255, 153, 51] },   // naranja
   { maxMin: 30, label: '20–30 min',   color: [239, 83, 80] },    // rojo claro
   { maxMin: 45, label: '30–45 min',   color: [160, 20, 20] },    // rojo oscuro
-  { maxMin: Infinity, label: '> 45 min', color: [0, 0, 0] },     // negro
+  { maxMin: Infinity, label: '> 45 min', color: [100, 10, 10] },  // rojo muy oscuro
 ];
 
 export const NO_SERVICE_COLOR = [150, 150, 150];
