@@ -8,12 +8,29 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-19
-**Última tarea completada:** Demanda multi-año 2023-2025 — selector de año en sidebar, estacionalidad mensual, perfil laborable/fin de semana, OtrosPanel conectado al Sidebar, trend YoY en tooltip
+**Última tarea completada:** Slider horario Desde/Hasta + mejoras visuales histogramas (tema oscuro en barras, labels, sliders, leyenda; separación contador visibles)
 **Próxima acción:** Animación temporal horaria — slider/play sobre `colorMode='offer'` hora a hora (TODO.md #A1)
 
 **Estado de verificación:**
-- [x] Build limpio (`npm run build` sin errores)
 - [x] Commit pusheado a `main` → IONOS desplegando
+
+---
+
+## Sesión 2026-05-19 — Slider horario + mejoras visuales histogramas
+
+### Qué se hizo
+
+- **Selector de hora**: sustituidos los dos controles Desde/Hasta con botones +/− por un único `RangeSlider` de dos handles (reutiliza el componente existente). Eliminados handlers `decStart/incStart/decEnd/incEnd` y su CSS obsoleto (`.hour-control`, `.hour-btn`).
+- **Histogramas tema oscuro**: `.hist-bar-wrap` pasa de `#f1f1f1` a `--bg-surface-3`; `.hist-label` y `.hist-count` usan `--text-secondary`. Aplica a todos los paneles que usan `Histogram.jsx`.
+- **RangeSlider tema oscuro**: track y thumbs usan tokens oscuros (`--bg-surface-3`, `--bg-surface-2`).
+- **Leyenda del mapa**: `.legend .ticks` pasa de `#555` a `--text-secondary`.
+- **Separación contador**: `.filter-title .muted` con `margin-left: auto` aleja `235/235 visibles` del título.
+
+### Archivos modificados
+```
+src/components/map/VisualizationControls.jsx
+src/index.css
+```
 
 ---
 
