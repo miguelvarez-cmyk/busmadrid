@@ -539,6 +539,30 @@ export function scheduleRangeFromMetrics(metrics, routeId, dayOfWeek) {
   return `${firstStr}:00 – ${lastStr}:00`;
 }
 
+/**
+ * Tabla de primera/última expedición para laborable (lunes=0), sábado (5) y festivo (6).
+ * Devuelve { LA, SA, FE } donde cada valor es { primera: "HH:00", última: "HH:00" } o null.
+ */
+export function scheduleTableFromMetrics(metrics, routeId) {
+  const byRoute = metrics?.byRoute?.[routeId];
+  if (!byRoute) return null;
+
+  function rangeForDay(dow) {
+    const row = byRoute[String(dow)];
+    if (!row) return null;
+    const slots = [];
+    for (let h = 0; h < 24; h++) {
+      if ((row['0']?.[h] ?? 0) + (row['1']?.[h] ?? 0) > 0) slots.push(h);
+    }
+    if (slots.length === 0) return null;
+    const first = Math.min(...slots);
+    const last = Math.max(...slots);
+    return { primera: `${String(first).padStart(2, '0')}:00`, última: `${String(last).padStart(2, '0')}:00` };
+  }
+
+  return { LA: rangeForDay(0), SA: rangeForDay(5), FE: rangeForDay(6) };
+}
+
 // ── Líneas por parada ─────────────────────────────────────────────────────────
 
 /**

@@ -13,7 +13,7 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
+GTFS_DIR = ROOT / "data" / "raw" / "GTFS_EMT"
 OUT_DIR = ROOT / "public" / "data"
 
 
@@ -93,18 +93,54 @@ def build_geojson(
     return {"type": "FeatureCollection", "features": features}
 
 
-def build_meta(routes: pd.DataFrame, route_to_shapes: dict[str, list[str]]) -> list[dict]:
+def compute_stops_by_direction() -> dict[str, dict[str, int]]:
+    """{route_id: {"0": n_stops_dir0, "1": n_stops_dir1}} con stops únicos por dirección."""
+    trips = pd.read_csv(
+        GTFS_DIR / "trips.txt",
+        usecols=["trip_id", "route_id", "direction_id"],
+        dtype={"trip_id": str, "route_id": str, "direction_id": str},
+    )
+    trip_to_route_dir: dict[str, tuple[str, str]] = {
+        row["trip_id"]: (row["route_id"], str(row["direction_id"]))
+        for _, row in trips.iterrows()
+    }
+
+    # {(route_id, direction_id): set(stop_ids)}
+    route_dir_stops: dict[tuple[str, str], set[str]] = {}
+    for chunk in pd.read_csv(
+        GTFS_DIR / "stop_times.txt",
+        usecols=["trip_id", "stop_id"],
+        dtype=str,
+        chunksize=500_000,
+    ):
+        for tid, sid in zip(chunk["trip_id"], chunk["stop_id"]):
+            rd = trip_to_route_dir.get(tid)
+            if rd is None:
+                continue
+            route_dir_stops.setdefault(rd, set()).add(sid)
+
+    out: dict[str, dict[str, int]] = {}
+    for (route_id, direction_id), stops in route_dir_stops.items():
+        out.setdefault(route_id, {})[direction_id] = len(stops)
+    return out
+
+
+def build_meta(routes: pd.DataFrame, route_to_shapes: dict[str, list[str]], stops_by_dir: dict[str, dict[str, int]]) -> list[dict]:
     meta = []
     for _, r in routes.iterrows():
         if not route_to_shapes.get(r["route_id"]):
             continue
-        meta.append({
+        entry = {
             "id": r["route_id"],
             "shortName": r["route_short_name"],
             "longName": r["route_long_name"],
             "color": r["route_color"],
             "type": int(r["route_type"]),
-        })
+        }
+        sc = stops_by_dir.get(r["route_id"])
+        if sc:
+            entry["stopsCount"] = sc
+        meta.append(entry)
 
     def sort_key(m: dict):
         sn = m["shortName"]
@@ -183,9 +219,13 @@ def main() -> None:
     routes = load_routes()
     print(f"  {len(routes)} líneas en routes.txt")
 
+    print("Calculando paradas por línea y dirección...")
+    stops_by_dir = compute_stops_by_direction()
+    print(f"  {len(stops_by_dir)} líneas con datos de paradas")
+
     print("Construyendo GeoJSON de líneas...")
     geojson = build_geojson(routes, route_to_shapes, shapes)
-    meta = build_meta(routes, route_to_shapes)
+    meta = build_meta(routes, route_to_shapes, stops_by_dir)
 
     geojson_path = OUT_DIR / "routes.geojson"
     meta_path = OUT_DIR / "routes_meta.json"

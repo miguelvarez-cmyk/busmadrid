@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useClickedRouteId, useMapStore, useSetViewState } from '../../store/useMapStore.js';
-import { scheduleRangeFromMetrics, formatSpanMinutes } from '../../utils/service.js';
+import { scheduleTableFromMetrics } from '../../utils/service.js';
 
 function getBbox(routesGeojson, routeId) {
   let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
@@ -26,17 +26,23 @@ function HourChart({ row0, row1, color }) {
   const maxV = Math.max(1, ...hours);
   return (
     <div className="rd-hour-chart">
-      <div className="rd-hour-bars">
-        {hours.map((v, h) => (
-          <div
-            key={h}
-            className="rd-hour-bar"
-            style={{ height: `${Math.max(2, Math.round((v / maxV) * 72))}px`, background: color, opacity: v > 0 ? 1 : 0.12 }}
-            title={`${h}:00 h — ${v} expedición${v !== 1 ? 'es' : ''}`}
-            role="img"
-            aria-label={`${h}:00 h: ${v} expedicion${v !== 1 ? 'es' : ''}`}
-          />
-        ))}
+      <div className="rd-hour-chart-inner">
+        <div className="rd-hour-yaxis">
+          <span>{maxV}</span>
+          <span>0</span>
+        </div>
+        <div className="rd-hour-bars">
+          {hours.map((v, h) => (
+            <div
+              key={h}
+              className="rd-hour-bar"
+              style={{ height: `${Math.max(2, Math.round((v / maxV) * 72))}px`, background: color, opacity: v > 0 ? 1 : 0.12 }}
+              title={`${h}:00 h — ${v} expedición${v !== 1 ? 'es' : ''}`}
+              role="img"
+              aria-label={`${h}:00 h: ${v} expedicion${v !== 1 ? 'es' : ''}`}
+            />
+          ))}
+        </div>
       </div>
       <div className="rd-hour-labels">
         <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
@@ -56,12 +62,9 @@ export default function RouteDrawer({
   routesMeta,
   routeSpeed,
   routeDemand,
-  routeFleet,
-  routeSchedule,
   routeCoverage,
   serviceMetrics,
   routesGeojson,
-  dayOfWeek,
 }) {
   const clickedRouteId = useClickedRouteId();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
@@ -80,13 +83,17 @@ export default function RouteDrawer({
   const routeMeta   = useMemo(() => routesMeta?.find((r) => r.id === clickedRouteId), [clickedRouteId, routesMeta]);
   const speedData   = useMemo(() => routeSpeed?.byRoute?.[clickedRouteId], [clickedRouteId, routeSpeed]);
   const demandData  = useMemo(() => routeDemand?.byRoute?.[clickedRouteId], [clickedRouteId, routeDemand]);
-  const fleetData   = useMemo(() => routeFleet?.byRoute?.[clickedRouteId], [clickedRouteId, routeFleet]);
-  const scheduleData = useMemo(() => routeSchedule?.byRoute?.[clickedRouteId], [clickedRouteId, routeSchedule]);
   const coverage300 = useMemo(() => routeCoverage?.byRoute?.[clickedRouteId]?.['300'] ?? null, [clickedRouteId, routeCoverage]);
-  const scheduleRange = useMemo(() => scheduleRangeFromMetrics(serviceMetrics, clickedRouteId, dayOfWeek), [serviceMetrics, clickedRouteId, dayOfWeek]);
+  const scheduleTable = useMemo(() => scheduleTableFromMetrics(serviceMetrics, clickedRouteId), [serviceMetrics, clickedRouteId]);
+  const stopsCount  = routeMeta?.stopsCount ?? null;
 
-  const row0 = serviceMetrics?.byRoute?.[clickedRouteId]?.[String(dayOfWeek)]?.['0'];
-  const row1 = serviceMetrics?.byRoute?.[clickedRouteId]?.[String(dayOfWeek)]?.['1'];
+  const metricsForRoute = serviceMetrics?.byRoute?.[clickedRouteId];
+  const la0 = metricsForRoute?.['0']?.['0'];
+  const la1 = metricsForRoute?.['0']?.['1'];
+  const sa0 = metricsForRoute?.['5']?.['0'];
+  const sa1 = metricsForRoute?.['5']?.['1'];
+  const fe0 = metricsForRoute?.['6']?.['0'];
+  const fe1 = metricsForRoute?.['6']?.['1'];
 
   const routeColor = routeMeta ? `#${routeMeta.color}` : '#888';
 
@@ -141,23 +148,17 @@ export default function RouteDrawer({
                   <span className="rd-stat-value">{Math.round(demandData.dailyAvg).toLocaleString('es-ES')} pax</span>
                 </div>
               )}
-              {fleetData && (
-                <div className="rd-stat">
-                  <span className="rd-stat-label">Flota (laborable)</span>
-                  <span className="rd-stat-value">{fleetData.LA} buses</span>
-                </div>
-              )}
-              {scheduleRange && (
-                <div className="rd-stat">
-                  <span className="rd-stat-label">Horario</span>
-                  <span className="rd-stat-value">{scheduleRange}</span>
-                </div>
-              )}
-              {scheduleData?.LA != null && (
-                <div className="rd-stat">
-                  <span className="rd-stat-label">Amplitud (lab.)</span>
-                  <span className="rd-stat-value">{formatSpanMinutes(scheduleData.LA)}</span>
-                </div>
+              {stopsCount && (
+                <>
+                  <div className="rd-stat">
+                    <span className="rd-stat-label">Paradas (ida)</span>
+                    <span className="rd-stat-value">{stopsCount['0'] ?? '—'}</span>
+                  </div>
+                  <div className="rd-stat">
+                    <span className="rd-stat-label">Paradas (vuelta)</span>
+                    <span className="rd-stat-value">{stopsCount['1'] ?? '—'}</span>
+                  </div>
+                </>
               )}
               {coverage300 !== null && (
                 <div className="rd-stat">
@@ -167,10 +168,57 @@ export default function RouteDrawer({
               )}
             </div>
 
-            {(row0 || row1) && (
+            {scheduleTable && (scheduleTable.LA || scheduleTable.SA || scheduleTable.FE) && (
+              <div className="rd-section">
+                <div className="rd-section-title">Horario de servicio</div>
+                <table className="rd-schedule-table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Laborable</th>
+                      <th>Sábado</th>
+                      <th>Festivo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Primera</td>
+                      <td>{scheduleTable.LA?.primera ?? '—'}</td>
+                      <td>{scheduleTable.SA?.primera ?? '—'}</td>
+                      <td>{scheduleTable.FE?.primera ?? '—'}</td>
+                    </tr>
+                    <tr>
+                      <td>Última</td>
+                      <td>{scheduleTable.LA?.última ?? '—'}</td>
+                      <td>{scheduleTable.SA?.última ?? '—'}</td>
+                      <td>{scheduleTable.FE?.última ?? '—'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {(la0 || la1 || sa0 || sa1 || fe0 || fe1) && (
               <div className="rd-section">
                 <div className="rd-section-title">Expediciones por hora</div>
-                <HourChart row0={row0} row1={row1} color={routeColor} />
+                {(la0 || la1) && (
+                  <>
+                    <div className="rd-hour-day-label">Laborable</div>
+                    <HourChart row0={la0} row1={la1} color={routeColor} />
+                  </>
+                )}
+                {(sa0 || sa1) && (
+                  <>
+                    <div className="rd-hour-day-label">Sábado</div>
+                    <HourChart row0={sa0} row1={sa1} color={routeColor} />
+                  </>
+                )}
+                {(fe0 || fe1) && (
+                  <>
+                    <div className="rd-hour-day-label">Festivo</div>
+                    <HourChart row0={fe0} row1={fe1} color={routeColor} />
+                  </>
+                )}
               </div>
             )}
 

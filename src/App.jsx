@@ -640,12 +640,9 @@ export default function App() {
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}
-        routeFleet={routeFleet}
-        routeSchedule={routeSchedule}
         routeCoverage={routeCoverage}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
-        dayOfWeek={timeFilter.dayOfWeek}
       />
 
 {showLoader && <LoadingScreen loading={loading} progress={progress} />}
