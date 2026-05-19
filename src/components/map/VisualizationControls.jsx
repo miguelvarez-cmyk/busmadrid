@@ -88,10 +88,6 @@ export default function VisualizationControls({
     !inSidebar && typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
   );
 
-  const decStart = () => setHourRange(Math.max(0, startHour - 1), endHour);
-  const incStart = () => setHourRange(Math.min(startHour + 1, endHour - 1), endHour);
-  const decEnd   = () => setHourRange(startHour, Math.max(endHour - 1, startHour + 1));
-  const incEnd   = () => setHourRange(startHour, Math.min(24, endHour + 1));
 
   const freqBuckets = useMemo(
     () =>
@@ -193,23 +189,19 @@ export default function VisualizationControls({
             ))}
           </div>
 
-          <div className="row hours">
-            <div className="hour-control">
-              <span className="hour-label">Desde</span>
-              <span className="hour-value">{formatHour(startHour)}</span>
-              <div className="hour-btns">
-                <button className="hour-btn" onClick={decStart} aria-label="Restar hora inicio">−</button>
-                <button className="hour-btn" onClick={incStart} aria-label="Sumar hora inicio">+</button>
-              </div>
+          <div className="row hours-slider">
+            <div className="hours-labels">
+              <span className="hour-label">Desde <strong>{formatHour(startHour)}</strong></span>
+              <span className="hour-label">Hasta <strong>{formatHour(endHour)}</strong></span>
             </div>
-            <div className="hour-control">
-              <span className="hour-label">Hasta</span>
-              <span className="hour-value">{formatHour(endHour)}</span>
-              <div className="hour-btns">
-                <button className="hour-btn" onClick={decEnd} aria-label="Restar hora fin">−</button>
-                <button className="hour-btn" onClick={incEnd} aria-label="Sumar hora fin">+</button>
-              </div>
-            </div>
+            <RangeSlider
+              min={0}
+              max={24}
+              step={1}
+              value={[startHour, endHour]}
+              onChange={([s, e]) => setHourRange(s, e)}
+              format={formatHour}
+            />
           </div>
 
           <div className="filter-block">

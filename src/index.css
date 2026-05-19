@@ -630,58 +630,31 @@ html, body, #root {
   gap: 8px;
 }
 
-.viz-controls .hour-control {
-  flex: 1;
+.viz-controls .hours-slider {
   display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 6px var(--sp-2);
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-normal);
-  border-radius: var(--r-sm);
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding-bottom: 14px;
 }
 
-.viz-controls .hour-label {
+.viz-controls .hours-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.viz-controls .hours-labels .hour-label {
   font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
-  color: var(--text-tertiary);
-  white-space: nowrap;
 }
 
-.viz-controls .hour-value {
-  flex: 1;
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
+.viz-controls .hours-labels .hour-label strong {
   color: var(--text-primary);
-  text-align: center;
-}
-
-.viz-controls .hour-btns {
-  display: flex;
-  gap: 2px;
-}
-
-.viz-controls .hour-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-normal);
-  background: var(--bg-surface-3);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--dur-fast);
-}
-
-.viz-controls .hour-btn:hover {
-  background: var(--bg-surface);
-  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .viz-controls .legend {
@@ -702,7 +675,7 @@ html, body, #root {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #555;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -757,18 +730,21 @@ html, body, #root {
 
 .viz-controls .filter-title {
   display: flex;
-  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
   font-size: 11px;
   font-weight: 600;
-  color: #444;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .viz-controls .filter-title .muted {
-  color: #999;
+  margin-left: auto;
+  color: var(--text-tertiary);
   text-transform: none;
   font-weight: 500;
+  font-size: var(--text-xs);
   letter-spacing: 0;
 }
 
@@ -792,7 +768,7 @@ html, body, #root {
 }
 
 .hist-label {
-  color: #555;
+  color: var(--text-secondary);
   text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -801,7 +777,7 @@ html, body, #root {
 
 .hist-bar-wrap {
   height: 10px;
-  background: #f1f1f1;
+  background: var(--bg-surface-3);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -813,7 +789,7 @@ html, body, #root {
 }
 
 .hist-count {
-  color: #444;
+  color: var(--text-secondary);
   font-weight: 600;
   text-align: right;
 }
@@ -830,7 +806,7 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 4px;
-  background: #e0e0e0;
+  background: var(--bg-surface-3);
   border-radius: 2px;
 }
 
@@ -860,22 +836,22 @@ html, body, #root {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--bg-surface-2);
   border: 2px solid var(--color-accent);
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .range-slider input[type='range']::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--bg-surface-2);
   border: 2px solid var(--color-accent);
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .range-slider input[type='range']::-webkit-slider-runnable-track {
