@@ -27,6 +27,10 @@
 
 | ID | Tarea | Complejidad | Fuente |
 |---|---|---|---|
+| M0a | **Arreglar grid panel de línea** — el grid de 3 columnas (Longitud/Duración/Velocidad) no queda bien en todos los casos; revisar layout de filas 2 y 3 (Paradas, Población, Demanda) | S | sesión 2026-05-19 |
+| M0b | **Arreglar visualización carril bus** — capa `busLanesGeojson` tiene problemas de visualización; revisar estilo, visibilidad y orden de capa | S | sesión 2026-05-19 |
+| M0c | **Afinar visualización bandas de aparcamiento** — ajustar color, grosor, opacidad y comportamiento al hacer zoom de `parkingBandsGeojson` | S | sesión 2026-05-19 |
+| M0d | **Mejorar compatibilidad con Chrome en Android** — revisar crashes/renders incorrectos en Chrome Android; comprobar `powerPreference`, `glOptions`, y viewport/touch | M | sesión 2026-05-19 |
 | M1 | **Code-splitting** — `manualChunks` en Vite + `lazy import` para `DistrictsPanel`, `OtrosPanel`; reducir bundle de ~948 kB | S | IDEACION 5.1 |
 | M2 | **Pulir sidebar móvil** — drag-handle visible, snap a 25%/50%/90%, cierre por swipe-down | S | IDEACION 6.5 |
 | M3 | **Memoización en App.jsx** — extraer `useRoutesLayer`, `useStopsLayer`; reducir las >20 dependencias del `useMemo` de layers | S | IDEACION 5.3 |
