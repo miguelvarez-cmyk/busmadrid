@@ -187,13 +187,10 @@ export default function VisualizationControls({
                 {label}
               </button>
             ))}
+            <span className="hour-label">De <strong>{formatHour(startHour)}</strong> a <strong>{formatHour(endHour)}</strong></span>
           </div>
 
           <div className="row hours-slider">
-            <div className="hours-labels">
-              <span className="hour-label">Desde <strong>{formatHour(startHour)}</strong></span>
-              <span className="hour-label">Hasta <strong>{formatHour(endHour)}</strong></span>
-            </div>
             <RangeSlider
               min={0}
               max={24}

@@ -601,6 +601,23 @@ html, body, #root {
   gap: 4px;
 }
 
+.viz-controls .row.days {
+  align-items: center;
+  gap: 6px;
+}
+
+.viz-controls .row.days .hour-label {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.viz-controls .row.days .hour-label strong {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
 .viz-controls .days button {
   flex: 1;
   padding: 6px 4px;
