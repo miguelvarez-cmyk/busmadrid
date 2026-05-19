@@ -2179,7 +2179,7 @@ button {
 
 .rd-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
 }
 
@@ -2192,8 +2192,12 @@ button {
   gap: 2px;
 }
 
-.rd-stats .rd-stat:nth-child(odd) {
-  border-right: 1px solid var(--color-border);
+.rd-stat--wide {
+  grid-column: span 2;
+}
+
+.rd-stat--full {
+  grid-column: span 3;
 }
 
 .rd-stat-label {
@@ -2213,6 +2217,7 @@ button {
 .rd-stat.active .rd-stat-value {
   color: var(--color-accent);
 }
+
 
 .rd-section { display: flex; flex-direction: column; gap: 6px; }
 
@@ -2248,7 +2253,7 @@ button {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 80px;
+  height: 56px;
   background: #f3f4f6;
   border-radius: 6px;
   padding: 4px 6px 0;
@@ -2274,6 +2279,45 @@ button {
   font-weight: 600;
   color: #888;
   margin-top: 4px;
+}
+
+.rd-month-chart { display: flex; flex-direction: column; gap: 4px; }
+
+.rd-month-chart-inner {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.rd-month-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 80px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 4px 6px 0;
+}
+
+.rd-month-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-width: 0;
+  transition: opacity 0.15s ease;
+}
+
+.rd-month-labels {
+  position: relative;
+  height: 14px;
+  padding-left: 24px;
+  font-size: 10px;
+  color: #aaa;
+}
+
+.rd-month-labels span {
+  position: absolute;
+  transform: translateX(-50%);
 }
 
 .rd-schedule-table {

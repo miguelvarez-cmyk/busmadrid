@@ -175,6 +175,7 @@ export default function App() {
     metroCercaniasStops,
     busLanesGeojson,
     parkingBandsGeojson,
+    routeDepartureTimes,
     loading,
     error,
     progress,
@@ -619,6 +620,7 @@ export default function App() {
         routeCoverage={routeCoverage}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
+        routeDepartureTimes={routeDepartureTimes}
       />
 
 {showLoader && <LoadingScreen loading={loading} progress={progress} />}

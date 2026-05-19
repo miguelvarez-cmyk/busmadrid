@@ -19,13 +19,14 @@ export function useGTFSData() {
   const [metroCercaniasStops, setMetroCercaniasStops] = useState(null);
   const [busLanesGeojson, setBusLanesGeojson] = useState(null);
   const [parkingBandsGeojson, setParkingBandsGeojson] = useState(null);
+  const [routeDepartureTimes, setRouteDepartureTimes] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let loaded = 0;
-    const total = 18;
+    const total = 19;
     const track = (p) => p.then((v) => {
       loaded++;
       if (!cancelled) setProgress(Math.round((loaded / total) * 100));
@@ -50,8 +51,9 @@ export function useGTFSData() {
       track(fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/bus_lanes.geojson').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/parking_bands.geojson').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/route_departure_times.json').then((r) => r.json()).catch(() => null)),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands, departureTimes]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -71,6 +73,7 @@ export function useGTFSData() {
         setMetroCercaniasStops(mcStops);
         setBusLanesGeojson(busLanes);
         setParkingBandsGeojson(parkingBands);
+        setRouteDepartureTimes(departureTimes);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -97,6 +100,7 @@ export function useGTFSData() {
     metroCercaniasStops,
     busLanesGeojson,
     parkingBandsGeojson,
+    routeDepartureTimes,
     error,
     loading: !routesGeojson && !error,
     progress,
