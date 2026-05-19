@@ -7,12 +7,30 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-18
-**Última tarea completada:** Reducción de `buildings_line_coverage.geojson` (28.7 MB → 25.0 MB) eliminando campo `address`
+**Sesión cerrada:** 2026-05-19
+**Última tarea completada:** Arregla panel Cobertura Poblacional — histograma visible siempre y elimina checkbox edificios residenciales
 **Próxima acción:** Verificar si el deploy IONOS sigue funcionando con `dist/` de 108 MB (ver ISSUES.md LIMIT-DEPLOY-001 🔴) y atacar la cuota si falla
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
+
+---
+
+## Sesión 2026-05-19 — Arreglo panel Cobertura Poblacional
+
+### Qué se hizo
+
+- **Histograma siempre visible**: `coverageBuckets` en `CoveragePanel.jsx` estaba condicionado a `isActive` (colorMode === 'coverage'), por lo que el histograma aparecía vacío al abrir el panel. Eliminada esa condición — el histograma se calcula y muestra siempre que haya datos, igual que el resto de paneles.
+- **Eliminado checkbox "Mostrar edificios residenciales"**: eliminado de `CoveragePanel.jsx` junto con sus props `showBuildings`/`setShowBuildings`. La capa `createBuildingsLayer` (edificios verdes zoom 14+) se mantiene intacta en `App.jsx`.
+- **Limpieza de props huérfanas**: eliminadas `buildingLineCoverage`, `buildingCoverageLoading`, `showBuildings` y `setShowBuildings` de la firma de `Sidebar.jsx` y del JSX de `App.jsx`; `buildingCoverageLoading` desdestructurada del hook.
+
+### Archivos modificados
+```
+src/components/map/CoveragePanel.jsx   (elimina checkbox; quita isActive && del useMemo)
+src/components/map/Sidebar.jsx         (elimina props huérfanas de CoveragePanel y firma)
+src/App.jsx                            (elimina props huérfanas de Sidebar; limpia destructuring)
+CLAUDE.md / PROGRESS.md               (actualizados)
+```
 
 ---
 

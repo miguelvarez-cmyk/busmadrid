@@ -151,7 +151,6 @@ export default function App() {
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
   const coverageDistance = useCoverageDistance();
   const showBuildings = useShowBuildings();
-  const setShowBuildings = useMapStore((s) => s.setShowBuildings);
   const highlightedZoneIds = useHighlightedZoneIds();
   const clickedRouteId = useClickedRouteId();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
@@ -199,7 +198,7 @@ export default function App() {
     }
   }, [loading]);
 
-  const { data: buildingLineCoverage, loading: buildingCoverageLoading } = useBuildingLineCoverage(buildingCoverageMode);
+  const { data: buildingLineCoverage } = useBuildingLineCoverage(buildingCoverageMode);
 
   const filteredBuildingCoverage = useMemo(() => {
     if (!buildingLineCoverage || !selectedRouteIds?.size) return buildingLineCoverage;
@@ -598,12 +597,8 @@ export default function App() {
         stopExpeditions={stopExpeditions}
         occupancyData={occupancyData}
         routeCoverage={routeCoverage}
-        buildingLineCoverage={buildingLineCoverage}
-        buildingCoverageLoading={buildingCoverageLoading}
         metroCercaniasRoutes={metroCercaniasRoutes}
         metroCercaniasStops={metroCercaniasStops}
-        showBuildings={showBuildings}
-        setShowBuildings={setShowBuildings}
         busLanesGeojson={busLanesGeojson}
         parkingBandsGeojson={parkingBandsGeojson}
         isLoading={loading}

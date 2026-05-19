@@ -16,7 +16,7 @@ function formatPax(v) {
   return String(Math.round(v));
 }
 
-export default function CoveragePanel({ routeCoverage, selectedRouteIds, visibleRouteIds, showBuildings, setShowBuildings }) {
+export default function CoveragePanel({ routeCoverage, selectedRouteIds, visibleRouteIds }) {
   const colorMode = useColorMode();
   const setColorMode = useMapStore((s) => s.setColorMode);
   const coverageFilter = useCoverageFilter();
@@ -28,30 +28,16 @@ export default function CoveragePanel({ routeCoverage, selectedRouteIds, visible
 
   const coverageBuckets = useMemo(
     () =>
-      isActive && routeCoverage && coverageFilter
+      routeCoverage && coverageFilter
         ? coverageHistogram(routeCoverage, selectedRouteIds, coverageDistance, coverageFilter)
         : [],
-    [isActive, routeCoverage, selectedRouteIds, coverageDistance, coverageFilter]
+    [routeCoverage, selectedRouteIds, coverageDistance, coverageFilter]
   );
 
   if (!routeCoverage) return <p className="caption muted">Datos de cobertura no disponibles.</p>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          checked={showBuildings ?? false}
-          onChange={(e) => setShowBuildings?.(e.target.checked)}
-        />
-        <span>Mostrar edificios residenciales</span>
-      </label>
-      {showBuildings && (
-        <p className="caption muted" style={{ margin: 0 }}>
-          Verde más intenso = más habitantes. Visible a partir de zoom 14 (nivel de calle).
-        </p>
-      )}
-
       <button
         role="radio"
         aria-checked={isActive}

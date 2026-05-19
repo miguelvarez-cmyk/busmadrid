@@ -60,12 +60,8 @@ export default function Sidebar({
   stopExpeditions,
   occupancyData,
   routeCoverage,
-  buildingLineCoverage,
-  buildingCoverageLoading,
   metroCercaniasRoutes,
   metroCercaniasStops,
-  showBuildings,
-  setShowBuildings,
   busLanesGeojson,
   parkingBandsGeojson,
   isLoading,
@@ -271,11 +267,6 @@ export default function Sidebar({
                 routeCoverage={routeCoverage}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
-                showBuildings={showBuildings}
-                setShowBuildings={setShowBuildings}
-                routesMeta={routesMeta}
-                buildingLineCoverage={buildingLineCoverage}
-                buildingCoverageLoading={buildingCoverageLoading}
               />
             </AccordionSection>
           )}

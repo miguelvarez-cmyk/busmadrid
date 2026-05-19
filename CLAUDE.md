@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: cuota IONOS (ISSUES.md LIMIT-DEPLOY-001 🔴) · Próxima acción: verificar deploy y atacar cuota — luego animación temporal horaria (TODO.md #A1) · Última sesión: reduce buildings_line_coverage.geojson 28.7→25.0 MB (2026-05-18)
+Fase: desarrollo activo · Bloqueadores: cuota IONOS (ISSUES.md LIMIT-DEPLOY-001 🔴) · Próxima acción: verificar deploy y atacar cuota — luego animación temporal horaria (TODO.md #A1) · Última sesión: arregla histograma cobertura poblacional y elimina checkbox edificios residenciales (2026-05-19)
 
 ---
 
