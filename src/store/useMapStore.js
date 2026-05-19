@@ -50,6 +50,7 @@ export const useMapStore = create((set) => ({
   freqFilter: [0, 60],     // minutos; freq fuera del rango oculta la línea
   speedFilter: null,       // [min, max] km/h; null hasta cargar route_speed
   demandFilter: null,      // [min, max] viajeros/día; null hasta cargar route_demand
+  demandYear: '2025',      // año activo para colorear mapa y filtrar demanda
   fleetFilter: null,       // [min, max] buses; null hasta cargar route_fleet
   tortuosityFilter: null,  // [min, max] ratio; null hasta cargar route_tortuosity
   divergenceFilter: null,  // [min, max] %; null hasta cargar route_divergence
@@ -58,6 +59,7 @@ export const useMapStore = create((set) => ({
   setFreqFilter: (range) => set({ freqFilter: range }),
   setSpeedFilter: (range) => set({ speedFilter: range }),
   setDemandFilter: (range) => set({ demandFilter: range }),
+  setDemandYear: (year) => set({ demandYear: year }),
   setFleetFilter: (range) => set({ fleetFilter: range }),
   setTortuosityFilter: (range) => set({ tortuosityFilter: range }),
   setDivergenceFilter: (range) => set({ divergenceFilter: range }),
@@ -159,6 +161,7 @@ export const useTimeFilter = () =>
 export const useFreqFilter = () => useMapStore((s) => s.freqFilter);
 export const useSpeedFilter = () => useMapStore((s) => s.speedFilter);
 export const useDemandFilter = () => useMapStore((s) => s.demandFilter);
+export const useDemandYear = () => useMapStore((s) => s.demandYear);
 export const useFleetFilter = () => useMapStore((s) => s.fleetFilter);
 export const useFleetDayType = () => useMapStore((s) => s.fleetDayType);
 export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);

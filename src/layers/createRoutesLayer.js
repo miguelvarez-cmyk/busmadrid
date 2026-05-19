@@ -31,6 +31,7 @@ export function applyModeFilter({
   serviceMetrics,
   routeSpeed,
   routeDemand,
+  demandYear,
   routeFleet,
   routeTortuosity,
   routeDivergence,
@@ -78,7 +79,7 @@ export function applyModeFilter({
   if (colorMode === 'demand' && routeDemand && demandFilter) {
     const out = new Set();
     for (const id of routeIds) {
-      if (passesDemandFilter(routeDemand, id, demandFilter)) out.add(id);
+      if (passesDemandFilter(routeDemand, id, demandFilter, demandYear)) out.add(id);
     }
     return out;
   }
@@ -162,6 +163,7 @@ export function createRoutesLayer({
   serviceMetrics,
   routeSpeed,
   routeDemand,
+  demandYear,
   routeFleet,
   routeTortuosity,
   routeDivergence,
@@ -218,7 +220,7 @@ export function createRoutesLayer({
   } else if (colorMode === 'speed' && routeSpeed) {
     getBaseColor = (f) => speedColorForRoute(routeSpeed, f.properties.route_id);
   } else if (colorMode === 'demand' && routeDemand) {
-    getBaseColor = (f) => demandColorForRoute(routeDemand, f.properties.route_id);
+    getBaseColor = (f) => demandColorForRoute(routeDemand, f.properties.route_id, demandYear);
   } else if (colorMode === 'fleet' && routeFleet) {
     getBaseColor = (f) => fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType);
   } else if (colorMode === 'tortuosity' && routeTortuosity) {
@@ -252,6 +254,7 @@ export function createRoutesLayer({
     updateTriggers: {
       getLineColor: [
         colorMode,
+        demandYear,
         timeFilter.dayOfWeek,
         timeFilter.startHour,
         timeFilter.endHour,

@@ -21,6 +21,7 @@ import {
   useFreqFilter,
   useSpeedFilter,
   useDemandFilter,
+  useDemandYear,
   useFleetFilter,
   useFleetDayType,
   useTortuosityFilter,
@@ -128,6 +129,8 @@ export default function App() {
   const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const demandYear = useDemandYear();
+  const setDemandYear = useMapStore((s) => s.setDemandYear);
   const fleetFilter = useFleetFilter();
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
@@ -261,15 +264,18 @@ export default function App() {
   }, [routeSpeed, speedFilter, setSpeedFilter]);
 
   useEffect(() => {
-    if (routeDemand && routesMeta && !demandFilter) {
+    if (routeDemand && routesMeta) {
       const inGtfs = new Set(routesMeta.map((r) => r.id));
       let max = 0;
       for (const [id, entry] of Object.entries(routeDemand.byRoute)) {
-        if (inGtfs.has(id) && entry.dailyAvg > max) max = entry.dailyAvg;
+        if (!inGtfs.has(id)) continue;
+        const avg = entry.byYear?.[demandYear]?.dailyAvg ?? entry.dailyAvg ?? 0;
+        if (avg > max) max = avg;
       }
-      setDemandFilter([0, max || routeDemand.max]);
+      setDemandFilter([0, max || routeDemand.byYear?.[demandYear]?.max || routeDemand.max]);
+      setOccupancyFilter(null);
     }
-  }, [routeDemand, routesMeta, demandFilter, setDemandFilter]);
+  }, [routeDemand, routesMeta, demandYear, setDemandFilter, setOccupancyFilter]);
 
   useEffect(() => {
     if (routeFleet && !fleetFilter) {
@@ -328,7 +334,7 @@ export default function App() {
     if (!serviceMetrics?.byRoute || !routeDemand?.byRoute) return {};
     const result = {};
     for (const [route_id, demand] of Object.entries(routeDemand.byRoute)) {
-      const dailyAvg = demand.dailyAvg ?? 0;
+      const dailyAvg = demand.byYear?.[demandYear]?.dailyAvg ?? demand.dailyAvg ?? 0;
       const m = serviceMetrics.byRoute[route_id];
       let totalTrips = 0;
       if (m?.["1"]) {
@@ -340,7 +346,7 @@ export default function App() {
       result[route_id] = totalTrips > 0 ? dailyAvg / totalTrips : 0;
     }
     return result;
-  }, [serviceMetrics, routeDemand]);
+  }, [serviceMetrics, routeDemand, demandYear]);
 
   useEffect(() => {
     if (occupancyData && Object.keys(occupancyData).length > 0 && !occupancyFilter) {
@@ -366,6 +372,7 @@ export default function App() {
         serviceMetrics,
         routeSpeed,
         routeDemand,
+        demandYear,
         routeFleet,
         routeTortuosity,
         routeDivergence,
@@ -393,6 +400,7 @@ export default function App() {
       serviceMetrics,
       routeSpeed,
       routeDemand,
+      demandYear,
       routeFleet,
       routeTortuosity,
       routeDivergence,
@@ -440,6 +448,7 @@ export default function App() {
           serviceMetrics,
           routeSpeed,
           routeDemand,
+          demandYear,
           routeFleet,
           routeTortuosity,
           routeDivergence,
@@ -480,6 +489,7 @@ export default function App() {
       serviceMetrics,
       routeSpeed,
       routeDemand,
+      demandYear,
       routeFleet,
       routeTortuosity,
       routeDivergence,
@@ -581,6 +591,7 @@ export default function App() {
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}
+        occupancyData={occupancyData}
         routeFleet={routeFleet}
         routeTortuosity={routeTortuosity}
         routeDivergence={routeDivergence}
@@ -595,7 +606,6 @@ export default function App() {
         setShowStops={setShowStops}
         stopsGeojson={stopsGeojson}
         stopExpeditions={stopExpeditions}
-        occupancyData={occupancyData}
         routeCoverage={routeCoverage}
         metroCercaniasRoutes={metroCercaniasRoutes}
         metroCercaniasStops={metroCercaniasStops}
@@ -613,6 +623,7 @@ export default function App() {
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}
+        demandYear={demandYear}
         serviceMetrics={serviceMetrics}
         dayOfWeek={timeFilter.dayOfWeek}
         onTooltipMouseEnter={() => {
@@ -640,6 +651,7 @@ export default function App() {
         routesMeta={routesMeta}
         routeSpeed={routeSpeed}
         routeDemand={routeDemand}
+        demandYear={demandYear}
         routeCoverage={routeCoverage}
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}

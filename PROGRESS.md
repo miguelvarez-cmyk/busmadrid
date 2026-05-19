@@ -8,11 +8,46 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-19
-**Última tarea completada:** Actualización GTFS EMT — nuevo feed en `data/raw/GTFS_EMT/`, rutas corregidas en 7 scripts, pipeline completo regenerado (235 líneas, 4.912 paradas)
+**Última tarea completada:** Demanda multi-año 2023-2025 — selector de año en sidebar, estacionalidad mensual, perfil laborable/fin de semana, OtrosPanel conectado al Sidebar, trend YoY en tooltip
 **Próxima acción:** Animación temporal horaria — slider/play sobre `colorMode='offer'` hora a hora (TODO.md #A1)
 
 **Estado de verificación:**
-- [x] Commit pusheado a `main`
+- [x] Build limpio (`npm run build` sin errores)
+- [x] Commit pusheado a `main` → IONOS desplegando
+
+---
+
+## Sesión 2026-05-19 (noche) — Demanda multi-año 2023-2025
+
+### Qué se hizo
+
+- **Nuevos datos**: `data/raw/demanda/` con CSVs diarios 2023, 2024, 2025 y enero 2026 (~248K filas totales).
+- **`compute_demand.py` reescrito**: lee los 4 CSVs, normaliza formatos de fecha/ID, agrega por año (`byYear`), mes (`monthly`) y día de la semana (`dowProfile`). Catálogo de rutas válidas ahora desde `GTFS_EMT/routes.txt` (el antiguo `linesemt.csv` no existía y rompía el script).
+- **JSON enriquecido**: `route_demand.json` crece de 12 KB a 160 KB — 234 líneas con datos 2023-2025 completos.
+- **Store**: `demandYear`/`setDemandYear`/`useDemandYear` añadidos a Zustand.
+- **`service.js`**: `demandColorForRoute`, `demandHistogram`, `passesDemandFilter` actualizadas con param `year`; nuevas `demandMonthlyData` y `demandDowProfile`.
+- **`createRoutesLayer`**: `demandYear` en `applyModeFilter`, coloreado y `updateTriggers.getLineColor`.
+- **`VisualizationControls`**: selector de año 2023/2024/2025 visible en modo demanda; histograma y stats year-aware.
+- **`OtrosPanel`**: conectado al sidebar por primera vez (sección "Demanda y Flota"); selector de año + gráfico mensual (12 barras) y stat laborable/fin de semana para línea única.
+- **`RouteTooltip`**: muestra `dailyAvg` del año seleccionado + tendencia YoY (`±X%`).
+- **`RouteDrawer`**: muestra `dailyAvg` del año seleccionado.
+- **`App.jsx`**: efecto de inicialización de `demandFilter` recalcula al cambiar año; `occupancyData` usa avg del año activo.
+- **`Sidebar.jsx`**: `OtrosPanel` importado e insertado entre Paradas y Elementos Viales.
+
+### Archivos modificados
+```
+scripts/compute_demand.py
+public/data/route_demand.json         (12 KB → 160 KB)
+src/store/useMapStore.js
+src/utils/service.js
+src/layers/createRoutesLayer.js
+src/App.jsx
+src/components/map/VisualizationControls.jsx
+src/components/map/OtrosPanel.jsx
+src/components/map/Sidebar.jsx
+src/components/map/RouteTooltip.jsx
+src/components/map/RouteDrawer.jsx
+```
 
 ---
 

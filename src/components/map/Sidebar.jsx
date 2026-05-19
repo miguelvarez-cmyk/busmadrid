@@ -7,11 +7,11 @@ import LayerToggles from './LayerToggles.jsx';
 import StopRoutesPanel from './StopRoutesPanel.jsx';
 import DistrictsPanel from './DistrictsPanel.jsx';
 import StopExpeditionsPanel from './StopExpeditionsPanel.jsx';
-import OtrosPanel from './OtrosPanel.jsx';
 import ItinerariosPanel from './ItinerariosPanel.jsx';
 import CoveragePanel from './CoveragePanel.jsx';
 import MetroCercaniasPanel from './MetroCercaniasPanel.jsx';
 import ElementosVialesPanel from './ElementosVialesPanel.jsx';
+import OtrosPanel from './OtrosPanel.jsx';
 
 function AccordionSection({ id, title, icon, isOpen, onToggle, children }) {
   const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
@@ -44,6 +44,7 @@ export default function Sidebar({
   routesMeta,
   routeSpeed,
   routeDemand,
+  occupancyData,
   routeFleet,
   routeTortuosity,
   routeDivergence,
@@ -58,7 +59,6 @@ export default function Sidebar({
   setShowStops,
   stopsGeojson,
   stopExpeditions,
-  occupancyData,
   routeCoverage,
   metroCercaniasRoutes,
   metroCercaniasStops,
@@ -300,6 +300,24 @@ export default function Sidebar({
             <StopExpeditionsPanel stopExpeditions={stopExpeditions} />
           </AccordionSection>
 
+          {(routeFleet || routeDemand) && (
+            <AccordionSection
+              id="otros"
+              title="Demanda y Flota"
+              icon="📊"
+              isOpen={openSections.has('otros')}
+              onToggle={toggleSection}
+            >
+              <OtrosPanel
+                routeFleet={routeFleet}
+                routeDemand={routeDemand}
+                occupancyData={occupancyData}
+                routesMeta={routesMeta}
+                selectedRouteIds={selectedRouteIds}
+              />
+            </AccordionSection>
+          )}
+
           <AccordionSection
             id="elementos-viales"
             title="Elementos Viales"
@@ -313,21 +331,6 @@ export default function Sidebar({
             />
           </AccordionSection>
 
-          <AccordionSection
-            id="otros"
-            icon="⭐"
-            title="Otros"
-            isOpen={openSections.has('otros')}
-            onToggle={toggleSection}
-          >
-            <OtrosPanel
-              routeFleet={routeFleet}
-              routeDemand={routeDemand}
-              occupancyData={occupancyData}
-              routesMeta={routesMeta}
-              selectedRouteIds={selectedRouteIds}
-            />
-          </AccordionSection>
 
           <AccordionSection
             id="metro"

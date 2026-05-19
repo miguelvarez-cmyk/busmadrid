@@ -62,6 +62,7 @@ export default function RouteDrawer({
   routesMeta,
   routeSpeed,
   routeDemand,
+  demandYear,
   routeCoverage,
   serviceMetrics,
   routesGeojson,
@@ -82,7 +83,13 @@ export default function RouteDrawer({
 
   const routeMeta   = useMemo(() => routesMeta?.find((r) => r.id === clickedRouteId), [clickedRouteId, routesMeta]);
   const speedData   = useMemo(() => routeSpeed?.byRoute?.[clickedRouteId], [clickedRouteId, routeSpeed]);
-  const demandData  = useMemo(() => routeDemand?.byRoute?.[clickedRouteId], [clickedRouteId, routeDemand]);
+  const demandAvg = useMemo(() => {
+    if (!routeDemand || !clickedRouteId) return null;
+    const entry = routeDemand.byRoute?.[clickedRouteId];
+    if (!entry) return null;
+    const y = demandYear ?? routeDemand.year ?? '2025';
+    return entry.byYear?.[y]?.dailyAvg ?? entry.dailyAvg ?? null;
+  }, [clickedRouteId, routeDemand, demandYear]);
   const coverage300 = useMemo(() => routeCoverage?.byRoute?.[clickedRouteId]?.['300'] ?? null, [clickedRouteId, routeCoverage]);
   const scheduleTable = useMemo(() => scheduleTableFromMetrics(serviceMetrics, clickedRouteId), [serviceMetrics, clickedRouteId]);
   const stopsCount  = routeMeta?.stopsCount ?? null;
@@ -142,10 +149,10 @@ export default function RouteDrawer({
                   </div>
                 </>
               )}
-              {demandData && (
+              {demandAvg != null && (
                 <div className="rd-stat">
-                  <span className="rd-stat-label">Demanda diaria</span>
-                  <span className="rd-stat-value">{Math.round(demandData.dailyAvg).toLocaleString('es-ES')} pax</span>
+                  <span className="rd-stat-label">Demanda diaria {demandYear}</span>
+                  <span className="rd-stat-value">{Math.round(demandAvg).toLocaleString('es-ES')} pax</span>
                 </div>
               )}
               {stopsCount && (

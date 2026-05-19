@@ -194,11 +194,17 @@ export function demandColor(dailyAvg, min, max) {
   return [220, Math.round(200 - 150 * k), 50];
 }
 
-export function demandColorForRoute(demand, routeId) {
+export function demandColorForRoute(demand, routeId, year) {
   if (!demand) return NO_SERVICE_COLOR;
   const entry = demand.byRoute?.[routeId];
   if (!entry) return NO_SERVICE_COLOR;
-  return demandColor(entry.dailyAvg, demand.min, demand.max);
+  const y = year ?? demand.year ?? '2025';
+  const yearEntry = entry.byYear?.[y];
+  const dailyAvg = yearEntry?.dailyAvg ?? entry.dailyAvg;
+  const yearStats = demand.byYear?.[y];
+  const min = yearStats?.min ?? demand.min;
+  const max = yearStats?.max ?? demand.max;
+  return demandColor(dailyAvg, min, max);
 }
 
 /**
@@ -216,13 +222,18 @@ const DEMAND_BUCKETS = [
   { lo: 100000, hi: Infinity, label: '> 100k' },
 ];
 
-export function demandHistogram(demand, routeIds, filter) {
+export function demandHistogram(demand, routeIds, filter, year) {
   if (!demand) return [];
+  const y = year ?? demand.year ?? '2025';
+  const yearStats = demand.byYear?.[y];
+  const globalMin = yearStats?.min ?? demand.min;
+  const globalMax = yearStats?.max ?? demand.max;
   const counts = DEMAND_BUCKETS.map(() => 0);
   for (const id of routeIds) {
     const entry = demand.byRoute[id];
     if (!entry) continue;
-    const i = DEMAND_BUCKETS.findIndex((b) => entry.dailyAvg < b.hi);
+    const avg = entry.byYear?.[y]?.dailyAvg ?? entry.dailyAvg;
+    const i = DEMAND_BUCKETS.findIndex((b) => avg < b.hi);
     counts[i >= 0 ? i : counts.length - 1] += 1;
   }
   const [fMin, fMax] = filter;
@@ -231,18 +242,28 @@ export function demandHistogram(demand, routeIds, filter) {
     return {
       label: b.label,
       count: counts[i],
-      color: demandColor(mid, demand.min, demand.max),
+      color: demandColor(mid, globalMin, globalMax),
       inRange: b.lo <= fMax && (b.hi === Infinity ? true : b.hi > fMin),
     };
   });
 }
 
-export function passesDemandFilter(demand, routeId, filter) {
+export function passesDemandFilter(demand, routeId, filter, year) {
   if (!demand) return true;
   const entry = demand.byRoute[routeId];
   if (!entry) return false;
+  const y = year ?? demand.year ?? '2025';
+  const avg = entry.byYear?.[y]?.dailyAvg ?? entry.dailyAvg;
   const [fMin, fMax] = filter;
-  return entry.dailyAvg >= fMin && entry.dailyAvg <= fMax;
+  return avg >= fMin && avg <= fMax;
+}
+
+export function demandMonthlyData(demand, routeId, year) {
+  return demand?.byRoute?.[routeId]?.monthly?.[year] ?? null;
+}
+
+export function demandDowProfile(demand, routeId, year) {
+  return demand?.byRoute?.[routeId]?.dowProfile?.[year] ?? null;
 }
 
 /**

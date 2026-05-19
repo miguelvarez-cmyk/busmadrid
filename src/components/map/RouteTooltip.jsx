@@ -10,6 +10,7 @@ export default function RouteTooltip({
   routesMeta,
   routeSpeed,
   routeDemand,
+  demandYear,
   serviceMetrics,
   dayOfWeek,
   onTooltipMouseEnter,
@@ -28,10 +29,25 @@ export default function RouteTooltip({
     [activeRouteId, routeSpeed]
   );
 
-  const demandData = useMemo(
-    () => routeDemand?.byRoute[activeRouteId],
-    [activeRouteId, routeDemand]
-  );
+  const demandAvg = useMemo(() => {
+    if (!routeDemand || !activeRouteId) return null;
+    const entry = routeDemand.byRoute[activeRouteId];
+    if (!entry) return null;
+    const y = demandYear ?? routeDemand.year ?? '2025';
+    return entry.byYear?.[y]?.dailyAvg ?? entry.dailyAvg ?? null;
+  }, [activeRouteId, routeDemand, demandYear]);
+
+  const demandTrend = useMemo(() => {
+    if (!routeDemand || !activeRouteId || !demandYear) return null;
+    const entry = routeDemand.byRoute[activeRouteId];
+    if (!entry?.byYear) return null;
+    const curAvg = entry.byYear[demandYear]?.dailyAvg;
+    const prevYear = String(Number(demandYear) - 1);
+    const prevAvg = entry.byYear[prevYear]?.dailyAvg;
+    if (!curAvg || !prevAvg) return null;
+    const pct = ((curAvg - prevAvg) / prevAvg) * 100;
+    return pct >= 0 ? `+${pct.toFixed(0)}%` : `${pct.toFixed(0)}%`;
+  }, [activeRouteId, routeDemand, demandYear]);
 
   const scheduleRange = useMemo(
     () => scheduleRangeFromMetrics(serviceMetrics, activeRouteId, dayOfWeek),
@@ -99,10 +115,13 @@ export default function RouteTooltip({
             <span className="value">{speedData.speedKmh.toFixed(1)} km/h</span>
           </div>
         )}
-        {demandData && (
+        {demandAvg != null && (
           <div className="stat-chip">
-            <span className="label">Demanda</span>
-            <span className="value">{demandData.dailyAvg.toLocaleString('es-ES')} pax</span>
+            <span className="label">Demanda {demandYear}</span>
+            <span className="value">
+              {demandAvg.toLocaleString('es-ES')} pax
+              {demandTrend && <span style={{ fontSize: '10px', marginLeft: '4px', opacity: 0.7 }}>{demandTrend}</span>}
+            </span>
           </div>
         )}
       </div>

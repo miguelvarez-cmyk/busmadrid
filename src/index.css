@@ -2440,14 +2440,6 @@ button {
 .sb-empty { cursor: default; opacity: 0.7; }
 .sb-empty:hover { background: transparent; }
 
-/* ── OtrosPanel ───────────────────────────────────────────── */
-
-.otros-empty {
-  padding: 12px 14px;
-  font-size: 12px;
-  color: #9ca3af;
-  font-style: italic;
-}
 
 /* ── Accesibilidad global ─────────────────────────────────── */
 

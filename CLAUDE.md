@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: cuota IONOS (ISSUES.md LIMIT-DEPLOY-001 🔴) · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: actualiza GTFS EMT y regenera todo el pipeline (2026-05-19)
+Fase: desarrollo activo · Bloqueadores: cuota IONOS (ISSUES.md LIMIT-DEPLOY-001 🔴) · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: demanda multi-año 2023-2025 con selector de año, estacionalidad mensual y perfil día-semana (2026-05-19)
 
 ---
 

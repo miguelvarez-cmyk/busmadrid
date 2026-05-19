@@ -6,6 +6,7 @@ import {
   useFreqFilter,
   useSpeedFilter,
   useDemandFilter,
+  useDemandYear,
   useFleetFilter,
   useFleetDayType,
   useScheduleFilter,
@@ -72,6 +73,8 @@ export default function VisualizationControls({
   const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const demandYear = useDemandYear();
+  const setDemandYear = useMapStore((s) => s.setDemandYear);
   const fleetFilter = useFleetFilter();
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
@@ -123,21 +126,25 @@ export default function VisualizationControls({
 
   const demandStats = useMemo(() => {
     if (!routeDemand || demandRouteIds.length === 0) return null;
-    const values = demandRouteIds.map((id) => routeDemand.byRoute[id].dailyAvg);
+    const yearStats = routeDemand.byYear?.[demandYear];
+    const values = demandRouteIds.map((id) => {
+      const entry = routeDemand.byRoute[id];
+      return entry.byYear?.[demandYear]?.dailyAvg ?? entry.dailyAvg ?? 0;
+    });
     return {
-      min: Math.min(...values),
-      max: Math.max(...values),
+      min: yearStats?.min ?? Math.min(...values),
+      max: yearStats?.max ?? Math.max(...values),
       count: values.length,
       dropped: Object.keys(routeDemand.byRoute).length - values.length,
     };
-  }, [routeDemand, demandRouteIds]);
+  }, [routeDemand, demandRouteIds, demandYear]);
 
   const demandBuckets = useMemo(
     () =>
       colorMode === 'demand' && routeDemand && demandFilter
-        ? demandHistogram(routeDemand, demandRouteIds, demandFilter)
+        ? demandHistogram(routeDemand, demandRouteIds, demandFilter, demandYear)
         : [],
-    [colorMode, routeDemand, demandRouteIds, demandFilter]
+    [colorMode, routeDemand, demandRouteIds, demandFilter, demandYear]
   );
 
   const fleetBuckets = useMemo(
@@ -256,6 +263,17 @@ export default function VisualizationControls({
 
       {colorMode === 'demand' && routeDemand && demandFilter && demandStats && (
         <div className="body">
+          <div className="row days">
+            {['2023', '2024', '2025'].map((y) => (
+              <button
+                key={y}
+                className={demandYear === y ? 'active' : ''}
+                onClick={() => setDemandYear(y)}
+              >
+                {y}
+              </button>
+            ))}
+          </div>
           <div className="filter-block">
             <div className="filter-title">
               <span>Distribución de viajeros/día</span>
@@ -273,7 +291,7 @@ export default function VisualizationControls({
               format={(v) => `${formatPax(v)} pax`}
             />
             <div className="caption muted">
-              Media de viajeros diarios en {routeDemand.year} ·
+              Media de viajeros diarios en {demandYear} ·
               {' '}{demandStats.count} líneas con datos · rango{' '}
               {demandStats.min.toLocaleString('es-ES')}–
               {demandStats.max.toLocaleString('es-ES')}. Escala de color
@@ -281,7 +299,7 @@ export default function VisualizationControls({
               {demandStats.dropped > 0 && (
                 <>
                   {' '}<b>Nota:</b> se han descartado {demandStats.dropped} líneas
-                  con datos de viajeros 2025 que ya no figuran en el GTFS 2026.
+                  históricas no presentes en el GTFS actual.
                 </>
               )}
             </div>

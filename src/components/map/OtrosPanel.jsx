@@ -4,12 +4,15 @@ import {
   useColorMode,
   useFleetFilter,
   useDemandFilter,
+  useDemandYear,
   useOccupancyFilter,
   useFleetDayType,
 } from '../../store/useMapStore.js';
 import {
   fleetHistogram,
   demandHistogram,
+  demandMonthlyData,
+  demandDowProfile,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -19,6 +22,8 @@ const FLEET_DAY_TYPES = [
   { id: 'SA', label: 'Sábado' },
   { id: 'FE', label: 'Festivo' },
 ];
+
+const MONTH_LABELS = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 function formatPax(v) {
   if (v >= 1000) return `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k`;
@@ -38,12 +43,13 @@ export default function OtrosPanel({
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
+  const demandYear = useDemandYear();
+  const setDemandYear = useMapStore((s) => s.setDemandYear);
   const occupancyFilter = useOccupancyFilter();
   const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
   const fleetDayType = useFleetDayType();
   const setFleetDayType = useMapStore((s) => s.setFleetDayType);
 
-  // Demanda: filtrar ids en GTFS como en VisualizationControls
   const demandRouteIds = useMemo(() => {
     if (!routeDemand || !routesMeta) return [];
     const inGtfs = new Set(routesMeta.map((r) => r.id));
@@ -52,16 +58,19 @@ export default function OtrosPanel({
 
   const demandStats = useMemo(() => {
     if (!routeDemand || demandRouteIds.length === 0) return null;
-    const values = demandRouteIds.map((id) => routeDemand.byRoute[id].dailyAvg);
+    const yearStats = routeDemand.byYear?.[demandYear];
+    const values = demandRouteIds.map((id) => {
+      const entry = routeDemand.byRoute[id];
+      return entry.byYear?.[demandYear]?.dailyAvg ?? entry.dailyAvg ?? 0;
+    });
     return {
-      min: Math.min(...values),
-      max: Math.max(...values),
+      min: yearStats?.min ?? Math.min(...values),
+      max: yearStats?.max ?? Math.max(...values),
       count: values.length,
       dropped: Object.keys(routeDemand.byRoute).length - values.length,
     };
-  }, [routeDemand, demandRouteIds]);
+  }, [routeDemand, demandRouteIds, demandYear]);
 
-  // Histogramas
   const fleetBuckets = useMemo(
     () =>
       colorMode === 'fleet' && routeFleet && fleetFilter
@@ -73,10 +82,35 @@ export default function OtrosPanel({
   const demandBuckets = useMemo(
     () =>
       colorMode === 'demand' && routeDemand && demandFilter
-        ? demandHistogram(routeDemand, demandRouteIds, demandFilter)
+        ? demandHistogram(routeDemand, demandRouteIds, demandFilter, demandYear)
         : [],
-    [colorMode, routeDemand, demandRouteIds, demandFilter]
+    [colorMode, routeDemand, demandRouteIds, demandFilter, demandYear]
   );
+
+  // Perfil mensual y DoW para línea única seleccionada
+  const singleRouteId = selectedRouteIds?.size === 1 ? [...selectedRouteIds][0] : null;
+
+  const monthlyData = useMemo(
+    () => singleRouteId ? demandMonthlyData(routeDemand, singleRouteId, demandYear) : null,
+    [routeDemand, singleRouteId, demandYear]
+  );
+
+  const dowData = useMemo(
+    () => singleRouteId ? demandDowProfile(routeDemand, singleRouteId, demandYear) : null,
+    [routeDemand, singleRouteId, demandYear]
+  );
+
+  const monthlyBuckets = useMemo(() => {
+    if (!monthlyData) return null;
+    const max = Math.max(...monthlyData.filter(Boolean));
+    return MONTH_LABELS.map((label, i) => ({
+      label,
+      count: monthlyData[i] ?? 0,
+      color: [100, 149, 237],
+      inRange: true,
+      _max: max,
+    }));
+  }, [monthlyData]);
 
   const maxOccupancy = useMemo(() => {
     if (!occupancyData || Object.keys(occupancyData).length === 0) return 1;
@@ -104,18 +138,10 @@ export default function OtrosPanel({
       let color;
       if (t < 0.5) {
         const k = t / 0.5;
-        color = [
-          Math.round(50 + 170 * k),
-          200,
-          50,
-        ];
+        color = [Math.round(50 + 170 * k), 200, 50];
       } else {
         const k = (t - 0.5) / 0.5;
-        color = [
-          220,
-          Math.round(200 - 150 * k),
-          50,
-        ];
+        color = [220, Math.round(200 - 150 * k), 50];
       }
       return {
         label: `${binLo.toFixed(0)}–${binHi.toFixed(0)}`,
@@ -210,6 +236,28 @@ export default function OtrosPanel({
           </button>
           {colorMode === 'demand' && demandFilter && (
             <div className="filter-block">
+              <div className="row days" style={{ marginBottom: '8px' }}>
+                {['2023', '2024', '2025'].map((y) => (
+                  <button
+                    key={y}
+                    className={demandYear === y ? 'active' : ''}
+                    onClick={() => setDemandYear(y)}
+                    style={{
+                      flex: 1,
+                      padding: '5px 4px',
+                      background: demandYear === y ? '#1a1a1a' : '#f9fafb',
+                      color: demandYear === y ? '#fff' : '#374151',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {y}
+                  </button>
+                ))}
+              </div>
               <Histogram buckets={demandBuckets} />
               <RangeSlider
                 min={0}
@@ -221,10 +269,27 @@ export default function OtrosPanel({
               />
               <div className="caption muted">
                 {demandStats.dropped > 0 && (
-                  <>Omitidas {demandStats.dropped} líneas 2025. </>
+                  <>Omitidas {demandStats.dropped} líneas históricas. </>
                 )}
-                Viajeros promedio por día.
+                Viajeros promedio por día en {demandYear}.
               </div>
+
+              {monthlyBuckets && (
+                <div style={{ marginTop: '12px' }}>
+                  <div className="caption muted" style={{ marginBottom: '4px' }}>
+                    Estacionalidad mensual {demandYear}
+                  </div>
+                  <Histogram buckets={monthlyBuckets} />
+                </div>
+              )}
+
+              {dowData && (
+                <div className="caption muted" style={{ marginTop: '8px' }}>
+                  Laborable: <b>{formatPax(dowData.weekday)} pax</b>
+                  {' · '}
+                  Fin de semana: <b>{formatPax(dowData.weekend)} pax</b>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -247,7 +312,7 @@ export default function OtrosPanel({
               marginBottom: '8px',
             }}
           >
-            {colorMode === 'occupancy' ? '✓ pax/expedición (2025)' : 'pax/expedición (2025)'}
+            {colorMode === 'occupancy' ? `✓ pax/expedición (${demandYear})` : `pax/expedición (${demandYear})`}
           </button>
           {colorMode === 'occupancy' && occupancyFilter && (
             <div className="filter-block">
