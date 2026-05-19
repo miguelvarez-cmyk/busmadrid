@@ -243,7 +243,7 @@ export function createRoutesLayer({
   const getLineWidth = (f) => getWidth(f.properties.route_id);
 
   return new GeoJsonLayer({
-    id: 'routes',
+    id: `routes-${colorMode ?? 'null'}`,
     data: filtered,
     lineWidthUnits: 'pixels',
     getLineWidth,

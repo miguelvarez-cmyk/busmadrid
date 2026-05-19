@@ -114,6 +114,8 @@ export default function RouteDrawer({
       longitude: (minLon + maxLon) / 2,
       latitude:  (minLat + maxLat) / 2,
       zoom,
+      pitch: 0,
+      bearing: 0,
       transitionDuration: 800,
     });
   }

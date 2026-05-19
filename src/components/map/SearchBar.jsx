@@ -80,6 +80,8 @@ export default function SearchBar({ stopsGeojson }) {
       longitude: result.lon,
       latitude: result.lat,
       zoom: result.type === 'stop' ? 16 : 14,
+      pitch: 0,
+      bearing: 0,
       transitionDuration: 800,
     });
     setQuery('');
