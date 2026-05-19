@@ -720,33 +720,6 @@ export function coverageHistogram(routeCoverage, routeIds, distance, filter) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Histograma de líneas por edificio (visualización buildingCoverageMode)
-// Gradiente inverso: rojo(pocas líneas) → verde(muchas líneas), gris(0)
-// ---------------------------------------------------------------------------
-
-function buildingLineBucketColor(nLineas, maxLineas) {
-  if (nLineas === 0) return [100, 100, 100];
-  const t = Math.min(nLineas / maxLineas, 1);
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [220, Math.round(50 + 150 * k), 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [Math.round(220 - 170 * k), 200, 50];
-}
-
-const BUILDING_LINE_BUCKETS = [
-  { label: '0',     min: 0,  max: 0  },
-  { label: '1',     min: 1,  max: 1  },
-  { label: '2',     min: 2,  max: 2  },
-  { label: '3–6',   min: 3,  max: 6  },
-  { label: '7–12',  min: 7,  max: 12 },
-  { label: '13–20', min: 13, max: 20 },
-  { label: '+20',   min: 21, max: Infinity },
-];
-const BUILDING_LINE_MAX_REF = 21;
-
 // ── Divergencia ida/vuelta ────────────────────────────────────────────────────
 
 export const DIVERGENCE_CATEGORIES = [
