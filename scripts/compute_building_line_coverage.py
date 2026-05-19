@@ -35,7 +35,7 @@ CENSUS_SHP = ASIGNADOR / "data" / "20250101_estructura_demografica" / "20250101_
 
 BUILDINGS_GPKG = ASIGNADOR / "output" / "madrid_edificios_poblacion_sin_residencias_mayores.gpkg"
 
-GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
+GTFS_DIR = ROOT / "data" / "raw" / "GTFS_EMT"
 OUT_FILE = ROOT / "public" / "data" / "buildings_line_coverage.geojson"
 
 CRS_PROJECT = "EPSG:25830"

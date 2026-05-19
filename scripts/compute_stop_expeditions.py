@@ -23,7 +23,7 @@ def parse_hour(time_str):
 
 def main():
     parser = argparse.ArgumentParser(description='Compute stop expeditions from GTFS')
-    parser.add_argument('--gtfs-dir', default='./data/raw/GTFS', help='GTFS directory')
+    parser.add_argument('--gtfs-dir', default='./data/raw/GTFS_EMT', help='GTFS directory')
     parser.add_argument('--output', default='./public/data/stop_expeditions.json', help='Output file')
     args = parser.parse_args()
 

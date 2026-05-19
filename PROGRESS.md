@@ -8,11 +8,45 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-05-19
-**Última tarea completada:** Arregla panel Cobertura Poblacional — histograma visible siempre y elimina checkbox edificios residenciales
-**Próxima acción:** Verificar si el deploy IONOS sigue funcionando con `dist/` de 108 MB (ver ISSUES.md LIMIT-DEPLOY-001 🔴) y atacar la cuota si falla
+**Última tarea completada:** Actualización GTFS EMT — nuevo feed en `data/raw/GTFS_EMT/`, rutas corregidas en 7 scripts, pipeline completo regenerado (235 líneas, 4.912 paradas)
+**Próxima acción:** Animación temporal horaria — slider/play sobre `colorMode='offer'` hora a hora (TODO.md #A1)
 
 **Estado de verificación:**
 - [x] Commit pusheado a `main`
+
+---
+
+## Sesión 2026-05-19 (tarde) — Actualización GTFS EMT y regeneración pipeline
+
+### Qué se hizo
+
+- **Nuevo GTFS cargado**: feed EMT actualizado en `data/raw/GTFS_EMT/` — 236 rutas, 4.912 paradas, 87.017 viajes, calendario 2026-05-19 → 2026-12-31.
+- **Corrección de rutas en 7 scripts**: todos los scripts apuntaban a `data/raw/GTFS/` (inexistente). Actualizados a `GTFS_EMT`: `compute_service.py`, `compute_speed.py`, `compute_schedule.py`, `compute_divergence.py`, `compute_tortuosity.py`, `compute_building_line_coverage.py`, `compute_stop_expeditions.py`.
+- **Pipeline completo regenerado**: ejecutados en orden todos los scripts GTFS-dependientes. `compute_demand.py` y `compute_fleet.py` omitidos (dependen de CSVs propietarios externos no disponibles).
+
+### Archivos de datos regenerados (235 líneas consistentes en todos)
+```
+public/data/routes.geojson        (7.6 MB)
+public/data/routes_meta.json      (31 KB, 235 líneas)
+public/data/stops.geojson         (938 KB, 4.912 paradas)
+public/data/service_metrics.json  (187 KB, max 26 exp/h)
+public/data/stop_expeditions.json (103 KB, max 83 exp)
+public/data/route_speed.json      (13 KB, 6.2–35.2 km/h)
+public/data/route_tortuosity.json (14 KB)
+public/data/route_schedule.json   (10 KB)
+public/data/route_divergence.json (6 KB, 3.1–84.6%)
+```
+
+### Scripts modificados
+```
+scripts/compute_service.py              (GTFS → GTFS_EMT)
+scripts/compute_speed.py                (GTFS → GTFS_EMT)
+scripts/compute_schedule.py             (GTFS → GTFS_EMT)
+scripts/compute_divergence.py           (GTFS → GTFS_EMT)
+scripts/compute_tortuosity.py           (GTFS → GTFS_EMT)
+scripts/compute_building_line_coverage.py (GTFS → GTFS_EMT)
+scripts/compute_stop_expeditions.py     (default --gtfs-dir → GTFS_EMT)
+```
 
 ---
 

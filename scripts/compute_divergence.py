@@ -37,7 +37,7 @@ import pandas as pd
 from shapely.geometry import LineString
 
 ROOT = Path(__file__).resolve().parents[1]
-GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
+GTFS_DIR = ROOT / "data" / "raw" / "GTFS_EMT"
 OUT_DIR = ROOT / "public" / "data"
 
 # Pares de líneas circulares: se tratan como una única línea bidireccional.

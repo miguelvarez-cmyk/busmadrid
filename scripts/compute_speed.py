@@ -30,7 +30,7 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-GTFS_DIR = ROOT / "data" / "raw" / "GTFS"
+GTFS_DIR = ROOT / "data" / "raw" / "GTFS_EMT"
 OUT_DIR = ROOT / "public" / "data"
 
 
