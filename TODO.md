@@ -9,7 +9,9 @@
 
 | ID | Tarea | Estado |
 |---|---|---|
-| A1 | Animación temporal horaria — slider/play sobre rango horario que anima `colorMode='offer'` con `currentHour` | 🟡 pendiente |
+| R1 | **Ficha de barrio** — el territorio como entidad de análisis: servicio recibido (líneas, frecuencia combinada, población servida). Datos de partida en `data/archivo/` (barrios, route_districts) | 🟡 pendiente |
+
+> Rediseño UX (2026-10-18, ADR-008) hecho: barra superior con indicador y contexto global, tabla ranking, filtros combinados, ficha con percentiles, comparación de líneas fijadas, CSV y metodología. Quedan **obsoletas**: A3 (hecha como comparación), M0a, M0b, M0c (capas retiradas), M2 (sidebar eliminado) y M8 (fondo único). A1 debe rehacerse sobre el contexto temporal global (`startHour`/`endHour`), no sobre `colorMode`.
 
 ---
 

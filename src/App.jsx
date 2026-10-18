@@ -1,66 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map as MapGL } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { BASEMAPS, INITIAL_VIEW_STATE } from './config/mapConfig.js';
+import { BASEMAP_STYLE, INITIAL_VIEW_STATE } from './config/mapConfig.js';
 import {
   useMapStore,
   useViewState,
   useSetViewState,
   useSelectedRouteIds,
-  useHoveredRouteId,
   useHoveredRouteIds,
   useClickedRouteId,
-  useColorMode,
-  useTimeFilter,
+  usePinnedRouteIds,
+  useFichaOpen,
+  useIndicator,
+  useFilters,
+  useCtx,
   useBoxSelectMode,
   useShowStops,
-  useHoveredStop,
-  useBasemap,
-  useFreqFilter,
-  useSpeedFilter,
-  useDemandFilter,
-  useDemandYear,
-  useFleetFilter,
-  useFleetDayType,
-  useTortuosityFilter,
-  useDivergenceFilter,
-  useLengthFilter,
-  useScheduleFilter,
-  useScheduleDayType,
-  useStopRoutesFilter,
   useStopColorMode,
-  useStopExpeditionsFilter,
-  useOccupancyFilter,
-  useLoadFilter,
-  useCoverageFilter,
-  useCoverageDistance,
-  useHighlightedZoneIds,
-  useShowMetroLines,
-  useShowMetroStops,
-  useShowBusLanes,
-  useShowParkingBands,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
-import {
-  createRoutesLayer,
-  createHighlightLayer,
-  applyModeFilter,
-} from './layers/createRoutesLayer.js';
-import { createStopsLayer } from './layers/createStopsLayer.js';
-import { createZonesLayer } from './layers/createZonesLayer.js';
-import { createMetroCercaniasRoutesLayer } from './layers/createMetroCercaniasRoutesLayer.js';
-import { createMetroCercaniasStopsLayer } from './layers/createMetroCercaniasStopsLayer.js';
-import { createBusLanesLayer } from './layers/createBusLanesLayer.js';
-import { createParkingBandsLayer } from './layers/createParkingBandsLayer.js';
-import BoxSelectOverlay from './components/map/BoxSelectOverlay.jsx';
-import Sidebar from './components/map/Sidebar.jsx';
-import RouteTooltip from './components/map/RouteTooltip.jsx';
-import ColorLegend from './components/map/ColorLegend.jsx';
-import RouteDrawer from './components/map/RouteDrawer.jsx';
-import { LoadingScreen } from './components/map/LoadingScreen.jsx';
 import { useUrlSync } from './utils/useUrlSync.js';
+import { NetworkContext } from './utils/network.js';
+import { computeIndicators, passesFilters, colorFor, INDICATOR_BY_ID, SERIES_COLORS } from './utils/indicators.js';
+import { hexToRgb } from './utils/color.js';
+import { createRoutesLayer, sortFeaturesForDraw } from './layers/createRoutesLayer.js';
+import { createStopsLayer } from './layers/createStopsLayer.js';
+import TopBar from './components/TopBar.jsx';
+import RightPanel from './components/RightPanel.jsx';
+import MapLegend from './components/MapLegend.jsx';
+import LayersControl from './components/LayersControl.jsx';
+import MapTooltip from './components/MapTooltip.jsx';
+import Methodology from './components/Methodology.jsx';
+import BoxSelectOverlay from './components/BoxSelectOverlay.jsx';
+import { LoadingScreen } from './components/LoadingScreen.jsx';
 
 function ptSegDistM(lng, lat, a, b, cosLat) {
   const ax = (a[0] - lng) * 111000 * cosLat;
@@ -74,114 +48,50 @@ function ptSegDistM(lng, lat, a, b, cosLat) {
   return Math.sqrt((ax + t * dx) ** 2 + (ay + t * dy) ** 2);
 }
 
-function nearbyRouteIds(geojson, lng, lat, radiusM, visibleRouteIds) {
+/** Líneas (de las que pasan) a menos de radiusM del punto, de la más cercana a la más lejana. */
+function nearbyRouteIds(geojson, lng, lat, radiusM, passing) {
   if (!geojson) return [];
   const cosLat = Math.cos((lat * Math.PI) / 180);
-  const ids = [];
+  const found = [];
   for (const f of geojson.features) {
     const id = f.properties?.route_id;
-    if (!id || !visibleRouteIds.has(id)) continue;
-    const lines = f.geometry.type === 'MultiLineString'
-      ? f.geometry.coordinates
-      : [f.geometry.coordinates];
-    let found = false;
+    if (!id || !passing.has(id)) continue;
+    const lines = f.geometry.type === 'MultiLineString' ? f.geometry.coordinates : [f.geometry.coordinates];
+    let best = Infinity;
     for (const line of lines) {
-      if (found) break;
-      for (let i = 0; i < line.length - 1 && !found; i++) {
-        if (ptSegDistM(lng, lat, line[i], line[i + 1], cosLat) <= radiusM) found = true;
+      for (let i = 0; i < line.length - 1; i++) {
+        const d = ptSegDistM(lng, lat, line[i], line[i + 1], cosLat);
+        if (d < best) best = d;
       }
     }
-    if (found) ids.push(id);
+    if (best <= radiusM) found.push([id, best]);
   }
-  return ids;
+  return found.sort((a, b) => a[1] - b[1]).map(([id]) => id);
 }
 
 export default function App() {
+  useUrlSync();
+  const { data, loading, error, progress } = useGTFSData();
+
   const viewState = useViewState();
   const setViewState = useSetViewState();
   const selectedRouteIds = useSelectedRouteIds();
-  const hoveredRouteId = useHoveredRouteId();
-  const setHoveredRouteId = useMapStore((s) => s.setHoveredRouteId);
-  const selectAllRoutes = useMapStore((s) => s.selectAllRoutes);
-  const colorMode = useColorMode();
-  const timeFilter = useTimeFilter();
-  const boxSelectMode = useBoxSelectMode();
-  const showStops = useShowStops();
-  const setShowStops = useMapStore((s) => s.setShowStops);
-  const hoveredStop = useHoveredStop();
-  const setHoveredStop = useMapStore((s) => s.setHoveredStop);
   const hoveredRouteIds = useHoveredRouteIds();
   const setHoveredRouteIds = useMapStore((s) => s.setHoveredRouteIds);
-  const [hoverActiveIdx, setHoverActiveIdx] = useState(0);
-  const deckRef = useRef(null);
-  const hoverTimeoutRef = useRef(null);
-  const isTooltipHoveredRef = useRef(false);
-  const basemap = useBasemap();
-  const setBasemap = useMapStore((s) => s.setBasemap);
-  const freqFilter = useFreqFilter();
-  const speedFilter = useSpeedFilter();
-  const setSpeedFilter = useMapStore((s) => s.setSpeedFilter);
-  const demandFilter = useDemandFilter();
-  const setDemandFilter = useMapStore((s) => s.setDemandFilter);
-  const demandYear = useDemandYear();
-  const fleetFilter = useFleetFilter();
-  const setFleetFilter = useMapStore((s) => s.setFleetFilter);
-  const fleetDayType = useFleetDayType();
-  const tortuosityFilter = useTortuosityFilter();
-  const setTortuosityFilter = useMapStore((s) => s.setTortuosityFilter);
-  const divergenceFilter = useDivergenceFilter();
-  const setDivergenceFilter = useMapStore((s) => s.setDivergenceFilter);
-  const lengthFilter = useLengthFilter();
-  const setLengthFilter = useMapStore((s) => s.setLengthFilter);
-  const scheduleFilter = useScheduleFilter();
-  const setScheduleFilter = useMapStore((s) => s.setScheduleFilter);
-  const scheduleDayType = useScheduleDayType();
-  const stopRoutesFilter = useStopRoutesFilter();
-  const setStopRoutesFilter = useMapStore((s) => s.setStopRoutesFilter);
-  const stopColorMode = useStopColorMode();
-  const stopExpeditionsFilter = useStopExpeditionsFilter();
-  const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
-  const occupancyFilter = useOccupancyFilter();
-  const loadFilter = useLoadFilter();
-  const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
-  const coverageFilter = useCoverageFilter();
-  const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
-  const coverageDistance = useCoverageDistance();
-  const highlightedZoneIds = useHighlightedZoneIds();
   const clickedRouteId = useClickedRouteId();
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
-  const showMetroLines = useShowMetroLines();
-  const showMetroStops = useShowMetroStops();
-  const showBusLanes = useShowBusLanes();
-  const showParkingBands = useShowParkingBands();
-
-  useUrlSync();
-
-  const {
-    routesGeojson,
-    routesMeta,
-    serviceMetrics,
-    stopsGeojson,
-    routeSpeed,
-    routeDemand,
-    routeFleet,
-    routeTortuosity,
-    routeDivergence,
-    routeSchedule,
-    routeDistricts,
-    barriosGeojson,
-    stopExpeditions,
-    routeCoverage,
-    metroCercaniasRoutes,
-    metroCercaniasStops,
-    busLanesGeojson,
-    parkingBandsGeojson,
-    routeDepartureTimes,
-    routeLoadHourly,
-    loading,
-    error,
-    progress,
-  } = useGTFSData();
+  const pinnedRouteIds = usePinnedRouteIds();
+  const fichaOpen = useFichaOpen();
+  const indicator = useIndicator();
+  const filters = useFilters();
+  const ctx = useCtx();
+  const boxSelectMode = useBoxSelectMode();
+  const showStops = useShowStops();
+  const stopColorMode = useStopColorMode();
+  const setHoveredStop = useMapStore((s) => s.setHoveredStop);
+  const [cursor, setCursor] = useState(null);
+  const [mobilePanel, setMobilePanel] = useState(false);
+  const hoverTimeoutRef = useRef(null);
 
   const [showLoader, setShowLoader] = useState(true);
   useEffect(() => {
@@ -191,461 +101,173 @@ export default function App() {
     }
   }, [loading]);
 
+  const allIds = useMemo(() => data?.routesMeta.map((r) => r.id) ?? [], [data]);
+  const metaById = useMemo(() => Object.fromEntries((data?.routesMeta ?? []).map((r) => [r.id, r])), [data]);
+
+  // Al cargar: todas las líneas, salvo que la URL traiga una selección
   const didInitRoutes = useRef(false);
   useEffect(() => {
-    if (routesMeta && !didInitRoutes.current) {
-      didInitRoutes.current = true;
-      useMapStore.getState().setTotalRouteCount(routesMeta.length);
-      const urlR = new URLSearchParams(window.location.search).get('r');
-      const hasUrlRoutes = urlR?.split(',').filter(Boolean).length > 0;
-      if (!hasUrlRoutes) selectAllRoutes(routesMeta.map((r) => r.id));
-    }
-  }, [routesMeta, selectAllRoutes]);
+    if (!data || didInitRoutes.current) return;
+    didInitRoutes.current = true;
+    const s = useMapStore.getState();
+    s.setTotalRouteCount(allIds.length);
+    const urlR = new URLSearchParams(window.location.search).get('r');
+    if (!urlR) s.selectAllRoutes(allIds);
+    const years = data.routeDemand?.years ?? [];
+    if (years.length && !years.includes(s.year)) s.setYear(data.routeDemand.year ?? years[years.length - 1]);
+  }, [data, allIds]);
 
-  // Sincronizar hoveredRouteId con el índice activo en hoveredRouteIds
-  useEffect(() => {
-    const activeId = hoveredRouteIds[hoverActiveIdx] ?? null;
-    if (activeId !== hoveredRouteId) {
-      setHoveredRouteId(activeId);
-    }
-  }, [hoveredRouteIds, hoverActiveIdx, hoveredRouteId, setHoveredRouteId]);
+  const computed = useMemo(() => (data ? computeIndicators(data, allIds, ctx) : null), [data, allIds, ctx]);
 
-  // Tab / Shift+Tab cicla entre líneas superpuestas; Enter abre el drawer.
-  // Solo si el foco no está en un control (sidebar, buscador, drawer…), para no
-  // romper la navegación por teclado del resto de la página.
-  useEffect(() => {
-    if (!hoveredRouteIds.length) return;
-    const len = hoveredRouteIds.length;
-    const handleKeyDown = (e) => {
-      const active = document.activeElement;
-      if (active && active !== document.body) return;
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        setHoverActiveIdx((prev) =>
-          e.shiftKey ? (prev - 1 + len) % len : (prev + 1) % len
-        );
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const activeId = hoveredRouteIds[hoverActiveIdx];
-        if (activeId) {
-          setClickedRouteId(activeId);
-          setHoveredRouteIds([]);
-          setHoverActiveIdx(0);
-        }
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [hoveredRouteIds, hoverActiveIdx, setClickedRouteId, setHoveredRouteIds]);
+  const passing = useMemo(() => {
+    if (!computed) return new Set();
+    return new Set(allIds.filter((id) => selectedRouteIds.has(id) && passesFilters(computed.values[id], filters)));
+  }, [computed, allIds, selectedRouteIds, filters]);
 
-  useEffect(() => {
-    if (routeSpeed && !speedFilter) {
-      setSpeedFilter([Math.floor(routeSpeed.min), Math.ceil(routeSpeed.max)]);
-    }
-  }, [routeSpeed, speedFilter, setSpeedFilter]);
+  const fichaIds = useMemo(() => {
+    const ids = [...pinnedRouteIds];
+    if (clickedRouteId && !ids.includes(clickedRouteId)) ids.push(clickedRouteId);
+    return ids.filter((id) => metaById[id]);
+  }, [pinnedRouteIds, clickedRouteId, metaById]);
 
-  useEffect(() => {
-    if (routeDemand && routesMeta) {
-      const inGtfs = new Set(routesMeta.map((r) => r.id));
-      let max = 0;
-      for (const [id, entry] of Object.entries(routeDemand.byRoute)) {
-        if (!inGtfs.has(id)) continue;
-        const avg = entry.byYear?.[demandYear]?.dailyAvg ?? entry.dailyAvg ?? 0;
-        if (avg > max) max = avg;
-      }
-      setDemandFilter([0, max || routeDemand.byYear?.[demandYear]?.max || routeDemand.max]);
-      setOccupancyFilter(null);
-    }
-  }, [routeDemand, routesMeta, demandYear, setDemandFilter, setOccupancyFilter]);
+  const focusIds = useMemo(() => new Set(fichaOpen ? fichaIds : []), [fichaOpen, fichaIds]);
 
-  useEffect(() => {
-    if (routeFleet && !fleetFilter) {
-      setFleetFilter([0, routeFleet.max]);
-    }
-  }, [routeFleet, fleetFilter, setFleetFilter]);
-
-  useEffect(() => {
-    if (routeTortuosity && !tortuosityFilter) {
-      const hi = Math.max(3, Math.ceil(routeTortuosity.max * 10) / 10);
-      setTortuosityFilter([1, hi]);
-    }
-  }, [routeTortuosity, tortuosityFilter, setTortuosityFilter]);
-
-  useEffect(() => {
-    if (routeDivergence && !divergenceFilter) {
-      setDivergenceFilter([0, 100]);
-    }
-  }, [routeDivergence, divergenceFilter, setDivergenceFilter]);
-
-  useEffect(() => {
-    if (routeTortuosity && !lengthFilter) {
-      const allLengths = Object.values(routeTortuosity.byRoute).map((v) => v.lengthKm);
-      const maxLen = Math.ceil(Math.max(...allLengths));
-      setLengthFilter([0, maxLen]);
-    }
-  }, [routeTortuosity, lengthFilter, setLengthFilter]);
-
-  useEffect(() => {
-    if (routeSchedule && !scheduleFilter) {
-      setScheduleFilter([0, Math.ceil(routeSchedule.max / 60) * 60]);
-    }
-  }, [routeSchedule, scheduleFilter, setScheduleFilter]);
-
-  useEffect(() => {
-    if (stopsGeojson && !stopRoutesFilter) {
-      let max = 1;
-      for (const f of stopsGeojson.features) {
-        const n = f.properties.routes?.length ?? 0;
-        if (n > max) max = n;
-      }
-      setStopRoutesFilter([1, max]);
-    }
-  }, [stopsGeojson, stopRoutesFilter, setStopRoutesFilter]);
-
-  useEffect(() => {
-    if (stopExpeditions?.byStop && !stopExpeditionsFilter) {
-      const peaks = Object.values(stopExpeditions.byStop).map((s) => s.peak);
-      const maxPeak = peaks.length > 0 ? Math.max(...peaks) : 100;
-      setStopExpeditionsFilter([0, maxPeak]);
-    }
-  }, [stopExpeditions, stopExpeditionsFilter, setStopExpeditionsFilter]);
-
-  // Ocupación media = viajeros/día ÷ expediciones/día
-  const occupancyData = useMemo(() => {
-    if (!serviceMetrics?.byRoute || !routeDemand?.byRoute) return {};
-    const result = {};
-    for (const [route_id, demand] of Object.entries(routeDemand.byRoute)) {
-      const dailyAvg = demand.byYear?.[demandYear]?.dailyAvg ?? demand.dailyAvg ?? 0;
-      const m = serviceMetrics.byRoute[route_id];
-      let totalTrips = 0;
-      if (m?.["1"]) {
-        for (const dir of ["0", "1"]) {
-          const hrs = m["1"][dir];
-          if (Array.isArray(hrs)) totalTrips += hrs.reduce((a, b) => a + b, 0);
-        }
-      }
-      result[route_id] = totalTrips > 0 ? dailyAvg / totalTrips : 0;
-    }
-    return result;
-  }, [serviceMetrics, routeDemand, demandYear]);
-
-  useEffect(() => {
-    if (occupancyData && Object.keys(occupancyData).length > 0 && !occupancyFilter) {
-      const values = Object.values(occupancyData);
-      const maxOcc = Math.max(...values);
-      setOccupancyFilter([0, maxOcc]);
-    }
-  }, [occupancyData, occupancyFilter, setOccupancyFilter]);
-
-  useEffect(() => {
-    if (routeCoverage && !coverageFilter) {
-      const minKey = `min_${coverageDistance}`;
-      const maxKey = `max_${coverageDistance}`;
-      setCoverageFilter([routeCoverage[minKey] ?? 0, routeCoverage[maxKey] ?? 1]);
-    }
-  }, [routeCoverage, coverageFilter, coverageDistance, setCoverageFilter]);
-
-  const visibleRouteIds = useMemo(
-    () =>
-      applyModeFilter({
-        routeIds: selectedRouteIds,
-        colorMode,
-        serviceMetrics,
-        routeSpeed,
-        routeDemand,
-        demandYear,
-        routeFleet,
-        routeTortuosity,
-        routeDivergence,
-        routeSchedule,
-        occupancyData,
-        routeCoverage,
-        timeFilter,
-        freqFilter,
-        speedFilter,
-        demandFilter,
-        fleetFilter,
-        fleetDayType,
-        tortuosityFilter,
-        divergenceFilter,
-        lengthFilter,
-        scheduleFilter,
-        scheduleDayType,
-        occupancyFilter,
-        coverageFilter,
-        coverageDistance,
-        routeLoadHourly,
-        loadFilter,
-      }),
-    [
-      selectedRouteIds,
-      colorMode,
-      serviceMetrics,
-      routeSpeed,
-      routeDemand,
-      demandYear,
-      routeFleet,
-      routeTortuosity,
-      routeDivergence,
-      routeSchedule,
-      occupancyData,
-      routeCoverage,
-      timeFilter,
-      freqFilter,
-      speedFilter,
-      demandFilter,
-      fleetFilter,
-      fleetDayType,
-      tortuosityFilter,
-      divergenceFilter,
-      lengthFilter,
-      scheduleFilter,
-      scheduleDayType,
-      occupancyFilter,
-      coverageFilter,
-      coverageDistance,
-      routeLoadHourly,
-      loadFilter,
-    ]
+  const net = useMemo(
+    () => (computed ? { data, metaById, allIds, values: computed.values, stats: computed.stats, passing, ctx, fichaIds } : null),
+    [data, metaById, allIds, computed, passing, ctx, fichaIds]
   );
 
-  const metroCercaniasRouteColorMap = useMemo(() => {
-    const map = new Map();
-    if (!metroCercaniasRoutes) return map;
-    for (const f of metroCercaniasRoutes.features) {
-      map.set(f.properties.route_id, f.properties.route_color);
-    }
-    return map;
-  }, [metroCercaniasRoutes]);
+  const ind = indicator ? INDICATOR_BY_ID[indicator] : null;
+  // En la comparación, cada línea de la ficha lleva el color de su columna
+  const seriesColor = useMemo(() => {
+    if (!fichaOpen || fichaIds.length < 2) return null;
+    return Object.fromEntries(fichaIds.map((id, i) => [id, hexToRgb(SERIES_COLORS[i % SERIES_COLORS.length].slice(1))]));
+  }, [fichaOpen, fichaIds]);
+  const colorOf = useCallback(
+    (id) => {
+      if (seriesColor?.[id]) return seriesColor[id];
+      if (!ind) return hexToRgb(metaById[id]?.color ?? '888888');
+      return colorFor(ind, computed.stats[ind.id], computed.values[id]?.[ind.id]);
+    },
+    [ind, metaById, computed, seriesColor]
+  );
+
+  const drawFeatures = useMemo(
+    () => sortFeaturesForDraw(data?.routesGeojson, passing, focusIds),
+    [data, passing, focusIds]
+  );
+
+  // Solo se resalta la línea que abriría el clic (la más cercana)
+  const hoverHighlight = useMemo(() => hoveredRouteIds.slice(0, 1), [hoveredRouteIds]);
 
   const layers = useMemo(
-    () =>
-      [
-        showMetroLines && createMetroCercaniasRoutesLayer({ geojson: metroCercaniasRoutes, mode: 'metro' }),
-        showMetroStops && createMetroCercaniasStopsLayer({ geojson: metroCercaniasStops, mode: 'metro', routeColorMap: metroCercaniasRouteColorMap, onHover: setHoveredStop }),
-        createBusLanesLayer({ geojson: busLanesGeojson, visible: showBusLanes }),
-        createParkingBandsLayer({ geojson: parkingBandsGeojson, visibleRouteIds, visible: showParkingBands }),
-        createRoutesLayer({
-          geojson: routesGeojson,
-          visibleRouteIds,
-          colorMode,
-          serviceMetrics,
-          routeSpeed,
-          routeDemand,
-          demandYear,
-          routeFleet,
-          routeTortuosity,
-          routeDivergence,
-          routeSchedule,
-          occupancyData,
-          routeCoverage,
-          coverageDistance,
-          timeFilter,
-          fleetDayType,
-          scheduleDayType,
-          hoveredRouteIds,
-          clickedRouteId,
-          routeLoadHourly,
-        }),
-        createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
+    () => [
+      createRoutesLayer({
+        features: drawFeatures,
+        passing,
+        colorOf,
+        colorKey: colorOf,
+        hoveredIds: hoverHighlight,
+        focusIds,
+      }),
+      showStops &&
         createStopsLayer({
-          geojson: stopsGeojson,
-          visibleRouteIds,
-          visible: showStops,
-          onHover: setHoveredStop,
-          stopRoutesFilter,
+          geojson: data?.stopsGeojson,
+          passing,
           stopColorMode,
-          stopExpeditions,
-          stopExpeditionsFilter,
+          stopExpeditions: data?.stopExpeditions,
+          onHover: setHoveredStop,
         }),
-        createZonesLayer({ geojson: barriosGeojson, highlightedZoneIds }),
-      ].filter(Boolean),
-    [
-      routesGeojson,
-      visibleRouteIds,
-      hoveredRouteId,
-      hoveredRouteIds,
-      clickedRouteId,
-      colorMode,
-      serviceMetrics,
-      routeSpeed,
-      routeDemand,
-      demandYear,
-      routeFleet,
-      routeTortuosity,
-      routeDivergence,
-      routeSchedule,
-      occupancyData,
-      routeCoverage,
-      coverageDistance,
-      timeFilter,
-      fleetDayType,
-      scheduleDayType,
-      routeLoadHourly,
-      stopsGeojson,
-      showStops,
-      setHoveredStop,
-      stopRoutesFilter,
-      stopColorMode,
-      stopExpeditions,
-      stopExpeditionsFilter,
-      barriosGeojson,
-      highlightedZoneIds,
-      showMetroLines,
-      showMetroStops,
-      metroCercaniasRoutes,
-      metroCercaniasStops,
-      metroCercaniasRouteColorMap,
-      busLanesGeojson,
-      showBusLanes,
-      parkingBandsGeojson,
-      showParkingBands,
-    ]
+    ].filter(Boolean),
+    [drawFeatures, passing, colorOf, hoverHighlight, focusIds, showStops, data, stopColorMode, setHoveredStop]
   );
 
+  // Esc cierra la ficha
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT') return;
+      useMapStore.getState().closeFicha();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-  function handleReset() {
+  const handleReset = () => {
+    const s = useMapStore.getState();
     setViewState({ ...INITIAL_VIEW_STATE, transitionDuration: 600 });
-    if (routesMeta) selectAllRoutes(routesMeta.map((r) => r.id));
-    setClickedRouteId(null);
-  }
+    s.selectAllRoutes(allIds);
+    s.clearFilters();
+    s.setIndicator(null);
+    s.setPinnedRouteIds([]);
+    s.closeFicha();
+  };
+
+  const handleHover = (info) => {
+    clearTimeout(hoverTimeoutRef.current);
+    if (!info.coordinate || boxSelectMode) {
+      hoverTimeoutRef.current = setTimeout(() => setHoveredRouteIds([]), 150);
+      return;
+    }
+    const [lng, lat] = info.coordinate;
+    // Radio de captura en metros equivalente a ~8 px al zoom actual
+    const mPerPx = (156543 * Math.cos((lat * Math.PI) / 180)) / 2 ** viewState.zoom;
+    const ids = nearbyRouteIds(data?.routesGeojson, lng, lat, Math.max(15, 8 * mPerPx), passing).slice(0, 6);
+    setCursor({ x: info.x, y: info.y, w: info.viewport?.width ?? 0, h: info.viewport?.height ?? 0 });
+    const same = ids.length === hoveredRouteIds.length && ids.every((id, i) => id === hoveredRouteIds[i]);
+    if (!same) setHoveredRouteIds(ids);
+  };
+
+  const handleClick = (info) => {
+    if (boxSelectMode) return;
+    const picked = info.object?.properties?.route_id;
+    const id = picked && passing.has(picked) ? picked : hoveredRouteIds[0];
+    if (id) {
+      setClickedRouteId(id);
+      setMobilePanel(true);
+    }
+  };
 
   return (
-    <div className="app">
-      <DeckGL
-        ref={deckRef}
-        viewState={viewState}
-        onViewStateChange={({ viewState: next }) => setViewState(next)}
-        controller={
-          boxSelectMode
-            ? false
-            : {
-                dragRotate: false,
-                touchRotate: false,
-                inertia: true,
-                scrollZoom: { smooth: true },
-              }
-        }
-        layers={layers}
-        glOptions={{ powerPreference: 'default' }}
-        onClick={(info) => {
-          if (boxSelectMode) return;
-          if (info.layer?.id === 'building-coverage') return;
-          setClickedRouteId(info.object?.properties?.route_id ?? null);
-        }}
-        onHover={(info) => {
-          clearTimeout(hoverTimeoutRef.current);
-          if (!info.coordinate) {
-            hoverTimeoutRef.current = setTimeout(() => {
-              if (!isTooltipHoveredRef.current) {
-                setHoveredRouteIds([]);
-                setHoverActiveIdx(0);
-              }
-            }, 200);
-            return;
-          }
-          const [lng, lat] = info.coordinate;
-          const ids = nearbyRouteIds(routesGeojson, lng, lat, 150, visibleRouteIds);
-          if (ids.length) {
-            const changed = hoveredRouteIds.length !== ids.length || hoveredRouteIds.some((id, i) => id !== ids[i]);
-            setHoveredRouteIds(ids);
-            if (changed) setHoverActiveIdx(0);
-          } else {
-            hoverTimeoutRef.current = setTimeout(() => {
-              if (!isTooltipHoveredRef.current) {
-                setHoveredRouteIds([]);
-                setHoverActiveIdx(0);
-              }
-            }, 200);
-          }
-        }}
-      >
-        <MapGL mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
-      </DeckGL>
+    <NetworkContext.Provider value={net}>
+      <div className="app">
+        <TopBar onReset={handleReset} />
 
-      <BoxSelectOverlay viewState={viewState} geojson={routesGeojson} />
+        <main className="map-area" onMouseLeave={() => setHoveredRouteIds([])}>
+          <DeckGL
+            viewState={viewState}
+            onViewStateChange={({ viewState: next }) => setViewState(next)}
+            controller={boxSelectMode ? false : { dragRotate: false, touchRotate: false, inertia: true, scrollZoom: { smooth: true } }}
+            layers={layers}
+            glOptions={{ powerPreference: 'default' }}
+            getCursor={({ isDragging }) => (isDragging ? 'grabbing' : hoveredRouteIds.length ? 'pointer' : 'grab')}
+            onClick={handleClick}
+            onHover={handleHover}
+          >
+            <MapGL mapStyle={BASEMAP_STYLE} reuseMaps={false} />
+          </DeckGL>
+          <BoxSelectOverlay viewState={viewState} geojson={data?.routesGeojson} />
+          {net && <MapLegend />}
+          {net && <LayersControl />}
+          {net && <MapTooltip cursor={cursor} />}
+          <button type="button" className={`mobile-panel-toggle ${mobilePanel ? "is-up" : ""}`} onClick={() => setMobilePanel((v) => !v)}>
+            {mobilePanel ? 'Mapa' : 'Tabla'}
+          </button>
+        </main>
 
-      <Sidebar
-        routesMeta={routesMeta}
-        routeSpeed={routeSpeed}
-        routeDemand={routeDemand}
-        occupancyData={occupancyData}
-        routeFleet={routeFleet}
-        routeTortuosity={routeTortuosity}
-        routeDivergence={routeDivergence}
-        routeSchedule={routeSchedule}
-        routeDistricts={routeDistricts}
-        serviceMetrics={serviceMetrics}
-        routeLoadHourly={routeLoadHourly}
-        selectedRouteIds={selectedRouteIds}
-        visibleRouteIds={visibleRouteIds}
-        basemap={basemap}
-        setBasemap={setBasemap}
-        showStops={showStops}
-        setShowStops={setShowStops}
-        stopsGeojson={stopsGeojson}
-        stopExpeditions={stopExpeditions}
-        routeCoverage={routeCoverage}
-        metroCercaniasRoutes={metroCercaniasRoutes}
-        metroCercaniasStops={metroCercaniasStops}
-        busLanesGeojson={busLanesGeojson}
-        parkingBandsGeojson={parkingBandsGeojson}
-        isLoading={loading}
-        onReset={handleReset}
-      />
+        {net && <RightPanel mobileOpen={mobilePanel} />}
+        {net && <Methodology />}
 
-      <RouteTooltip
-        activeRouteId={hoveredRouteIds[hoverActiveIdx]}
-        candidateIds={hoveredRouteIds}
-        activeIdx={hoverActiveIdx}
-        onActiveIdxChange={setHoverActiveIdx}
-        routesMeta={routesMeta}
-        routeSpeed={routeSpeed}
-        routeDemand={routeDemand}
-        demandYear={demandYear}
-        serviceMetrics={serviceMetrics}
-        dayOfWeek={timeFilter.dayOfWeek}
-        onTooltipMouseEnter={() => {
-          isTooltipHoveredRef.current = true;
-          clearTimeout(hoverTimeoutRef.current);
-        }}
-        onTooltipMouseLeave={() => {
-          isTooltipHoveredRef.current = false;
-          setHoveredRouteIds([]);
-          setHoverActiveIdx(0);
-        }}
-      />
-
-      {hoveredStop && (
-        <div className="hover-info stop">
-          <b>Parada {hoveredStop.properties.stop_code || hoveredStop.properties.stop_id}</b>
-          <span className="long">{hoveredStop.properties.stop_name}</span>
-          <span className="offer">{hoveredStop.properties.routes.length} líneas</span>
-        </div>
-      )}
-
-      <ColorLegend />
-
-      <RouteDrawer
-        routesMeta={routesMeta}
-        routeSpeed={routeSpeed}
-        routeDemand={routeDemand}
-        demandYear={demandYear}
-        routeCoverage={routeCoverage}
-        serviceMetrics={serviceMetrics}
-        routesGeojson={routesGeojson}
-        routeDepartureTimes={routeDepartureTimes}
-        routeLoadHourly={routeLoadHourly}
-      />
-
-{showLoader && <LoadingScreen loading={loading} progress={progress} />}
-      {error && (
-        <div className="status-overlay error">
-          No se han podido cargar los datos de la red.
-          <br />
-          <small>Comprueba tu conexión y recarga la página.</small>
-        </div>
-      )}
-    </div>
+        {showLoader && <LoadingScreen loading={loading} progress={progress} />}
+        {error && (
+          <div className="status-overlay error">
+            No se han podido cargar los datos de la red.
+            <br />
+            <small>Comprueba tu conexión y recarga la página.</small>
+          </div>
+        )}
+      </div>
+    </NetworkContext.Provider>
   );
 }

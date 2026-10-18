@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { WebMercatorViewport } from '@deck.gl/core';
-import { useMapStore, useBoxSelectMode } from '../../store/useMapStore.js';
-import { routesInBBox, normalizeBox } from '../../utils/boxSelect.js';
+import { useMapStore, useBoxSelectMode } from '../store/useMapStore.js';
+import { routesInBBox, normalizeBox } from '../utils/boxSelect.js';
 
 export default function BoxSelectOverlay({ viewState, geojson }) {
   const enabled = useBoxSelectMode();

@@ -113,3 +113,23 @@
 **Consecuencias:**
 - Los datos en `public/data/` son snapshots generados manualmente
 - Al actualizar el feed, se deben re-ejecutar todos los scripts Python en orden
+
+---
+
+## ADR-008 — Rediseño UX: indicador único + tabla ranking + ficha 🟡
+
+**Fecha:** 2026-10-18
+**Estado:** activo
+
+**Decisión:** Sustituir el sidebar de 10 acordeones por una barra superior (indicador, contexto temporal global, filtro Líneas, chips de filtros), un mapa con leyenda/histograma y un panel derecho que alterna tabla ranking y ficha de línea/comparación. Todos los indicadores salen de un registro único (`src/utils/indicators.js`).
+
+**Contexto:** Grill con el usuario (ver `docs/REDISENO_UX.md`). Usuario: especialista en transporte; tarea nº 1: diagnóstico de red. El sidebar mezclaba qué líneas, qué indicador y qué capas; el modo de color estaba repartido en 4 secciones y había 3 selectores de tipo de día independientes.
+
+**Consecuencias:**
+- Contexto temporal único (tipo de día + franja + año) para todos los indicadores
+- Filtros combinados sobre cualquier indicador; las líneas que no cumplen se atenúan, no se ocultan
+- Semántica de color por indicador (valorativo / neutro / divergente) en lugar del gradiente universal
+- "pax/expedición" y "Carga por hora" fusionados en Viajeros/expedición; "Horario de paso" → Amplitud de servicio; nuevos: Expediciones/día y Δ viajeros interanual
+- Intervalo medio redefinido como minutos con servicio ÷ expediciones (antes: mejor hora de la franja)
+- Metro, carril bus, bandas SER, selector de fondo y selección por barrio retirados del front (datos en `data/archivo/`)
+- Exportación CSV permitida; la URL guarda el estado completo y traduce los enlaces antiguos (`cm`, `dow`, `sh`, `eh`)

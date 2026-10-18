@@ -1,82 +1,45 @@
 import { useEffect, useState } from 'react';
 
+// [clave, fichero, obligatorio]
+const FILES = [
+  ['routesGeojson', 'routes.geojson', true],
+  ['routesMeta', 'routes_meta.json', true],
+  ['serviceMetrics', 'service_metrics.json', true],
+  ['stopsGeojson', 'stops.geojson', true],
+  ['routeSpeed', 'route_speed.json', true],
+  ['routeDemand', 'route_demand.json', true],
+  ['routeFleet', 'route_fleet.json', true],
+  ['routeTortuosity', 'route_tortuosity.json', true],
+  ['routeDivergence', 'route_divergence.json', false],
+  ['routeSchedule', 'route_schedule.json', false],
+  ['stopExpeditions', 'stop_expeditions.json', false],
+  ['routeCoverage', 'route_coverage.json', false],
+  ['routeDepartureTimes', 'route_departure_times.json', false],
+  ['routeLoadHourly', 'route_load_hourly.json', false],
+];
+
 export function useGTFSData() {
-  const [routesGeojson, setRoutesGeojson] = useState(null);
-  const [routesMeta, setRoutesMeta] = useState(null);
-  const [serviceMetrics, setServiceMetrics] = useState(null);
-  const [stopsGeojson, setStopsGeojson] = useState(null);
-  const [routeSpeed, setRouteSpeed] = useState(null);
-  const [routeDemand, setRouteDemand] = useState(null);
-  const [routeFleet, setRouteFleet] = useState(null);
-  const [routeTortuosity, setRouteTortuosity] = useState(null);
-  const [routeDivergence, setRouteDivergence] = useState(null);
-  const [routeSchedule, setRouteSchedule] = useState(null);
-  const [routeDistricts, setRouteDistricts] = useState(null);
-  const [barriosGeojson, setBarriosGeojson] = useState(null);
-  const [stopExpeditions, setStopExpeditions] = useState(null);
-  const [routeCoverage, setRouteCoverage] = useState(null);
-  const [metroCercaniasRoutes, setMetroCercaniasRoutes] = useState(null);
-  const [metroCercaniasStops, setMetroCercaniasStops] = useState(null);
-  const [busLanesGeojson, setBusLanesGeojson] = useState(null);
-  const [parkingBandsGeojson, setParkingBandsGeojson] = useState(null);
-  const [routeDepartureTimes, setRouteDepartureTimes] = useState(null);
-  const [routeLoadHourly, setRouteLoadHourly] = useState(null);
+  const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let loaded = 0;
-    const total = 20;
-    const track = (p) => p.then((v) => {
-      loaded++;
-      if (!cancelled) setProgress(Math.round((loaded / total) * 100));
-      return v;
-    });
-    Promise.all([
-      track(fetch('/data/routes.geojson').then((r) => r.json())),
-      track(fetch('/data/routes_meta.json').then((r) => r.json())),
-      track(fetch('/data/service_metrics.json').then((r) => r.json())),
-      track(fetch('/data/stops.geojson').then((r) => r.json())),
-      track(fetch('/data/route_speed.json').then((r) => r.json())),
-      track(fetch('/data/route_demand.json').then((r) => r.json())),
-      track(fetch('/data/route_fleet.json').then((r) => r.json())),
-      track(fetch('/data/route_tortuosity.json').then((r) => r.json())),
-      track(fetch('/data/route_divergence.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/route_schedule.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/route_districts.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/barrios.geojson').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/stop_expeditions.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/route_coverage.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/metro_cercanias_routes.geojson').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/metro_cercanias_stops.geojson').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/bus_lanes.geojson').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/parking_bands.geojson').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/route_departure_times.json').then((r) => r.json()).catch(() => null)),
-      track(fetch('/data/route_load_hourly.json').then((r) => r.json()).catch(() => null)),
-    ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands, departureTimes, loadHourly]) => {
+    Promise.all(
+      FILES.map(([, file, required]) => {
+        let p = fetch(`/data/${file}`).then((r) => r.json());
+        if (!required) p = p.catch(() => null);
+        return p.then((v) => {
+          loaded += 1;
+          if (!cancelled) setProgress(Math.round((loaded / FILES.length) * 100));
+          return v;
+        });
+      })
+    )
+      .then((results) => {
         if (cancelled) return;
-        setRoutesGeojson(geo);
-        setRoutesMeta(meta);
-        setServiceMetrics(metrics);
-        setStopsGeojson(stops);
-        setRouteSpeed(speed);
-        setRouteDemand(demand);
-        setRouteFleet(fleet);
-        setRouteTortuosity(tortuosity);
-        setRouteDivergence(divergence);
-        setRouteSchedule(schedule);
-        setRouteDistricts(districts);
-        setBarriosGeojson(barrios);
-        setStopExpeditions(stopExp);
-        setRouteCoverage(coverage);
-        setMetroCercaniasRoutes(mcRoutes);
-        setMetroCercaniasStops(mcStops);
-        setBusLanesGeojson(busLanes);
-        setParkingBandsGeojson(parkingBands);
-        setRouteDepartureTimes(departureTimes);
-        setRouteLoadHourly(loadHourly);
+        setData(Object.fromEntries(FILES.map(([key], i) => [key, results[i]])));
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -84,29 +47,5 @@ export function useGTFSData() {
     };
   }, []);
 
-  return {
-    routesGeojson,
-    routesMeta,
-    serviceMetrics,
-    stopsGeojson,
-    routeSpeed,
-    routeDemand,
-    routeFleet,
-    routeTortuosity,
-    routeDivergence,
-    routeSchedule,
-    routeDistricts,
-    barriosGeojson,
-    stopExpeditions,
-    routeCoverage,
-    metroCercaniasRoutes,
-    metroCercaniasStops,
-    busLanesGeojson,
-    parkingBandsGeojson,
-    routeDepartureTimes,
-    routeLoadHourly,
-    error,
-    loading: !routesGeojson && !error,
-    progress,
-  };
+  return { data, error, loading: !data && !error, progress };
 }

@@ -8,15 +8,24 @@
 ## Dónde retomar (actualiza esto al cerrar)
 
 **Sesión cerrada:** 2026-10-18
-**Última tarea completada:** Carga por hora (modo `load`) + demanda 2026 ene–sep con el nuevo formato EMT por franja horaria
-**Próxima acción:** Commit+push de demanda 2026 y carga por hora; después flota hasta agosto (`2026ccr.csv`) y GTFS de octubre
+**Última tarea completada:** Rediseño UX completo (rama `rediseno-ux`, especificación en `docs/REDISENO_UX.md`, ADR-008)
+**Próxima acción:** Ficha de barrio (R1 en TODO)
 
 **Estado de verificación:**
-- [x] `a6eda9c` (arreglos UX) pusheado a `main` · build de GitHub Actions OK
-- [x] Deploy IONOS de `a6eda9c`: quedó en `action_required`; aprobado a mano en GitHub (run 39119251835) → publicado 2026-10-18 (`index-F-FYDdvM.js`)
-- [ ] Demanda 2026 + carga por hora: solo en local (lint y build OK, sin commit)
+- [x] Demanda 2026 + carga por hora (`2689098`) publicados en producción
+- [x] Rediseño: lint y build OK; recorrido en Chrome sin interfaz (escritorio y móvil) sin errores de consola; CSV verificados
 
 ---
+
+## Sesión 2026-10-18 (tarde) — Rediseño UX
+
+Grill de 5 rondas con el usuario → `docs/REDISENO_UX.md`. Implementado:
+- `src/utils/indicators.js`: registro único de 12 indicadores (valor, unidad, dependencias de contexto, semántica de color, definición y metodología), estadísticos de red, percentiles, escalas e histogramas
+- Store reescrito: indicador, contexto global (día/franja/año/radio), filtros combinados, fichas fijadas, columnas y orden de tabla
+- UI nueva: `TopBar`, `IndicatorPicker`, `TimeControls`, `LinesFilter`, `FilterChips`, `MapLegend` (histograma con filtro), `LayersControl`, `MapTooltip`, `RightPanel` → `LinesTable` / `Ficha` (comparación), `Methodology` (`#metodologia`), `utils/csv.js`
+- Eliminados: Sidebar y sus 9 paneles, RouteDrawer, RouteTooltip, ColorLegend, `service.js`, capas de metro/carril bus/SER/barrios. Datos archivados en `data/archivo/`
+- URL: estado completo; los enlaces antiguos (`cm`, `dow`, `sh`, `eh`) se traducen
+- `dist/` baja de ~46 MB a ~11 MB
 
 ## Sesión 2026-10-18 — Auditoría UX, arreglos, demanda 2026 y carga por hora
 

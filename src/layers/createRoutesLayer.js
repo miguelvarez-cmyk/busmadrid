@@ -1,301 +1,58 @@
 import { GeoJsonLayer } from '@deck.gl/layers';
-import { hexToRgb } from '../utils/color.js';
-import {
-  frequencyColorForRoute,
-  speedColorForRoute,
-  demandColorForRoute,
-  fleetColorForRoute,
-  tortuosityColorForRoute,
-  divergenceColorForRoute,
-  lengthColorForRoute,
-  scheduleColorForRoute,
-  coverageColorForRoute,
-  gradientColor,
-  loadColorForRoute,
-  passesLoadFilter,
-  passesFrequencyFilter,
-  passesSpeedFilter,
-  passesDemandFilter,
-  passesFleetFilter,
-  passesTortuosityFilter,
-  passesDivergenceFilter,
-  passesLengthFilter,
-  passesScheduleFilter,
-  passesCoverageFilter,
-} from '../utils/service.js';
+
+const DIMMED = [125, 128, 135, 40];
 
 /**
- * Aplica filtros de modo (frecuencia/velocidad) sobre un set base de ids.
- * Devuelve el subset que pasa el filtro activo.
+ * Líneas EMT. Las que no pasan el ámbito/filtros se dibujan atenuadas en gris
+ * y debajo; las destacadas (ficha abierta o fijadas) encima y más gruesas.
+ *
+ * colorOf(routeId) → [r,g,b] para las líneas que pasan.
+ * colorKey: cualquier valor que cambie cuando cambian los colores.
  */
-export function applyModeFilter({
-  routeIds,
-  colorMode,
-  serviceMetrics,
-  routeSpeed,
-  routeDemand,
-  demandYear,
-  routeFleet,
-  routeTortuosity,
-  routeDivergence,
-  routeSchedule,
-  occupancyData,
-  routeCoverage,
-  timeFilter,
-  freqFilter,
-  speedFilter,
-  demandFilter,
-  fleetFilter,
-  fleetDayType,
-  tortuosityFilter,
-  divergenceFilter,
-  lengthFilter,
-  scheduleFilter,
-  scheduleDayType,
-  occupancyFilter,
-  coverageFilter,
-  coverageDistance,
-  routeLoadHourly,
-  loadFilter,
-}) {
-  if (colorMode === 'load' && routeLoadHourly && serviceMetrics && loadFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesLoadFilter(routeLoadHourly, serviceMetrics, id, timeFilter.dayOfWeek,
-        timeFilter.startHour, timeFilter.endHour, loadFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'offer' && serviceMetrics) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (
-        passesFrequencyFilter(
-          serviceMetrics,
-          id,
-          timeFilter.dayOfWeek,
-          timeFilter.startHour,
-          timeFilter.endHour,
-          freqFilter
-        )
-      ) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'speed' && routeSpeed && speedFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesSpeedFilter(routeSpeed, id, speedFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'demand' && routeDemand && demandFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesDemandFilter(routeDemand, id, demandFilter, demandYear)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'fleet' && routeFleet && fleetFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesFleetFilter(routeFleet, id, fleetDayType, fleetFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'tortuosity' && routeTortuosity && tortuosityFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesTortuosityFilter(routeTortuosity, id, tortuosityFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'divergence' && routeDivergence && divergenceFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesDivergenceFilter(routeDivergence, id, divergenceFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'length' && routeTortuosity && lengthFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesLengthFilter(routeTortuosity, id, lengthFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'schedule' && routeSchedule && scheduleFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesScheduleFilter(routeSchedule, id, scheduleDayType, scheduleFilter)) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'occupancy' && occupancyData && occupancyFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      const occ = occupancyData[id] ?? 0;
-      const [minOcc, maxOcc] = occupancyFilter;
-      if (occ >= minOcc && occ <= maxOcc) out.add(id);
-    }
-    return out;
-  }
-  if (colorMode === 'coverage' && routeCoverage && coverageFilter) {
-    const out = new Set();
-    for (const id of routeIds) {
-      if (passesCoverageFilter(routeCoverage, id, coverageDistance, coverageFilter)) out.add(id);
-    }
-    return out;
-  }
-  return routeIds;
-}
+export function createRoutesLayer({ features, passing, colorOf, colorKey, hoveredIds, focusIds }) {
+  if (!features) return null;
+  const hovered = new Set(hoveredIds);
+  const hasFocus = focusIds.size > 0;
+  const hasHover = hovered.size > 0;
 
-// Más viajeros por expedición = rojo (líneas más cargadas)
-function occupancyColorForRoute(occupancyData, maxOcc, routeId) {
-  const occ = occupancyData?.[routeId] ?? 0;
-  const t = maxOcc > 0 ? Math.min(occ / maxOcc, 1) : 0;
-  return gradientColor(t);
-}
-
-export function createRoutesLayer({
-  geojson,
-  visibleRouteIds,
-  colorMode,
-  serviceMetrics,
-  routeSpeed,
-  routeDemand,
-  demandYear,
-  routeFleet,
-  routeTortuosity,
-  routeDivergence,
-  routeSchedule,
-  occupancyData,
-  routeCoverage,
-  coverageDistance,
-  timeFilter,
-  fleetDayType,
-  scheduleDayType,
-  hoveredRouteIds = [],
-  clickedRouteId = null,
-  routeLoadHourly = null,
-}) {
-  if (!geojson) return null;
-
-  const filtered = {
-    type: 'FeatureCollection',
-    features: geojson.features.filter((f) =>
-      visibleRouteIds.has(f.properties.route_id)
-    ),
+  const getLineColor = (f) => {
+    const id = f.properties.route_id;
+    if (!passing.has(id)) return DIMMED;
+    const c = colorOf(id);
+    if (focusIds.has(id) || hovered.has(id)) return [...c, 255];
+    if (hasFocus || hasHover) return [...c, 70];
+    return [...c, 210];
+  };
+  const getLineWidth = (f) => {
+    const id = f.properties.route_id;
+    if (!passing.has(id)) return 1;
+    if (focusIds.has(id)) return 4.5;
+    if (hovered.has(id)) return 4;
+    return 2;
   };
 
-  const hoveredSet = new Set(hoveredRouteIds);
-
-  function getAlpha(routeId) {
-    if (clickedRouteId) {
-      return routeId === clickedRouteId ? 255 : 25;
-    }
-    if (hoveredSet.size > 0) {
-      return hoveredSet.has(routeId) ? 217 : 38;
-    }
-    return 89;
-  }
-
-  function getWidth(routeId) {
-    if (clickedRouteId) {
-      return routeId === clickedRouteId ? 4.0 : 1.5;
-    }
-    if (hoveredSet.size > 0) {
-      return hoveredSet.has(routeId) ? 3.5 : 1.5;
-    }
-    return 2.0;
-  }
-
-  let getBaseColor;
-  if (colorMode === 'load' && routeLoadHourly && serviceMetrics) {
-    getBaseColor = (f) => loadColorForRoute(
-      routeLoadHourly,
-      serviceMetrics,
-      f.properties.route_id,
-      timeFilter.dayOfWeek,
-      timeFilter.startHour,
-      timeFilter.endHour
-    );
-  } else if (colorMode === 'offer' && serviceMetrics) {
-    getBaseColor = (f) => frequencyColorForRoute(
-      serviceMetrics,
-      f.properties.route_id,
-      timeFilter.dayOfWeek,
-      timeFilter.startHour,
-      timeFilter.endHour
-    );
-  } else if (colorMode === 'speed' && routeSpeed) {
-    getBaseColor = (f) => speedColorForRoute(routeSpeed, f.properties.route_id);
-  } else if (colorMode === 'demand' && routeDemand) {
-    getBaseColor = (f) => demandColorForRoute(routeDemand, f.properties.route_id, demandYear);
-  } else if (colorMode === 'fleet' && routeFleet) {
-    getBaseColor = (f) => fleetColorForRoute(routeFleet, f.properties.route_id, fleetDayType);
-  } else if (colorMode === 'tortuosity' && routeTortuosity) {
-    getBaseColor = (f) => tortuosityColorForRoute(routeTortuosity, f.properties.route_id);
-  } else if (colorMode === 'divergence' && routeDivergence) {
-    getBaseColor = (f) => divergenceColorForRoute(routeDivergence, f.properties.route_id);
-  } else if (colorMode === 'length' && routeTortuosity) {
-    getBaseColor = (f) => lengthColorForRoute(routeTortuosity, f.properties.route_id);
-  } else if (colorMode === 'schedule' && routeSchedule) {
-    getBaseColor = (f) => scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType);
-  } else if (colorMode === 'occupancy' && occupancyData) {
-    const maxOcc = Math.max(...Object.values(occupancyData), 1);
-    getBaseColor = (f) => occupancyColorForRoute(occupancyData, maxOcc, f.properties.route_id);
-  } else if (colorMode === 'coverage' && routeCoverage) {
-    getBaseColor = (f) => coverageColorForRoute(routeCoverage, f.properties.route_id, coverageDistance);
-  } else {
-    getBaseColor = (f) => hexToRgb(f.properties.route_color);
-  }
-
-  const getLineColor = (f) => [...getBaseColor(f), getAlpha(f.properties.route_id)];
-  const getLineWidth = (f) => getWidth(f.properties.route_id);
-
   return new GeoJsonLayer({
-    id: `routes-${colorMode ?? 'null'}`,
-    data: filtered,
+    id: 'routes',
+    data: features,
     lineWidthUnits: 'pixels',
     getLineWidth,
     getLineColor,
     pickable: true,
-    autoHighlight: false,
     parameters: { depthTest: false },
     updateTriggers: {
-      getLineColor: [
-        colorMode,
-        demandYear,
-        timeFilter.dayOfWeek,
-        timeFilter.startHour,
-        timeFilter.endHour,
-        fleetDayType,
-        scheduleDayType,
-        coverageDistance,
-        routeLoadHourly,
-        hoveredRouteIds,
-        clickedRouteId,
-      ],
-      getLineWidth: [hoveredRouteIds, clickedRouteId],
+      getLineColor: [colorKey, passing, hoveredIds, focusIds],
+      getLineWidth: [passing, hoveredIds, focusIds],
     },
   });
 }
 
-export function createHighlightLayer({ geojson, hoveredRouteId }) {
-  if (!geojson || !hoveredRouteId) return null;
-  const feature = geojson.features.find(
-    (f) => f.properties.route_id === hoveredRouteId
-  );
-  if (!feature) return null;
-
-  return new GeoJsonLayer({
-    id: 'routes-highlight',
-    data: { type: 'FeatureCollection', features: [feature] },
-    lineWidthUnits: 'pixels',
-    getLineWidth: 7,
-    getLineColor: [100, 180, 255, 255],
-    pickable: false,
-    parameters: { depthTest: false },
-  });
+/** Ordena para dibujar: atenuadas → normales → destacadas. */
+export function sortFeaturesForDraw(geojson, passing, focusIds) {
+  if (!geojson) return null;
+  const rank = (f) => {
+    const id = f.properties.route_id;
+    if (focusIds.has(id)) return 2;
+    return passing.has(id) ? 1 : 0;
+  };
+  return [...geojson.features].sort((a, b) => rank(a) - rank(b));
 }

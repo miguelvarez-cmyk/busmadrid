@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno (vigilar BUG-DEPLOY-002 🟡 en el próximo push) · Próxima acción: publicar demanda 2026 + carga por hora · Última sesión: arreglos UX, demanda 2026, modo `load` (2026-10-18)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: ficha de barrio (territorio) · Última sesión: rediseño UX completo — barra superior, tabla ranking, ficha/comparación, CSV, metodología (2026-10-18)
 
 ---
 
@@ -22,34 +22,24 @@ Visualizador interactivo del feed **GTFS de la EMT de Madrid** con capas de Metr
 - CARTO Dark Matter como basemap por defecto
 - Python 3.10+ (pandas, geopandas, shapely) para pipeline GTFS
 
-**Cómo se componen las capas (`App.jsx`):**
-`App.jsx` es el orquestador central. Llama a `useGTFSData()` que carga todos los JSON, calcula `occupancyData` y `visibleRouteIds` con `useMemo`, y construye el array `layers` pasándolo a `<DeckGL>`. Las capas se instancian solo en `src/layers/`, nunca dentro de componentes.
+**Cómo se compone la app (`App.jsx`):**
+`App.jsx` es el orquestador central. `useGTFSData()` carga todos los JSON en un objeto `data`; `computeIndicators()` (en `src/utils/indicators.js`) calcula los 12 indicadores de todas las líneas para el contexto activo, y `passing` = líneas del ámbito que cumplen los filtros. Todo se comparte por `NetworkContext` (`src/utils/network.js`). Las capas se instancian solo en `src/layers/`, nunca dentro de componentes.
+
+**Registro de indicadores (`src/utils/indicators.js`) — fuente única:**
+Mapa, tabla, ficha, CSV y metodología salen de `INDICATORS`. Añadir un indicador = añadir una entrada (id, grupo, etiqueta, unidad, `deps`, semántica de color, `def`, `method`, `value()`).
+Grupos: Oferta (intervalo, expediciones/día, amplitud, flota) · Demanda (viajeros/día, Δ interanual, viajeros/expedición) · Rendimiento (velocidad) · Trazado (longitud, tortuosidad, divergencia) · Territorio (población servida).
+
+**Estado (`useMapStore`):** `indicator` (null = red neutra) · contexto global `dayType`/`startHour`/`endHour`/`year`/`radius` · `filters` combinados `{ [indId]: [min|null, max|null] }` · `selectedRouteIds` (ámbito "Líneas") · `clickedRouteId` + `pinnedRouteIds` (ficha/comparación) · columnas y orden de la tabla.
 
 **Capas Deck.gl activas:**
-- `createRoutesLayer` — líneas EMT (coloreado por `colorMode`)
-- `createHighlightLayer` — línea hover resaltada
-- `createStopsLayer` — paradas EMT (coloreado por `stopColorMode`)
-- `createZonesLayer` — polígonos de barrios/distritos
-- `createBuildingCoverageLayer` — cobertura por edificio (modo `buildingCoverageMode`)
-- `createMetroCercaniasRoutesLayer` — líneas Metro (toggle independiente; Cercanías eliminada por datos de baja calidad)
-- `createMetroCercaniasStopsLayer` — paradas Metro
+- `createRoutesLayer` — líneas: las que no pasan ámbito/filtros, atenuadas en gris debajo; las de la ficha, encima y más gruesas
+- `createStopsLayer` — paradas (opcional), coloreables por nº de líneas o expediciones
 
-**Modos de color de líneas (`colorMode`):**
-`offer | schedule | speed | load | tortuosity | divergence | length | fleet | demand | occupancy | coverage | null`
-Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` inicializado en `App.jsx` cuando carga el dataset.
-
-**Modos de color de paradas (`stopColorMode`):**
-`routes | expeditions | null` — mismo patrón toggle.
-
-**Sidebar: 8 secciones en acordeón (orden vinculante):**
-1. Líneas — `LineSelector`
-2. Barrios — botón `▭ Área` + `DistrictsPanel`
-3. Calidad de la Oferta — `VisualizationControls` (3 modos: offer, schedule, speed)
-4. Análisis de itinerarios — `ItinerariosPanel` (3 modos: tortuosity, divergence, length)
-5. Paradas — checkbox + `StopRoutesPanel` + `StopExpeditionsPanel`
-6. Otros — `OtrosPanel` (flota, demanda, ocupación)
-7. Metro — `MetroCercaniasPanel` (solo Metro; Cercanías pendiente de datos)
-8. Fondo — `LayerToggles` (basemap)
+**Estructura de pantalla (vinculante, ver `docs/REDISENO_UX.md`):**
+1. Barra superior — indicador · tipo de día · franja · año · filtro Líneas · chips de filtros · Metodología
+2. Mapa — leyenda + histograma con filtro (abajo izq.) · control de capas (arriba dcha.) · tooltip
+3. Panel derecho — tabla ranking ↔ ficha de línea / comparación (sustituye a la tabla)
+4. Metodología — capa a pantalla completa en `#metodologia`
 
 ---
 
@@ -83,7 +73,7 @@ edita desde otras máquinas y la copia local puede ir por detrás.
 `https://api.github.com/repos/miguelvarez-cmyk/busmadrid/actions/runs`.
 
 **⚠️ Cuota de deploy IONOS: 50 MB (~47,7 MiB)**
-A 2026-05-17 el `dist/` ocupa ~46,4 MB. Margen restante: ~3,5 MB.
+Tras el rediseño (2026-10-18) el `dist/` ocupa ~11 MB.
 Si el deploy falla con "deployment is larger than the allowed quota":
 ```bash
 python scripts/optimize_buildings_geojson.py  # reduce buildings GeoJSON sin reprocesar datos
@@ -98,7 +88,7 @@ python scripts/compute_stop_expeditions.py
 # adicionales: compute_speed.py, compute_demand.py, compute_fleet.py, compute_tortuosity.py, compute_schedule.py
 ```
 
-Pipeline Metro/Cercanías (el GTFS del CRTM omite L3; hay que parchear antes de procesar):
+Pipeline Metro/Cercanías — capa retirada del front en el rediseño; sus datos están en `data/archivo/` (el GTFS del CRTM omite L3; hay que parchear antes de procesar):
 ```bash
 python scripts/download_gtfs_crtm.py         # descarga GTFS Metro + Cercanías
 python scripts/fetch_metro_l3_osm.py         # inyecta geometría y paradas de L3 desde OSM
@@ -114,13 +104,12 @@ python scripts/process_metro_cercanias.py    # genera metro_cercanias_routes/sto
 - Capas Deck.gl: factoría `createXxxLayer(data, options)` en `src/layers/`. No instanciar en componentes
 - Estado compartido → `src/store/useMapStore.js`. Estado local → `useState`
 - Selectores nominales exportados al final del store (`useColorMode`, `useViewState`…). Prohibido `useStore(s => s.x)` disperso
-- Sidebar: respetar orden de las 6 secciones
-- Gradiente de color universal: verde `[50,200,50]` → amarillo `[220,200,50]` → rojo `[220,50,50]`; todas las capas e histogramas
+- Estructura de pantalla: respetar la de `docs/REDISENO_UX.md` (barra superior + mapa + panel tabla/ficha)
+- Color por indicador según su semántica (`color` en el registro): valorativo verde `[50,200,50]` → amarillo `[220,200,50]` → rojo `[220,50,50]`; neutro de un solo tono azul; divergente rojo–gris–verde. Nunca colores fuera de `colorAt()`
 - `powerPreference: 'default'` en `glOptions` (NO `'high-performance'` — crashea en chips móviles)
 - `height: 100dvh` en `.app`; `env(safe-area-inset-bottom)` en elementos fijos al borde inferior
 - No usar `backdrop-filter` en capas que compartan compositing layer con el canvas WebGL
 - Toggles en el store: `set((s) => ({ x: s.x === v ? null : v }))`
-- Buckets de Histogram: `{ label: string, count: number, color: [r,g,b], inRange?: boolean }`
 
 ### Convenciones (preferencias)
 - `PascalCase` para componentes; `camelCase` para utilidades y hooks (`useXxx`)
@@ -156,7 +145,7 @@ Usar `AskUserQuestion` antes de:
 - Añadir dependencias al `package.json`
 - Modificar entradas/salidas de scripts Python
 - Cambiar el esquema de cualquier archivo en `public/data/`
-- Reordenar las 6 secciones del sidebar
+- Cambiar la estructura de pantalla o el catálogo de indicadores
 
 ---
 

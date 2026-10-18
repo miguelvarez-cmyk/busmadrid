@@ -29,6 +29,8 @@ Definidos en `:root` de `src/index.css`. Usar siempre las variables, nunca color
 
 ### Gradiente de color universal 🔒
 
+> **Sustituido el 2026-10-18 (ADR-008):** cada indicador tiene su semántica de color (`color` en `src/utils/indicators.js`): valorativo verde→amarillo→rojo con sentido según el indicador, neutro de un tono azul, divergente rojo–gris–verde. Lo que sigue queda como referencia de la paleta valorativa.
+
 **Todos los histogramas y capas de visualización DEBEN usar este gradiente.**
 
 ```

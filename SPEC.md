@@ -1,11 +1,13 @@
 # SPEC.md — Especificación del Visualizador GTFS Madrid
 
-> Triage: requisitos estables · Última revisión: 2026-05-17
+> Triage: requisitos estables · Última revisión: 2026-10-18 (rediseño UX: ver docs/REDISENO_UX.md, que prevalece sobre RF-02 a RF-05)
 > Ver también: [TODO.md](TODO.md) (tareas activas) · [ISSUES.md](ISSUES.md) · [SCHEMA.md](SCHEMA.md)
 
 ---
 
 ## Requisitos funcionales
+
+> Desde el rediseño de 2026-10-18 la estructura y el catálogo de indicadores están en [docs/REDISENO_UX.md](docs/REDISENO_UX.md) y en `src/utils/indicators.js`. Usuario principal: especialista en transporte; tarea nº 1: diagnóstico de red. Exportación CSV permitida (tabla, perfiles horarios, paradas).
 
 ### RF-01 Visualización de red
 - Mostrar recorridos de líneas de bus EMT sobre mapa interactivo
@@ -103,7 +105,6 @@
 - Migración a TypeScript (decisión explícita de mantener JS)
 - Tests de integración con base de datos (no hay base de datos)
 - Panel de administración
-- Exportación de datos desde el frontend
 
 
 ---

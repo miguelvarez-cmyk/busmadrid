@@ -1,11 +1,15 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import { INITIAL_VIEW_STATE, DEFAULT_BASEMAP } from '../config/mapConfig.js';
+import { INITIAL_VIEW_STATE } from '../config/mapConfig.js';
+
+export const DEFAULT_COLUMNS = ['demand', 'interval', 'load', 'speed'];
+export const MAX_PINNED = 6;
 
 export const useMapStore = create((set) => ({
   viewState: INITIAL_VIEW_STATE,
   setViewState: (viewState) => set({ viewState }),
 
+  // Ámbito: líneas incluidas (filtro "Líneas")
   selectedRouteIds: new Set(),
   setSelectedRouteIds: (ids) => set({ selectedRouteIds: new Set(ids) }),
   toggleRoute: (id) =>
@@ -25,162 +29,100 @@ export const useMapStore = create((set) => ({
       return { selectedRouteIds: next };
     }),
   selectAllRoutes: (ids) => set({ selectedRouteIds: new Set(ids) }),
-
+  clearRoutes: () => set({ selectedRouteIds: new Set() }),
   // Nº total de líneas del feed (para no escribir todas en la URL)
   totalRouteCount: 0,
   setTotalRouteCount: (n) => set({ totalRouteCount: n }),
-  clearRoutes: () => set({ selectedRouteIds: new Set() }),
 
-  hoveredRouteId: null,
-  setHoveredRouteId: (id) => set({ hoveredRouteId: id }),
+  // Indicador que colorea el mapa (null = red neutra)
+  indicator: null,
+  setIndicator: (indicator) => set({ indicator }),
+
+  // Contexto temporal global
+  dayType: 'LA',
+  startHour: 7,
+  endHour: 9,
+  year: '2025',
+  radius: 300,
+  setDayType: (dayType) => set({ dayType }),
+  setHourRange: (startHour, endHour) => set({ startHour, endHour }),
+  setYear: (year) => set({ year }),
+  setRadius: (radius) => set({ radius }),
+
+  // Filtros combinados: { [indicatorId]: [min|null, max|null] }
+  filters: {},
+  setFilter: (id, range) =>
+    set((state) => {
+      const next = { ...state.filters };
+      if (!range || (range[0] == null && range[1] == null)) delete next[id];
+      else next[id] = range;
+      return { filters: next };
+    }),
+  clearFilters: () => set({ filters: {} }),
 
   hoveredRouteIds: [],
   setHoveredRouteIds: (ids) => set({ hoveredRouteIds: ids }),
 
+  // Ficha: línea abierta + líneas fijadas para comparar
   clickedRouteId: null,
-  setClickedRouteId: (id) => set({ clickedRouteId: id }),
+  setClickedRouteId: (id) => set(id ? { clickedRouteId: id, fichaOpen: true } : { clickedRouteId: null }),
+  pinnedRouteIds: [],
+  togglePin: (id) =>
+    set((state) => {
+      if (state.pinnedRouteIds.includes(id)) {
+        return { pinnedRouteIds: state.pinnedRouteIds.filter((x) => x !== id) };
+      }
+      if (state.pinnedRouteIds.length >= MAX_PINNED) return {};
+      return { pinnedRouteIds: [...state.pinnedRouteIds, id] };
+    }),
+  setPinnedRouteIds: (ids) => set({ pinnedRouteIds: ids.slice(0, MAX_PINNED) }),
+  fichaOpen: false,
+  openFicha: () => set({ fichaOpen: true }),
+  closeFicha: () => set({ fichaOpen: false, clickedRouteId: null }),
 
-  colorMode: null,
-  setColorMode: (mode) => set((state) => ({
-    colorMode: state.colorMode === mode ? null : mode,
-  })),
+  // Tabla
+  tableColumns: DEFAULT_COLUMNS,
+  setTableColumns: (cols) => set({ tableColumns: cols }),
+  sort: { key: 'line', dir: 'asc' },
+  setSort: (sort) => set({ sort }),
+  panelWide: false,
+  setPanelWide: (panelWide) => set({ panelWide }),
 
-  dayOfWeek: 0,
-  startHour: 7,
-  endHour: 10,
-  setDayOfWeek: (d) => set({ dayOfWeek: d }),
-  setHourRange: (startHour, endHour) => set({ startHour, endHour }),
-
-  // Filtros activos según el modo de coloreado
-  freqFilter: [0, 60],     // minutos; freq fuera del rango oculta la línea
-  speedFilter: null,       // [min, max] km/h; null hasta cargar route_speed
-  demandFilter: null,      // [min, max] viajeros/día; null hasta cargar route_demand
-  demandYear: '2025',      // año activo para colorear mapa y filtrar demanda
-  fleetFilter: null,       // [min, max] buses; null hasta cargar route_fleet
-  tortuosityFilter: null,  // [min, max] ratio; null hasta cargar route_tortuosity
-  divergenceFilter: null,  // [min, max] %; null hasta cargar route_divergence
-  lengthFilter: null,      // [min, max] km; null hasta cargar route_tortuosity
-  scheduleFilter: null,    // [min, max] minutos; null hasta cargar route_schedule
-  setFreqFilter: (range) => set({ freqFilter: range }),
-  setSpeedFilter: (range) => set({ speedFilter: range }),
-  setDemandFilter: (range) => set({ demandFilter: range }),
-  setDemandYear: (year) => set({ demandYear: year }),
-  setFleetFilter: (range) => set({ fleetFilter: range }),
-  setTortuosityFilter: (range) => set({ tortuosityFilter: range }),
-  setDivergenceFilter: (range) => set({ divergenceFilter: range }),
-  setLengthFilter: (range) => set({ lengthFilter: range }),
-  setScheduleFilter: (range) => set({ scheduleFilter: range }),
-
-  // Tipo de día para el modo Flota: LA=laborable, SA=sábado, FE=festivo
-  fleetDayType: 'LA',
-  setFleetDayType: (t) => set({ fleetDayType: t }),
-
-  // Tipo de día para el modo Horario
-  scheduleDayType: 'LA',
-  setScheduleDayType: (t) => set({ scheduleDayType: t }),
-
-  // Filtro de paradas por número de líneas: [min, max]
-  stopRoutesFilter: null,
-  setStopRoutesFilter: (range) => set({ stopRoutesFilter: range }),
-
-  // Modo de color para paradas: 'routes' | 'expeditions' | null
-  stopColorMode: null,
-  setStopColorMode: (mode) => set((state) => ({
-    stopColorMode: state.stopColorMode === mode ? null : mode,
-  })),
-
-  // Filtro de paradas por número de expediciones en hora punta: [min, max]
-  stopExpeditionsFilter: null,
-  setStopExpeditionsFilter: (range) => set({ stopExpeditionsFilter: range }),
-
-  // Filtro de ocupación media de rutas: [min, max]
-  occupancyFilter: null,
-  setOccupancyFilter: (range) => set({ occupancyFilter: range }),
-
-  // Carga por hora: viajeros por expedición [min, max]; max 100 = sin límite
-  loadFilter: [0, 100],
-  setLoadFilter: (range) => set({ loadFilter: range }),
-
-  // Cobertura poblacional por línea
-  coverageFilter: null,
-  coverageDistance: 400,
-  setCoverageFilter: (range) => set({ coverageFilter: range }),
-  setCoverageDistance: (d) => set({ coverageDistance: d }),
-
-  // Modo de selección por área (recuadro)
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
 
+  // Capa de paradas
   showStops: false,
   setShowStops: (v) => set({ showStops: v }),
-
-  showMetroLines: false,
-  showMetroStops: false,
-  setShowMetroLines: (v) => set({ showMetroLines: v }),
-  setShowMetroStops: (v) => set({ showMetroStops: v }),
-
-  basemap: DEFAULT_BASEMAP,
-  setBasemap: (id) => set({ basemap: id }),
-
+  stopColorMode: null, // 'routes' | 'expeditions' | null
+  setStopColorMode: (mode) => set({ stopColorMode: mode }),
   hoveredStop: null,
   setHoveredStop: (s) => set({ hoveredStop: s }),
-
-  highlightedZoneIds: new Set(),
-  toggleZoneHighlight: (barrioIds) =>
-    set((state) => {
-      const next = new Set(state.highlightedZoneIds);
-      const allIn = barrioIds.every((id) => next.has(id));
-      if (allIn) barrioIds.forEach((id) => next.delete(id));
-      else barrioIds.forEach((id) => next.add(id));
-      return { highlightedZoneIds: next };
-    }),
-
-  // Elementos viales
-  showBusLanes: false,
-  setShowBusLanes: (v) => set({ showBusLanes: v }),
-  showParkingBands: false,
-  setShowParkingBands: (v) => set({ showParkingBands: v }),
 }));
 
 export const useViewState = () => useMapStore((s) => s.viewState);
 export const useSetViewState = () => useMapStore((s) => s.setViewState);
 export const useSelectedRouteIds = () => useMapStore((s) => s.selectedRouteIds);
-export const useHoveredRouteId = () => useMapStore((s) => s.hoveredRouteId);
 export const useHoveredRouteIds = () => useMapStore((s) => s.hoveredRouteIds);
 export const useClickedRouteId = () => useMapStore((s) => s.clickedRouteId);
-export const useColorMode = () => useMapStore((s) => s.colorMode);
-// useShallow: devuelve la misma referencia mientras no cambien los tres valores,
-// para no invalidar memos/capas en cada actualización del store (p. ej. hover)
-export const useTimeFilter = () =>
+export const usePinnedRouteIds = () => useMapStore((s) => s.pinnedRouteIds);
+export const useFichaOpen = () => useMapStore((s) => s.fichaOpen);
+export const useIndicator = () => useMapStore((s) => s.indicator);
+export const useFilters = () => useMapStore((s) => s.filters);
+// useShallow: misma referencia mientras no cambien los valores, para no
+// invalidar memos/capas en cada actualización del store (p. ej. hover)
+export const useCtx = () =>
   useMapStore(useShallow((s) => ({
-    dayOfWeek: s.dayOfWeek,
+    dayType: s.dayType,
     startHour: s.startHour,
     endHour: s.endHour,
+    year: s.year,
+    radius: s.radius,
   })));
-export const useFreqFilter = () => useMapStore((s) => s.freqFilter);
-export const useSpeedFilter = () => useMapStore((s) => s.speedFilter);
-export const useDemandFilter = () => useMapStore((s) => s.demandFilter);
-export const useDemandYear = () => useMapStore((s) => s.demandYear);
-export const useFleetFilter = () => useMapStore((s) => s.fleetFilter);
-export const useFleetDayType = () => useMapStore((s) => s.fleetDayType);
-export const useTortuosityFilter = () => useMapStore((s) => s.tortuosityFilter);
-export const useDivergenceFilter = () => useMapStore((s) => s.divergenceFilter);
-export const useLengthFilter = () => useMapStore((s) => s.lengthFilter);
-export const useScheduleFilter = () => useMapStore((s) => s.scheduleFilter);
-export const useScheduleDayType = () => useMapStore((s) => s.scheduleDayType);
-export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
-export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
-export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditionsFilter);
-export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
-export const useLoadFilter = () => useMapStore((s) => s.loadFilter);
-export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
-export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
+export const useTableColumns = () => useMapStore((s) => s.tableColumns);
+export const useSort = () => useMapStore((s) => s.sort);
+export const usePanelWide = () => useMapStore((s) => s.panelWide);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
+export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
 export const useHoveredStop = () => useMapStore((s) => s.hoveredStop);
-export const useShowMetroLines = () => useMapStore((s) => s.showMetroLines);
-export const useShowMetroStops = () => useMapStore((s) => s.showMetroStops);
-export const useBasemap = () => useMapStore((s) => s.basemap);
-export const useHighlightedZoneIds = () => useMapStore((s) => s.highlightedZoneIds);
-export const useShowBusLanes = () => useMapStore((s) => s.showBusLanes);
-export const useShowParkingBands = () => useMapStore((s) => s.showParkingBands);
