@@ -133,3 +133,19 @@
 - Intervalo medio redefinido como minutos con servicio ÷ expediciones (antes: mejor hora de la franja)
 - Metro, carril bus, bandas SER, selector de fondo y selección por barrio retirados del front (datos en `data/archivo/`)
 - Exportación CSV permitida; la URL guarda el estado completo y traduce los enlaces antiguos (`cm`, `dow`, `sh`, `eh`)
+
+---
+
+## ADR-009 — Texto mínimo, tema, mapa base y guía 🟢
+
+**Fecha:** 2026-10-18
+**Estado:** activo
+
+**Decisión:** (1) Solo una línea de texto por elemento; las definiciones van en tooltips, en ⓘ o en `#metodologia`. (2) Modo claro/oscuro y cuatro mapas base, con escalas neutras que se adaptan al tono del fondo. (3) Guía de bienvenida de 11 pasos. (4) `.htaccess` con `index.html` sin caché.
+
+**Contexto:** El usuario encontró agotadores los textos secundarios grises. Pidió recuperar la elección de mapa base y un onboarding. Tras un deploy, los navegadores seguían mostrando la versión anterior porque Apache no enviaba `Cache-Control`.
+
+**Consecuencias:**
+- Prohibido añadir subtítulos o notas visibles por defecto; el detalle va en tooltips o en la metodología
+- Los colores de la interfaz van siempre por tokens CSS (los dos temas)
+- Las clases que usa la guía (`STEPS` en `Tour.jsx`) son parte del contrato de la interfaz

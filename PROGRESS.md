@@ -7,15 +7,45 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-10-18
-**Última tarea completada:** Rediseño UX completo (rama `rediseno-ux`, especificación en `docs/REDISENO_UX.md`, ADR-008)
-**Próxima acción:** Ficha de barrio (R1 en TODO)
+**Sesión cerrada:** 2026-10-18 (noche)
+**Última tarea completada:** guía de bienvenida + revisión UX (`7bd3f1c`, en producción)
+**Próxima acción:** Ficha de barrio (R1 en TODO). Antes, decidir las dos cuestiones abiertas de TODO (chips en móvil, etiqueta del año)
 
 **Estado de verificación:**
-- [x] Demanda 2026 + carga por hora (`2689098`) publicados en producción
-- [x] Rediseño: lint y build OK; recorrido en Chrome sin interfaz (escritorio y móvil) sin errores de consola; CSV verificados
+- [x] Todo publicado en busmadrid.org; el bundle de producción coincide con el build local (`index-DRi_3DVh.js`)
+- [x] Guía recorrida en producción sin errores de consola (aparece la 1.ª vez, Saltar, no reaparece, botón ? la reabre)
+- [x] Cabeceras de caché verificadas: `index.html` no-cache · assets con hash 1 año · JSON no-cache
 
 ---
+
+## Sesión 2026-10-18 (noche) — Iteraciones sobre el rediseño
+
+Commits (todos en `main` y publicados, firmados como miguelvarez-cmyk):
+
+| Commit | Cambio |
+|---|---|
+| `eda42ea` | Favicon en línea (el `/vite.svg` daba 404 desde antes) |
+| `04bd9fc` | `public/.htaccess`: los navegadores seguían mostrando el `index.html` viejo tras un deploy |
+| `efe84a0` | Menos texto: fuera subtítulos y notas grises (referencias: Remix by Via, Our World in Data) |
+| `29a4c67` | Modo claro/oscuro, selector de mapa base (oscuro, gris claro, OSM, satélite), extremos de filtro editables por teclado, leyenda arriba a la izquierda |
+| `7074fee` | Ancho del panel según las columnas visibles (380 px–85 vw); ⇤/⇥ solo muestra/oculta nombres de línea |
+| `5461071` | Guía de bienvenida: 11 pasos con foco animado y animación SVG por paso |
+| `7bd3f1c` | Arreglos de la revisión UX: cabeceras alineadas, sin recuento duplicado, chips compactos, unidad en tooltip |
+
+Decisiones del usuario en esta sesión:
+- Sencillez extrema en el texto: una línea por elemento; la metodología solo tras ⓘ / «Metodología» / tooltips nativos.
+- Se recupera la elección de mapa base (antes retirada) y se añade modo claro.
+- Los filtros activos deben poder editarse por teclado.
+- La guía: una funcionalidad por paso, con «Saltar» y botón para volver a verla.
+
+Detalles técnicos que conviene recordar:
+- **Tono del fondo** (`BASEMAPS[x].tone`): la rampa neutra se invierte en fondos claros (`setColorTone` en `indicators.js`, se llama desde `App` antes de calcular colores). Las líneas atenuadas y las paradas también dependen del tono.
+- **`<MapGL key={basemap}>`**: cambiar de estilo vectorial sobre el mismo mapa dejaba capas del anterior (Dark Matter → Positron salía medio oscuro).
+- **Tema:** `localStorage` `busmadrid-theme`, aplicado por un script en `index.html` antes de pintar. Los colores van por tokens; la paleta clara está en `:root[data-theme="light"]`.
+- **Guía:** `localStorage` `busmadrid-tour-done`. Los pasos apuntan a selectores CSS (`.indicator-picker`, `.time-controls`, `.legend`, `.lines-filter`, `.lines-table`, `.layers`, `.csv-anchor`, `.topbar-link`, `.theme-toggle`, `.tour-btn`): si se renombra alguna clase, hay que actualizar `STEPS` en `Tour.jsx`.
+- **Tabla:** `td` nunca con `display:flex` (rompe el cálculo de anchos de la tabla); el ancla del filtro de cabecera va con `position:absolute`.
+- **Verificación:** se hizo con `puppeteer-core` en el directorio temporal (fuera del proyecto) contra `vite preview` y contra producción, usando el Chrome instalado. No se añadió ninguna dependencia al proyecto.
+- **Entorno:** los heredocs largos fallan en Git Bash (`unexpected EOF`); usar Write. Un `npm run build` falló una vez por falta de memoria y pasó al reintentar.
 
 ## Sesión 2026-10-18 (tarde) — Rediseño UX
 

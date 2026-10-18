@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: ficha de barrio (territorio) · Última sesión: rediseño UX completo — barra superior, tabla ranking, ficha/comparación, CSV, metodología (2026-10-18)
+Fase: desarrollo activo · Bloqueadores: ninguno · Próxima acción: ficha de barrio (R1) · Última sesión: modo claro, mapa base, filtros por teclado, ancho de panel adaptable, guía de bienvenida (2026-10-18)
 
 ---
 
@@ -40,6 +40,12 @@ Grupos: Oferta (intervalo, expediciones/día, amplitud, flota) · Demanda (viaje
 2. Mapa — leyenda + histograma con filtro (abajo izq.) · control de capas (arriba dcha.) · tooltip
 3. Panel derecho — tabla ranking ↔ ficha de línea / comparación (sustituye a la tabla)
 4. Metodología — capa a pantalla completa en `#metodologia`
+5. Guía de bienvenida — `Tour.jsx` (11 pasos; primera visita y botón ?)
+
+**Tema y fondo:** `theme` (claro/oscuro, en `localStorage`) y `basemap` (en la URL) en el store; `BASEMAPS` en `src/config/mapConfig.js` con su `tone`, que decide la rampa neutra (`setColorTone`).
+
+**Texto:** sencillez máxima. Una línea por elemento, sin subtítulos grises. El detalle va en tooltips nativos, en ⓘ o en `#metodologia`.
+
 
 ---
 
@@ -67,6 +73,8 @@ trabajo (`Malvartinez`); con ella el workflow "Deploy to IONOS" queda en
 
 **Antes de trabajar:** `git fetch` y comparar con `origin/main` — el repo se
 edita desde otras máquinas y la copia local puede ir por detrás.
+
+**Caché:** `public/.htaccess` hace que `index.html` se revalide en cada visita y deja los assets con hash en caché de 1 año. No quitarlo.
 
 **Comprobar el deploy:** el bundle publicado se ve en `https://busmadrid.org/`
 (`assets/index-*.js`); el estado de los workflows se consulta sin autenticación en

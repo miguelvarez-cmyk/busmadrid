@@ -12,7 +12,7 @@ Escritorio primero; en móvil solo consulta (mapa + indicador + ficha).
 │                               │ TABLA RANKING (ordenable, ensanchable)    │
 │            MAPA               │  línea · indicador activo · cols. config. │
 │                     [Paradas] │  [↓CSV]                                   │
-│ [leyenda + histograma]        │  clic → FICHA (sustituye a la tabla)      │
+│ (leyenda + histograma: arriba izquierda)  clic → FICHA (sustituye a la tabla) │
 └───────────────────────────────┴───────────────────────────────────────────┘
 ```
 
@@ -79,7 +79,7 @@ La definición va en un ⓘ (fórmula en una línea) que enlaza a la página **/
 
 - Solo **Paradas**, con su coloreado propio (nº de líneas o expediciones) dentro del control de capas.
 - Metro, Carril bus y Bandas SER se quitan del front. Sus GeoJSON se guardan en el repo fuera de `public/` (y por tanto fuera de `dist/`).
-- Un solo fondo oscuro neutro; desaparece el selector de fondo.
+- Mapa base a elegir en el control de capas: oscuro, gris claro, OpenStreetMap o satélite. Modo claro/oscuro con el botón ☀/☾ (añadido el 2026-10-18, ADR-009).
 
 ## Guía de bienvenida
 

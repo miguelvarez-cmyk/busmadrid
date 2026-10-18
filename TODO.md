@@ -9,9 +9,11 @@
 
 | ID | Tarea | Estado |
 |---|---|---|
+| Q1 | **Decidir:** ¿mostrar en móvil los chips de filtro activos? Ahora se ocultan para no ocupar media pantalla; el filtro se aplica, pero no se ve | ❓ usuario |
+| Q2 | **Decidir:** ¿el selector de año dice «Demanda 2025» en vez de «2025»? Ahora la aclaración está solo en el tooltip | ❓ usuario |
 | R1 | **Ficha de barrio** — el territorio como entidad de análisis: servicio recibido (líneas, frecuencia combinada, población servida). Datos de partida en `data/archivo/` (barrios, route_districts) | 🟡 pendiente |
 
-> Rediseño UX (2026-10-18, ADR-008) hecho: barra superior con indicador y contexto global, tabla ranking, filtros combinados, ficha con percentiles, comparación de líneas fijadas, CSV y metodología. Quedan **obsoletas**: A3 (hecha como comparación), M0a, M0b, M0c (capas retiradas), M2 (sidebar eliminado) y M8 (fondo único). A1 debe rehacerse sobre el contexto temporal global (`startHour`/`endHour`), no sobre `colorMode`.
+> Rediseño UX (2026-10-18, ADR-008) hecho: barra superior con indicador y contexto global, tabla ranking, filtros combinados, ficha con percentiles, comparación de líneas fijadas, CSV y metodología. Quedan **obsoletas**: A3 (hecha como comparación), M0a, M0b, M0c (capas retiradas) y M2 (sidebar eliminado). M8 (modo claro y mapa base) **hecha** el 2026-10-18 (`29a4c67`). A1 debe rehacerse sobre el contexto temporal global (`startHour`/`endHour`), no sobre `colorMode`.
 
 ---
 
