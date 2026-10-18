@@ -51,6 +51,7 @@ export default function Sidebar({
   routeSchedule,
   routeDistricts,
   serviceMetrics,
+  routeLoadHourly,
   selectedRouteIds,
   visibleRouteIds,
   basemap,
@@ -234,6 +235,7 @@ export default function Sidebar({
                 routeSchedule={routeSchedule}
                 routesMeta={routesMeta}
                 serviceMetrics={serviceMetrics}
+                routeLoadHourly={routeLoadHourly}
                 selectedRouteIds={selectedRouteIds}
                 visibleRouteIds={visibleRouteIds}
                 inSidebar

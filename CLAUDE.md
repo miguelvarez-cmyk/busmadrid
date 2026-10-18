@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Status 🔒
 <!-- ≤50 tokens: actualiza esto al empezar/cerrar cada sesión -->
-Fase: desarrollo activo · Bloqueadores: cuota IONOS (ISSUES.md LIMIT-DEPLOY-001 🔴) · Próxima acción: animación temporal horaria (TODO.md #A1) · Última sesión: slider horario + mejoras visuales histogramas tema oscuro (2026-05-19)
+Fase: desarrollo activo · Bloqueadores: ninguno (vigilar BUG-DEPLOY-002 🟡 en el próximo push) · Próxima acción: publicar demanda 2026 + carga por hora · Última sesión: arreglos UX, demanda 2026, modo `load` (2026-10-18)
 
 ---
 
@@ -35,7 +35,7 @@ Visualizador interactivo del feed **GTFS de la EMT de Madrid** con capas de Metr
 - `createMetroCercaniasStopsLayer` — paradas Metro
 
 **Modos de color de líneas (`colorMode`):**
-`offer | schedule | speed | tortuosity | divergence | length | fleet | demand | occupancy | coverage | null`
+`offer | schedule | speed | load | tortuosity | divergence | length | fleet | demand | occupancy | coverage | null`
 Toggle: clic en modo activo → `null`. Cada modo tiene su filtro `[min, max]` inicializado en `App.jsx` cuando carga el dataset.
 
 **Modos de color de paradas (`stopColorMode`):**
@@ -69,6 +69,18 @@ No hay script de deploy manual ni rama `gh-pages`.
 ```bash
 git push origin main   # → IONOS construye y publica automáticamente
 ```
+
+**⚠️ Identidad git:** los commits deben ir firmados como `miguelvarez-cmyk`
+(`miguelvarez@gmail.com`). La identidad global de este equipo es la del
+trabajo (`Malvartinez`); con ella el workflow "Deploy to IONOS" queda en
+`action_required` y no publica. Ver ISSUES.md BUG-DEPLOY-002.
+
+**Antes de trabajar:** `git fetch` y comparar con `origin/main` — el repo se
+edita desde otras máquinas y la copia local puede ir por detrás.
+
+**Comprobar el deploy:** el bundle publicado se ve en `https://busmadrid.org/`
+(`assets/index-*.js`); el estado de los workflows se consulta sin autenticación en
+`https://api.github.com/repos/miguelvarez-cmyk/busmadrid/actions/runs`.
 
 **⚠️ Cuota de deploy IONOS: 50 MB (~47,7 MiB)**
 A 2026-05-17 el `dist/` ocupa ~46,4 MB. Margen restante: ~3,5 MB.

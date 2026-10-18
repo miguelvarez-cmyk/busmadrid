@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { useClickedRouteId, useMapStore, useSetViewState } from '../../store/useMapStore.js';
-import { scheduleTableFromMetrics } from '../../utils/service.js';
+import { useEffect, useMemo, useState } from 'react';
+import { useClickedRouteId, useMapStore, useSetViewState, useTimeFilter } from '../../store/useMapStore.js';
+import { scheduleTableFromMetrics, demandYearLabel, loadHourlyProfile, loadCategory, loadDayType } from '../../utils/service.js';
 
 function getBbox(routesGeojson, routeId) {
   let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
@@ -118,6 +118,52 @@ function MonthChart({ monthlyData, color }) {
   );
 }
 
+const LOAD_DAY_TYPES = [
+  { id: 'LA', label: 'Laborable', dow: 0 },
+  { id: 'SA', label: 'Sábado', dow: 5 },
+  { id: 'FE', label: 'Dom./festivo', dow: 6 },
+];
+
+// Viajeros subidos por expedición en cada hora, coloreado por categoría de carga
+function LoadChart({ profile }) {
+  const maxV = Math.max(1, ...profile.map((p) => p.ratio ?? 0));
+  return (
+    <div className="rd-hour-chart">
+      <div className="rd-hour-chart-inner">
+        <div className="rd-hour-yaxis">
+          <span>{Math.round(maxV)}</span>
+          <span>0</span>
+        </div>
+        <div className="rd-hour-bars">
+          {profile.map(({ hour, pax, exp, ratio }) => {
+            const cat = loadCategory(ratio);
+            const label = ratio == null
+              ? `${hour}:00 h — sin expediciones`
+              : `${hour}:00 h — ${Math.round(ratio)} viajeros/expedición (${pax.toLocaleString('es-ES')} viajeros, ${Math.round(exp)} exp.)`;
+            return (
+              <div
+                key={hour}
+                className="rd-hour-bar"
+                style={{
+                  height: `${Math.max(2, Math.round(((ratio ?? 0) / maxV) * 48))}px`,
+                  background: cat ? `rgb(${cat.color.join(',')})` : 'var(--text-disabled)',
+                  opacity: ratio == null ? 0.12 : 1,
+                }}
+                title={label}
+                role="img"
+                aria-label={label}
+              />
+            );
+          })}
+        </div>
+      </div>
+      <div className="rd-hour-labels">
+        <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
+      </div>
+    </div>
+  );
+}
+
 export default function RouteDrawer({
   routesMeta,
   routeSpeed,
@@ -127,8 +173,13 @@ export default function RouteDrawer({
   serviceMetrics,
   routesGeojson,
   routeDepartureTimes,
+  routeLoadHourly,
 }) {
   const clickedRouteId = useClickedRouteId();
+  // Tipo de día del gráfico de carga: arranca con el del filtro horario global
+  const { dayOfWeek } = useTimeFilter();
+  const [loadDay, setLoadDay] = useState(() => loadDayType(dayOfWeek));
+  useEffect(() => { setLoadDay(loadDayType(dayOfWeek)); }, [dayOfWeek]);
   const setClickedRouteId = useMapStore((s) => s.setClickedRouteId);
   const setViewState = useSetViewState();
 
@@ -176,6 +227,15 @@ export default function RouteDrawer({
   const fe0 = metricsForRoute?.['6']?.['0'];
   const fe1 = metricsForRoute?.['6']?.['1'];
 
+  const loadProfile = useMemo(() => {
+    const dow = LOAD_DAY_TYPES.find((d) => d.id === loadDay).dow;
+    return loadHourlyProfile(routeLoadHourly, serviceMetrics, clickedRouteId, dow);
+  }, [routeLoadHourly, serviceMetrics, clickedRouteId, loadDay]);
+  const loadPeak = useMemo(() => {
+    if (!loadProfile) return null;
+    return loadProfile.reduce((best, p) => (p.ratio != null && p.ratio > (best?.ratio ?? -1) ? p : best), null);
+  }, [loadProfile]);
+
   const routeColor = routeMeta ? `#${routeMeta.color}` : '#888';
 
   function handleCenter() {
@@ -204,7 +264,7 @@ export default function RouteDrawer({
     ? Math.round(demandAvg).toLocaleString('es-ES')
     : null;
 
-  const year = demandYear ?? '2025';
+  const year = demandYearLabel(routeDemand, demandYear ?? routeDemand?.year ?? '2025');
 
   return (
     <div className={`route-drawer${isOpen ? ' open' : ''}`}>
@@ -316,6 +376,32 @@ export default function RouteDrawer({
                     <div className="rd-hour-day-label">Festivo</div>
                     <HourChart row0={fe0} row1={fe1} color={routeColor} />
                   </>
+                )}
+              </div>
+            )}
+
+            {loadProfile && (
+              <div className="rd-section">
+                <div className="rd-section-title">Viajeros por expedición</div>
+                <div className="row days rd-load-days">
+                  {LOAD_DAY_TYPES.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      className={loadDay === d.id ? 'active' : ''}
+                      aria-pressed={loadDay === d.id}
+                      onClick={() => setLoadDay(d.id)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+                <LoadChart profile={loadProfile} />
+                {loadPeak && (
+                  <div className="rd-load-caption">
+                    Pico: <b>{Math.round(loadPeak.ratio)} viajeros/expedición</b> a las {loadPeak.hour}:00.
+                    {' '}Viajeros subidos ÷ expediciones de la hora ({routeLoadHourly.meta.year}, sin julio-agosto).
+                  </div>
                 )}
               </div>
             )}

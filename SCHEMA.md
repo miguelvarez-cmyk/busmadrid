@@ -95,15 +95,42 @@ Ejemplo: `byRoute["27"]["1"]["0"][8]` = expediciones de la línea 27, lunes, dir
 Nota: `dow="1"` (lunes) se usa como representante de día laborable. El array tiene índice = hora (0–23).
 
 ### `route_demand.json`
+Generado por `scripts/compute_demand.py` a partir de los CSV de demanda por día,
+línea y franja horaria de EMT (`data/raw/demanda/`, ver docstring del script).
 ```js
 {
   byRoute: {
     [route_id]: {
-      dailyAvg: number,     // viajeros/día promedio 2025
-      total: number,        // viajeros total en el periodo
-      days: number          // días del periodo
+      byYear: {
+        [year]: {
+          dailyAvg: number,           // viajeros/día promedio (días con servicio)
+          total: number,              // viajeros total en el año
+          days: number,               // días con servicio
+          prevSamePeriodAvg?: number  // solo año parcial: media del mismo periodo del año anterior
+        }
+      },
+      monthly: { [year]: (number|null)[12] },             // media viajeros/día por mes
+      dowProfile: { [year]: { weekday: number, weekend: number } },
+      dailyAvg: number                                    // = último año completo (retrocompat.)
     }
-  }
+  },
+  byYear: { [year]: { min, max, partial?: true, from?: 'AAAA-MM-DD', to?: 'AAAA-MM-DD' } },
+  years: string[],   // años disponibles, p. ej. ['2023','2024','2025','2026']
+  min, max,          // = último año completo
+  year: string       // último año completo (año por defecto en la UI)
+}
+```
+
+### `route_load_hourly.json`
+Generado por `scripts/compute_hourly_load.py`. Viajeros medios subidos en cada
+hora por línea y tipo de día; el frontend lo divide entre las expediciones de
+`service_metrics.json` (LA = media lunes-viernes, SA = dow 5, FE = dow 6) para
+obtener viajeros por expedición (modo `load`).
+```js
+{
+  meta: { year: '2026', from, to, excludedMonths: [7, 8], excludedDays: number,
+          days: { LA: number, SA: number, FE: number } },
+  byRoute: { [route_id]: { LA: number[24], SA: number[24], FE: number[24] } }
 }
 ```
 

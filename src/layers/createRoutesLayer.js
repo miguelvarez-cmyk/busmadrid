@@ -11,6 +11,8 @@ import {
   scheduleColorForRoute,
   coverageColorForRoute,
   gradientColor,
+  loadColorForRoute,
+  passesLoadFilter,
   passesFrequencyFilter,
   passesSpeedFilter,
   passesDemandFilter,
@@ -53,7 +55,17 @@ export function applyModeFilter({
   occupancyFilter,
   coverageFilter,
   coverageDistance,
+  routeLoadHourly,
+  loadFilter,
 }) {
+  if (colorMode === 'load' && routeLoadHourly && serviceMetrics && loadFilter) {
+    const out = new Set();
+    for (const id of routeIds) {
+      if (passesLoadFilter(routeLoadHourly, serviceMetrics, id, timeFilter.dayOfWeek,
+        timeFilter.startHour, timeFilter.endHour, loadFilter)) out.add(id);
+    }
+    return out;
+  }
   if (colorMode === 'offer' && serviceMetrics) {
     const out = new Set();
     for (const id of routeIds) {
@@ -165,6 +177,7 @@ export function createRoutesLayer({
   scheduleDayType,
   hoveredRouteIds = [],
   clickedRouteId = null,
+  routeLoadHourly = null,
 }) {
   if (!geojson) return null;
 
@@ -198,7 +211,16 @@ export function createRoutesLayer({
   }
 
   let getBaseColor;
-  if (colorMode === 'offer' && serviceMetrics) {
+  if (colorMode === 'load' && routeLoadHourly && serviceMetrics) {
+    getBaseColor = (f) => loadColorForRoute(
+      routeLoadHourly,
+      serviceMetrics,
+      f.properties.route_id,
+      timeFilter.dayOfWeek,
+      timeFilter.startHour,
+      timeFilter.endHour
+    );
+  } else if (colorMode === 'offer' && serviceMetrics) {
     getBaseColor = (f) => frequencyColorForRoute(
       serviceMetrics,
       f.properties.route_id,
@@ -251,6 +273,7 @@ export function createRoutesLayer({
         fleetDayType,
         scheduleDayType,
         coverageDistance,
+        routeLoadHourly,
         hoveredRouteIds,
         clickedRouteId,
       ],

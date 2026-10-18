@@ -7,12 +7,95 @@
 
 ## Dónde retomar (actualiza esto al cerrar)
 
-**Sesión cerrada:** 2026-05-19
-**Última tarea completada:** Slider horario Desde/Hasta + mejoras visuales histogramas (tema oscuro en barras, labels, sliders, leyenda; separación contador visibles)
-**Próxima acción:** Animación temporal horaria — slider/play sobre `colorMode='offer'` hora a hora (TODO.md #A1)
+**Sesión cerrada:** 2026-10-18
+**Última tarea completada:** Carga por hora (modo `load`) + demanda 2026 ene–sep con el nuevo formato EMT por franja horaria
+**Próxima acción:** Commit+push de demanda 2026 y carga por hora; después flota hasta agosto (`2026ccr.csv`) y GTFS de octubre
 
 **Estado de verificación:**
-- [x] Commit pusheado a `main` → IONOS desplegando
+- [x] `a6eda9c` (arreglos UX) pusheado a `main` · build de GitHub Actions OK
+- [x] Deploy IONOS de `a6eda9c`: quedó en `action_required`; aprobado a mano en GitHub (run 39119251835) → publicado 2026-10-18 (`index-F-FYDdvM.js`)
+- [ ] Demanda 2026 + carga por hora: solo en local (lint y build OK, sin commit)
+
+---
+
+## Sesión 2026-10-18 — Auditoría UX, arreglos, demanda 2026 y carga por hora
+
+### Contexto
+La copia local iba 26 commits por detrás de `origin/main` y tenía cambios sin commitear en CLAUDE/PROGRESS/TODO. Se hizo `git stash` → `git pull --ff-only` → `git stash pop`; los conflictos se resolvieron quedándose con la versión remota (más reciente) y recuperando la entrada "Pantalla de carga" en TODO/PROGRESS. El stash sigue en `stash@{0}` como copia de seguridad.
+
+### 1. Auditoría UX (sobre el código actualizado)
+Revisión completa de componentes, store, capas y CSS. Hallazgos que **no** se abordaron (bloque de rediseño, pendiente):
+- El filtro por barrio/área "quita" líneas porque al arrancar están todas seleccionadas → debería ser "mostrar solo estas"
+- 10 modos de color repartidos en 4 acordeones; con los acordeones cerrados no se ve cuál está activo
+- Tres selectores de tipo de día independientes (frecuencia/carga, flota, horario)
+- Filtros que ocultan líneas sin avisar (faltan chips de filtros activos y "restablecer filtros"); el reset del título no reinicia modo ni filtros
+- Paradas sin ficha propia (no se pueden pulsar ni ver sus líneas; en móvil no hay hover)
+- Ficha de línea, leyenda y botones de varios paneles en tema claro dentro de una app oscura (estilos inline `#f9fafb`)
+- La ficha no tiene "ver solo esta línea" ni lista de paradas; el sidebar arranca vacío (sin onboarding)
+- La búsqueda (`SearchBar`) se quitó a propósito el 2026-05-17: no se reintrodujo
+
+### 2. Arreglos UX — commit `a6eda9c` (pusheado, deploy bloqueado)
+- **Colores coherentes "verde = mejor servicio"**: velocidad, flota, horario y cobertura pintaban el valor alto en rojo, al contrario de lo que decían sus textos. Nuevo `gradientColor(t)` en `service.js`; esas métricas usan `1 - t`. Leyenda invertida (`reversed`) en esos modos. Paradas por nº de líneas/expediciones con el mismo criterio. La ocupación (pax/expedición) mantiene alto = rojo
+- "Ocultar líneas" ya no oculta las paradas (`createStopsLayer`: sin líneas visibles se muestran todas)
+- Tooltip de parada legible (era texto casi blanco sobre fondo blanco) y movido arriba a la derecha
+- Los tooltips se apartan a la izquierda con la ficha de línea abierta (`.app:has(.route-drawer.open)`)
+- Tab/Enter del tooltip solo actúan con el foco en el mapa (antes rompían la navegación por teclado de toda la página)
+- Móvil: el bottom-sheet solo se redimensiona desde el tirador o la cabecera, no al hacer scroll
+- `useTimeFilter` con `useShallow` (antes devolvía un objeto nuevo en cada cambio del store → los hovers recalculaban todas las capas); máximo de ocupación calculado una vez por capa
+- URL: sin `r=` con todas las líneas y `r=none` con ninguna (`totalRouteCount` en el store; se conserva el `r` original mientras cargan los datos)
+- Mensajes de error sin comandos `python` (App, Distritos, Metro, Elementos viales)
+- Etiqueta de tipo de día unificada: "Dom./festivo"
+- Lint: eliminados `buildingLineHistogram` (código muerto que usaba constantes borradas) y una variable sin uso
+
+### 3. Revisión de datos abiertos disponibles
+| Dato | En la web | Publicado |
+|---|---|---|
+| Demanda EMT | ene 2023 – ene 2026, día×línea | 2019 – 30/09/2026, **día×línea×franja horaria** |
+| Oferta/flota `2026ccr.csv` | hasta 16/04/2026 | hasta 31/08/2026 |
+| GTFS EMT (CRTM) | feed del 17/05/2026 | actualizado el 16/10/2026 (válido 13/10–31/12): mismas 236 líneas, +21 paradas, −146 trips; solo la 709 cambia más de un 15 % |
+| GTFS Metro / Cercanías | may 2025 / ago 2024 | sin cambios |
+
+El antiguo `demandadialinea.csv` de EMT ya no existe (devuelve HTML). Fuente nueva: datos.emtmadrid.es, dataset `29b27217-429f-44a0-a90a-2db7f13529b6` (`2026demdialineafranjaanual.csv` + `2019_2025_dem_linea_franja.zip`), descargados en `data/raw/demanda/`.
+
+### 4. Demanda 2026 (sin commit)
+- `scripts/compute_demand.py` reescrito para el formato `Fecha;Linea;Franja;TotalViajeros`: agrega a total diario **antes** de promediar, detecta años parciales y guarda `prevSamePeriodAvg` (mismo periodo del año anterior) para una comparación interanual justa
+- Validación: totales anuales 454,6 M / 476,1 M / 512,1 M (= cifras oficiales EMT); medias por línea de 2023–2025 idénticas a las del JSON anterior
+- `route_demand.json` añade `years` y `byYear[año].partial/from/to`
+- Frontend: selectores de año generados a partir de los datos (`demandYears`), etiqueta "2026 (ene–sep)" (`demandYearLabel`), tendencia del tooltip con `demandTrendPct`. El año por defecto sigue siendo 2025 (último completo)
+
+### 5. Carga por hora — modo `load` (sin commit) · TODO B9
+- `scripts/compute_hourly_load.py` → `public/data/route_load_hourly.json` (58 KB): viajeros medios subidos por hora, línea y tipo de día (LA/SA/FE), con demanda de 2026 sin julio ni agosto
+- Franjas `M00–M07` = madrugada del mismo día de servicio → horas 0–7 (igual que `compute_service.py` pliega las horas ≥ 24 del GTFS)
+- Festivos detectados por caída de la demanda de toda la red (< 0,6 × mediana de los laborables del mes → FE; 0,6–0,8 → laborable atípico, se excluye). 2026: festivos 1/1, 6/1, 2/4, 3/4, 1/5 y 15/5; 9 laborables atípicos excluidos. Días: 136 LA, 30 SA, 36 FE
+- Métrica en el frontend: Σ viajeros / Σ expediciones (`service_metrics.json`, LA = media lun–vie) en la franja del filtro horario global. Son **subidas por expedición, no ocupación a bordo**
+- UI: modo "Carga por hora" en Calidad de la Oferta (comparte día y franja con Frecuencia; 6 categorías de <20 a >80; histograma + filtro 0–∞) y gráfico horario coloreado en la ficha de línea, con selector de tipo de día y hora pico
+- Referencia LA 7–10 h: mediana ~45 viajeros/expedición; más cargadas: 34 (125), 130, 70 y 138
+
+### 6. Deploy
+- El push de `a6eda9c` se hizo con el gestor de credenciales de Windows, que reutilizó la sesión de GitHub del navegador
+- El workflow "Deploy Now: Build" terminó OK, pero "Deploy to IONOS" quedó en `action_required`: el commit está firmado con la identidad git global de este equipo (**Malvartinez** / malvarezm@rivasciudad.es) en lugar de **miguelvarez-cmyk**. Ver ISSUES.md BUG-DEPLOY-002
+- `dist/` del build actual: ~14 MB (la cuota de 50 MB deja de ser un problema tras eliminar la capa de edificios)
+
+### Archivos modificados
+```
+scripts/compute_demand.py            (reescrito: formato por franja, años parciales)
+scripts/compute_hourly_load.py       (nuevo)
+public/data/route_demand.json        (2023–2026, years, partial)
+public/data/route_load_hourly.json   (nuevo)
+src/utils/service.js                 (gradientColor, demand*, load*)
+src/utils/useGTFSData.js, src/utils/useUrlSync.js
+src/store/useMapStore.js             (useShallow, totalRouteCount, loadFilter)
+src/layers/createRoutesLayer.js, src/layers/createStopsLayer.js
+src/App.jsx, src/index.css
+src/components/map/{ColorLegend,VisualizationControls,OtrosPanel,RouteDrawer,RouteTooltip,Sidebar,DistrictsPanel,MetroCercaniasPanel,ElementosVialesPanel}.jsx
+README.md, SCHEMA.md, CLAUDE.md, TODO.md, ISSUES.md, PROGRESS.md
+```
+
+### Commits
+```
+a6eda9c corrige UX: colores coherentes (verde = mejor servicio), tooltips, teclado y móvil
+(pendiente) demanda 2026 + carga por hora
+```
 
 ---
 

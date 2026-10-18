@@ -13,6 +13,8 @@ import {
   demandHistogram,
   demandMonthlyData,
   demandDowProfile,
+  demandYears,
+  demandYearLabel,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -237,7 +239,7 @@ export default function OtrosPanel({
           {colorMode === 'demand' && demandFilter && (
             <div className="filter-block">
               <div className="row days" style={{ marginBottom: '8px' }}>
-                {['2023', '2024', '2025'].map((y) => (
+                {demandYears(routeDemand).map((y) => (
                   <button
                     key={y}
                     className={demandYear === y ? 'active' : ''}
@@ -271,13 +273,13 @@ export default function OtrosPanel({
                 {demandStats.dropped > 0 && (
                   <>Omitidas {demandStats.dropped} líneas históricas. </>
                 )}
-                Viajeros promedio por día en {demandYear}.
+                Viajeros promedio por día en {demandYearLabel(routeDemand, demandYear)}.
               </div>
 
               {monthlyBuckets && (
                 <div style={{ marginTop: '12px' }}>
                   <div className="caption muted" style={{ marginBottom: '4px' }}>
-                    Estacionalidad mensual {demandYear}
+                    Estacionalidad mensual {demandYearLabel(routeDemand, demandYear)}
                   </div>
                   <Histogram buckets={monthlyBuckets} />
                 </div>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useMapStore } from '../../store/useMapStore.js';
-import { scheduleRangeFromMetrics } from '../../utils/service.js';
+import { scheduleRangeFromMetrics, demandTrendPct } from '../../utils/service.js';
 
 export default function RouteTooltip({
   activeRouteId,
@@ -39,13 +39,8 @@ export default function RouteTooltip({
 
   const demandTrend = useMemo(() => {
     if (!routeDemand || !activeRouteId || !demandYear) return null;
-    const entry = routeDemand.byRoute[activeRouteId];
-    if (!entry?.byYear) return null;
-    const curAvg = entry.byYear[demandYear]?.dailyAvg;
-    const prevYear = String(Number(demandYear) - 1);
-    const prevAvg = entry.byYear[prevYear]?.dailyAvg;
-    if (!curAvg || !prevAvg) return null;
-    const pct = ((curAvg - prevAvg) / prevAvg) * 100;
+    const pct = demandTrendPct(routeDemand, activeRouteId, demandYear);
+    if (pct == null) return null;
     return pct >= 0 ? `+${pct.toFixed(0)}%` : `${pct.toFixed(0)}%`;
   }, [activeRouteId, routeDemand, demandYear]);
 

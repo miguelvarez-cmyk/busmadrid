@@ -12,6 +12,7 @@ import {
   FREQUENCY_CATEGORIES,
   TORTUOSITY_CATEGORIES,
   DIVERGENCE_CATEGORIES,
+  LOAD_CATEGORIES,
   formatSpanMinutes,
 } from '../../utils/service.js';
 
@@ -84,6 +85,9 @@ export default function ColorLegend() {
   }
   if (colorMode === 'tortuosity') {
     return <CategoricalLegend title="Tortuosidad" categories={TORTUOSITY_CATEGORIES} />;
+  }
+  if (colorMode === 'load') {
+    return <CategoricalLegend title="Viajeros por expedición" categories={LOAD_CATEGORIES} />;
   }
   if (colorMode === 'divergence') {
     return <CategoricalLegend title="Divergencia ida/vuelta" categories={DIVERGENCE_CATEGORIES} />;

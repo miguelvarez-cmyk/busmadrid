@@ -64,7 +64,6 @@
 | B6 | **`@ts-check` + JSDoc** — chequeo gradual sin migrar a TypeScript | M | IDEACION 8.2 |
 | B7 | **Accesibilidad pendiente** — skip-to-content link, `aria-live` en histogramas, auditoría axe-core | S | IDEACION 6.6 |
 | B8 | **Estado vacío informativo** — atajos cuando no hay líneas: "Ver nocturnas", "Mostrar Centro" | S | IDEACION 6.3 |
-| B9 | **Demanda por hora** — si EMT publica viajeros por franja, derivar ocupación hora-a-hora | L | IDEACION 7.3 |
 | B10 | **Storybook** — iterar visualmente sobre paneles sin levantar el mapa | M | IDEACION 8.3 |
 | B11 | **Matriz O-D** — arcos curvos entre centroides de barrios si EMT publica O-D | XL | IDEACION 1.5 |
 
@@ -74,6 +73,8 @@
 
 | ID | Tarea | Completado |
 |---|---|---|
+| ✅ | **Carga por hora (B9)** — `compute_hourly_load.py` → `route_load_hourly.json` (viajeros medios por hora y tipo de día, 2026 sin jul-ago, festivos detectados por caída de demanda); modo `load` en Calidad de la Oferta (viajeros/expedición en la franja del filtro horario) + gráfico horario en la ficha de línea | 2026-10-18 |
+| ✅ | **Demanda 2026 (ene–sep)** — `compute_demand.py` adaptado al nuevo formato EMT por franja horaria; años del selector desde el JSON; año parcial con comparación interanual del mismo periodo | 2026-10-18 |
 | ✅ | **Filtro edificios por líneas seleccionadas** — `buildingCoverageMode` muestra solo los edificios cubiertos por las líneas activas; `filteredBuildingCoverage` en `App.jsx` con `useMemo` | 2026-05-18 |
 | ✅ | **Cobertura poblacional por línea** — slider distancia 50–800 m, histograma, coloración de rutas; edificios residenciales (FlatGeobuf por viewport, filtrado por buffers de ruta) | 2026-05-18 |
 | ✅ | **Elementos viales** — carriles bus exclusivos (naranja) + aparcamiento SER por zona/color | 2026-05-18 |

@@ -10,7 +10,20 @@
 
 ## Abiertos
 
-### LIMIT-DEPLOY-001 🔴
+### BUG-DEPLOY-002 🟡
+**Descripción:** El push de `a6eda9c` (2026-10-18) no llegó a producción. "Deploy Now: Build" terminó OK, pero el workflow "Deploy Now: Deploy to IONOS" (lanzado por `ionos-deploy-now[bot]`) quedó en `action_required` (runs 39119208808 y 39119251835).
+**Causa:** el commit está firmado con la identidad git global del equipo (`Malvartinez` / malvarezm@rivasciudad.es, en `C:\Users\Rivas\.gitconfig`) en lugar de `miguelvarez-cmyk`. GitHub pide aprobación manual para ejecutar el workflow.
+**Acción:**
+1. Desbloquear ahora: con la cuenta `miguelvarez-cmyk`, abrir el run en GitHub Actions y pulsar "Approve and run"
+2. Evitarlo en adelante: fijar la identidad **solo en este repo** (`git config user.name` / `user.email`, sin `--global`) a `miguelvarez-cmyk` / miguelvarez@gmail.com
+3. Revisar en *Settings → Actions → General* la política de aprobación de workflows para colaboradores
+**Estado:** 🟡 2026-10-18: run 39119251835 aprobado a mano → `a6eda9c` publicado. Elegida la opción 3 (ajustar la configuración del repo para no requerir aprobación); pendiente confirmar con el próximo push. Si vuelve a quedar en `action_required`, aprobar el run a mano en GitHub Actions
+
+---
+
+### LIMIT-DEPLOY-001 🟢
+**Actualización 2026-10-18:** eliminada la capa de edificios (`791717c`); el `dist/` del build ocupa ~14 MB. La cuota de 50 MB tiene margen amplio; se mantiene como limitación conocida.
+
 **Descripción:** IONOS Deploy Now tiene una cuota de **50 003 968 bytes (~47,7 MiB)** para el artefacto de deploy (`dist/`). A 2026-05-18 el `dist/` ocupa **108 MB**, muy por encima de la cuota.
 
 **Desglose de los archivos más pesados:**

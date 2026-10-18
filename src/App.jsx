@@ -33,6 +33,7 @@ import {
   useStopColorMode,
   useStopExpeditionsFilter,
   useOccupancyFilter,
+  useLoadFilter,
   useCoverageFilter,
   useCoverageDistance,
   useHighlightedZoneIds,
@@ -141,6 +142,7 @@ export default function App() {
   const stopExpeditionsFilter = useStopExpeditionsFilter();
   const setStopExpeditionsFilter = useMapStore((s) => s.setStopExpeditionsFilter);
   const occupancyFilter = useOccupancyFilter();
+  const loadFilter = useLoadFilter();
   const setOccupancyFilter = useMapStore((s) => s.setOccupancyFilter);
   const coverageFilter = useCoverageFilter();
   const setCoverageFilter = useMapStore((s) => s.setCoverageFilter);
@@ -175,6 +177,7 @@ export default function App() {
     busLanesGeojson,
     parkingBandsGeojson,
     routeDepartureTimes,
+    routeLoadHourly,
     loading,
     error,
     progress,
@@ -371,6 +374,8 @@ export default function App() {
         occupancyFilter,
         coverageFilter,
         coverageDistance,
+        routeLoadHourly,
+        loadFilter,
       }),
     [
       selectedRouteIds,
@@ -399,6 +404,8 @@ export default function App() {
       occupancyFilter,
       coverageFilter,
       coverageDistance,
+      routeLoadHourly,
+      loadFilter,
     ]
   );
 
@@ -438,6 +445,7 @@ export default function App() {
           scheduleDayType,
           hoveredRouteIds,
           clickedRouteId,
+          routeLoadHourly,
         }),
         createHighlightLayer({ geojson: routesGeojson, hoveredRouteId }),
         createStopsLayer({
@@ -473,6 +481,7 @@ export default function App() {
       timeFilter,
       fleetDayType,
       scheduleDayType,
+      routeLoadHourly,
       stopsGeojson,
       showStops,
       setHoveredStop,
@@ -567,6 +576,7 @@ export default function App() {
         routeSchedule={routeSchedule}
         routeDistricts={routeDistricts}
         serviceMetrics={serviceMetrics}
+        routeLoadHourly={routeLoadHourly}
         selectedRouteIds={selectedRouteIds}
         visibleRouteIds={visibleRouteIds}
         basemap={basemap}
@@ -625,6 +635,7 @@ export default function App() {
         serviceMetrics={serviceMetrics}
         routesGeojson={routesGeojson}
         routeDepartureTimes={routeDepartureTimes}
+        routeLoadHourly={routeLoadHourly}
       />
 
 {showLoader && <LoadingScreen loading={loading} progress={progress} />}

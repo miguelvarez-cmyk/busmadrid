@@ -20,13 +20,14 @@ export function useGTFSData() {
   const [busLanesGeojson, setBusLanesGeojson] = useState(null);
   const [parkingBandsGeojson, setParkingBandsGeojson] = useState(null);
   const [routeDepartureTimes, setRouteDepartureTimes] = useState(null);
+  const [routeLoadHourly, setRouteLoadHourly] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let loaded = 0;
-    const total = 19;
+    const total = 20;
     const track = (p) => p.then((v) => {
       loaded++;
       if (!cancelled) setProgress(Math.round((loaded / total) * 100));
@@ -52,8 +53,9 @@ export function useGTFSData() {
       track(fetch('/data/bus_lanes.geojson').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/parking_bands.geojson').then((r) => r.json()).catch(() => null)),
       track(fetch('/data/route_departure_times.json').then((r) => r.json()).catch(() => null)),
+      track(fetch('/data/route_load_hourly.json').then((r) => r.json()).catch(() => null)),
     ])
-      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands, departureTimes]) => {
+      .then(([geo, meta, metrics, stops, speed, demand, fleet, tortuosity, divergence, schedule, districts, barrios, stopExp, coverage, mcRoutes, mcStops, busLanes, parkingBands, departureTimes, loadHourly]) => {
         if (cancelled) return;
         setRoutesGeojson(geo);
         setRoutesMeta(meta);
@@ -74,6 +76,7 @@ export function useGTFSData() {
         setBusLanesGeojson(busLanes);
         setParkingBandsGeojson(parkingBands);
         setRouteDepartureTimes(departureTimes);
+        setRouteLoadHourly(loadHourly);
       })
       .catch((e) => !cancelled && setError(e));
     return () => {
@@ -101,6 +104,7 @@ export function useGTFSData() {
     busLanesGeojson,
     parkingBandsGeojson,
     routeDepartureTimes,
+    routeLoadHourly,
     error,
     loading: !routesGeojson && !error,
     progress,

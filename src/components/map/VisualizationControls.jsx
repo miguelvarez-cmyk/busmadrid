@@ -11,6 +11,7 @@ import {
   useFleetDayType,
   useScheduleFilter,
   useScheduleDayType,
+  useLoadFilter,
 } from '../../store/useMapStore.js';
 import {
   frequencyHistogram,
@@ -19,6 +20,10 @@ import {
   fleetHistogram,
   scheduleHistogram,
   formatSpanMinutes,
+  demandYears,
+  demandYearLabel,
+  loadHistogram,
+  LOAD_FILTER_MAX,
 } from '../../utils/service.js';
 import Histogram from './Histogram.jsx';
 import RangeSlider from './RangeSlider.jsx';
@@ -33,6 +38,7 @@ const MODES = [
   { id: 'offer', label: 'Frecuencia' },
   { id: 'schedule', label: 'Horario de Paso' },
   { id: 'speed', label: 'Velocidad' },
+  { id: 'load', label: 'Carga por hora' },
 ];
 
 
@@ -58,6 +64,7 @@ export default function VisualizationControls({
   routeSchedule,
   routesMeta,
   serviceMetrics,
+  routeLoadHourly,
   selectedRouteIds,
   visibleRouteIds,
   inSidebar = false,
@@ -159,10 +166,49 @@ export default function VisualizationControls({
     [colorMode, routeSchedule, selectedRouteIds, scheduleDayType, scheduleFilter]
   );
 
+  const loadFilter = useLoadFilter();
+  const setLoadFilter = useMapStore((s) => s.setLoadFilter);
+  const loadBuckets = useMemo(
+    () =>
+      colorMode === 'load' && routeLoadHourly && serviceMetrics
+        ? loadHistogram(routeLoadHourly, serviceMetrics, selectedRouteIds, dayOfWeek, startHour, endHour, loadFilter)
+        : [],
+    [colorMode, routeLoadHourly, serviceMetrics, selectedRouteIds, dayOfWeek, startHour, endHour, loadFilter]
+  );
+
+  // Tipo de día + franja horaria: compartido por Frecuencia y Carga por hora
+  const timeControls = (
+    <>
+      <div className="row days">
+        {DAY_TYPES.map(({ id, label, dow }) => (
+          <button
+            key={id}
+            className={dayOfWeek === dow ? 'active' : ''}
+            onClick={() => setDayOfWeek(dow)}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="hour-label">De <strong>{formatHour(startHour)}</strong> a <strong>{formatHour(endHour)}</strong></span>
+      </div>
+
+      <div className="row hours-slider">
+        <RangeSlider
+          min={0}
+          max={24}
+          step={1}
+          value={[startHour, endHour]}
+          onChange={([s, e]) => setHourRange(s, e)}
+          format={formatHour}
+        />
+      </div>
+    </>
+  );
+
   const content = (
     <>
       <div className="modes" role="radiogroup">
-        {MODES.map((m) => (
+        {MODES.filter((m) => m.id !== 'load' || routeLoadHourly).map((m) => (
           <button
             key={m.id}
             role="radio"
@@ -175,31 +221,42 @@ export default function VisualizationControls({
         ))}
       </div>
 
-      {colorMode === 'offer' && (
+      {colorMode === 'load' && routeLoadHourly && (
         <div className="body">
-          <div className="row days">
-            {DAY_TYPES.map(({ id, label, dow }) => (
-              <button
-                key={id}
-                className={dayOfWeek === dow ? 'active' : ''}
-                onClick={() => setDayOfWeek(dow)}
-              >
-                {label}
-              </button>
-            ))}
-            <span className="hour-label">De <strong>{formatHour(startHour)}</strong> a <strong>{formatHour(endHour)}</strong></span>
-          </div>
+          {timeControls}
 
-          <div className="row hours-slider">
+          <div className="filter-block">
+            <div className="filter-title">
+              <span>Viajeros por expedición</span>
+              <span className="muted">
+                {visibleRouteIds.size}/{selectedRouteIds.size} visibles
+              </span>
+            </div>
+            <Histogram buckets={loadBuckets} />
             <RangeSlider
               min={0}
-              max={24}
-              step={1}
-              value={[startHour, endHour]}
-              onChange={([s, e]) => setHourRange(s, e)}
-              format={formatHour}
+              max={LOAD_FILTER_MAX}
+              step={5}
+              value={loadFilter}
+              onChange={setLoadFilter}
+              format={(v) => (v >= LOAD_FILTER_MAX ? '∞' : `${v} pax`)}
             />
+            <div className="caption muted">
+              Viajeros que suben en la franja ÷ expediciones que salen en ella
+              (ambos sentidos). Mide subidas por expedición, no ocupación a
+              bordo. Demanda media de {routeLoadHourly.meta.year} sin julio ni
+              agosto ({routeLoadHourly.meta.days.LA} laborables,{' '}
+              {routeLoadHourly.meta.days.SA} sábados,{' '}
+              {routeLoadHourly.meta.days.FE} domingos/festivos); expediciones del
+              GTFS vigente. Rojo = más cargada.
+            </div>
           </div>
+        </div>
+      )}
+
+      {colorMode === 'offer' && (
+        <div className="body">
+          {timeControls}
 
           <div className="filter-block">
             <div className="filter-title">
@@ -253,7 +310,7 @@ export default function VisualizationControls({
       {colorMode === 'demand' && routeDemand && demandFilter && demandStats && (
         <div className="body">
           <div className="row days">
-            {['2023', '2024', '2025'].map((y) => (
+            {demandYears(routeDemand).map((y) => (
               <button
                 key={y}
                 className={demandYear === y ? 'active' : ''}
@@ -280,7 +337,7 @@ export default function VisualizationControls({
               format={(v) => `${formatPax(v)} pax`}
             />
             <div className="caption muted">
-              Media de viajeros diarios en {demandYear} ·
+              Media de viajeros diarios en {demandYearLabel(routeDemand, demandYear)} ·
               {' '}{demandStats.count} líneas con datos · rango{' '}
               {demandStats.min.toLocaleString('es-ES')}–
               {demandStats.max.toLocaleString('es-ES')}. Escala de color

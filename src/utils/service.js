@@ -275,6 +275,138 @@ export function demandDowProfile(demand, routeId, year) {
   return demand?.byRoute?.[routeId]?.dowProfile?.[year] ?? null;
 }
 
+// ── Carga por hora (viajeros subidos por expedición) ─────────────────────────
+// Cruza route_load_hourly.json (viajeros medios por hora y tipo de día) con las
+// expediciones por hora de service_metrics.json. Son subidas por expedición,
+// no ocupación a bordo.
+
+export const LOAD_CATEGORIES = [
+  { maxPax: 20,       label: '< 20',  color: [27, 94, 32] },    // verde oscuro
+  { maxPax: 35,       label: '20–35', color: [102, 187, 106] }, // verde claro
+  { maxPax: 50,       label: '35–50', color: [255, 210, 63] },  // amarillo
+  { maxPax: 65,       label: '50–65', color: [255, 153, 51] },  // naranja
+  { maxPax: 80,       label: '65–80', color: [239, 83, 80] },   // rojo claro
+  { maxPax: Infinity, label: '> 80',  color: [160, 20, 20] },   // rojo oscuro
+];
+export const LOAD_FILTER_MAX = 100; // tope del slider; 100 = sin límite superior
+
+const LOAD_DOWS = { LA: ['0', '1', '2', '3', '4'], SA: ['5'], FE: ['6'] };
+
+export function loadDayType(dow) {
+  if (dow === 5) return 'SA';
+  if (dow === 6) return 'FE';
+  return 'LA';
+}
+
+/** Expediciones medias (ambos sentidos) de una línea en una hora y tipo de día. */
+function expeditionsAt(metrics, routeId, dayType, h) {
+  const m = metrics?.byRoute?.[routeId];
+  if (!m) return 0;
+  const dows = LOAD_DOWS[dayType];
+  let sum = 0;
+  for (const d of dows) sum += (m[d]?.['0']?.[h] ?? 0) + (m[d]?.['1']?.[h] ?? 0);
+  return sum / dows.length;
+}
+
+/**
+ * Perfil de 24 h de una línea: [{ hour, pax, exp, ratio }]. ratio = null en
+ * horas sin expediciones (no se puede dividir).
+ */
+export function loadHourlyProfile(load, metrics, routeId, dow) {
+  const dayType = loadDayType(dow);
+  const pax = load?.byRoute?.[routeId]?.[dayType];
+  if (!pax) return null;
+  return pax.map((p, hour) => {
+    const exp = expeditionsAt(metrics, routeId, dayType, hour);
+    return { hour, pax: p, exp, ratio: exp > 0 ? p / exp : null };
+  });
+}
+
+/** Viajeros por expedición en [startHour, endHour): Σ viajeros / Σ expediciones. */
+export function loadForRoute(load, metrics, routeId, dow, startHour, endHour) {
+  const dayType = loadDayType(dow);
+  const pax = load?.byRoute?.[routeId]?.[dayType];
+  if (!pax || endHour <= startHour) return null;
+  let p = 0, e = 0;
+  for (let h = startHour; h < endHour; h++) {
+    const exp = expeditionsAt(metrics, routeId, dayType, h);
+    if (exp > 0) { p += pax[h]; e += exp; }
+  }
+  return e > 0 ? p / e : null;
+}
+
+export function loadCategory(ratio) {
+  if (ratio == null) return null;
+  return LOAD_CATEGORIES.find((c) => ratio < c.maxPax) ?? LOAD_CATEGORIES[LOAD_CATEGORIES.length - 1];
+}
+
+export function loadColorForRoute(load, metrics, routeId, dow, startHour, endHour) {
+  const cat = loadCategory(loadForRoute(load, metrics, routeId, dow, startHour, endHour));
+  return cat ? cat.color : NO_SERVICE_COLOR;
+}
+
+export function passesLoadFilter(load, metrics, routeId, dow, startHour, endHour, filter) {
+  const [fMin, fMax] = filter;
+  const v = loadForRoute(load, metrics, routeId, dow, startHour, endHour);
+  if (v == null) return fMin <= 0; // sin datos/servicio: solo con el filtro abierto
+  return v >= fMin && (fMax >= LOAD_FILTER_MAX || v <= fMax);
+}
+
+export function loadHistogram(load, metrics, routeIds, dow, startHour, endHour, filter) {
+  const counts = LOAD_CATEGORIES.map(() => 0);
+  let noData = 0;
+  const [fMin, fMax] = filter;
+  for (const id of routeIds) {
+    const v = loadForRoute(load, metrics, id, dow, startHour, endHour);
+    if (v == null) { noData += 1; continue; }
+    counts[LOAD_CATEGORIES.indexOf(loadCategory(v))] += 1;
+  }
+  let lo = 0;
+  const buckets = LOAD_CATEGORIES.map((c, i) => {
+    const bucket = {
+      label: c.label,
+      count: counts[i],
+      color: c.color,
+      inRange: c.maxPax > fMin && (fMax >= LOAD_FILTER_MAX || lo <= fMax),
+    };
+    lo = c.maxPax;
+    return bucket;
+  });
+  if (noData) buckets.push({ label: 'Sin datos', count: noData, color: NO_SERVICE_COLOR, inRange: fMin <= 0 });
+  return buckets;
+}
+
+/** Años con datos de demanda, en orden (incluye el año en curso si es parcial). */
+export function demandYears(demand) {
+  if (!demand) return [];
+  return demand.years ?? Object.keys(demand.byYear ?? {}).sort();
+}
+
+const MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+                    'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/** "2025", o "2026 (ene–sep)" si el año es parcial. */
+export function demandYearLabel(demand, year) {
+  const stats = demand?.byYear?.[year];
+  if (!stats?.partial) return String(year);
+  const from = MONTH_ABBR[Number(stats.from.slice(5, 7)) - 1];
+  const to = MONTH_ABBR[Number(stats.to.slice(5, 7)) - 1];
+  return `${year} (${from}–${to})`;
+}
+
+/**
+ * Variación interanual de la demanda media diaria de una línea, en %.
+ * En años parciales compara con el mismo periodo del año anterior.
+ */
+export function demandTrendPct(demand, routeId, year) {
+  const byYear = demand?.byRoute?.[routeId]?.byYear;
+  const cur = byYear?.[year];
+  if (!cur?.dailyAvg) return null;
+  const prev = cur.prevSamePeriodAvg ?? byYear[String(Number(year) - 1)]?.dailyAvg;
+  if (!prev) return null;
+  return ((cur.dailyAvg - prev) / prev) * 100;
+}
+
 /**
  * Tamaño de flota: grande = verde, pequeña = rojo. Usa el rango global
  * (min, max) precalculado por compute_fleet.py para mantener una escala

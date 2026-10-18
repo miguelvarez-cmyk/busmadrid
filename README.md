@@ -63,5 +63,6 @@ Abre http://localhost:5173 en el navegador.
 
 ## Fuentes de datos
 
-- [Consorcio Regional de Transportes de Madrid (CRTM)](https://www.crtm.es/)
+- [Consorcio Regional de Transportes de Madrid (CRTM)](https://www.crtm.es/): GTFS de EMT, Metro y Cercanías
+- [Portal de datos abiertos de EMT](https://datos.emtmadrid.es/): demanda diaria por línea y franja horaria (2019–año en curso, actualización mensual) y oferta por tramo horario (`AAAAccr.csv`)
 - Especificación GTFS: https://gtfs.org/

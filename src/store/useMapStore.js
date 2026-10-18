@@ -97,6 +97,10 @@ export const useMapStore = create((set) => ({
   occupancyFilter: null,
   setOccupancyFilter: (range) => set({ occupancyFilter: range }),
 
+  // Carga por hora: viajeros por expedición [min, max]; max 100 = sin límite
+  loadFilter: [0, 100],
+  setLoadFilter: (range) => set({ loadFilter: range }),
+
   // Cobertura poblacional por línea
   coverageFilter: null,
   coverageDistance: 400,
@@ -168,6 +172,7 @@ export const useStopRoutesFilter = () => useMapStore((s) => s.stopRoutesFilter);
 export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);
 export const useStopExpeditionsFilter = () => useMapStore((s) => s.stopExpeditionsFilter);
 export const useOccupancyFilter = () => useMapStore((s) => s.occupancyFilter);
+export const useLoadFilter = () => useMapStore((s) => s.loadFilter);
 export const useCoverageFilter = () => useMapStore((s) => s.coverageFilter);
 export const useCoverageDistance = () => useMapStore((s) => s.coverageDistance);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
