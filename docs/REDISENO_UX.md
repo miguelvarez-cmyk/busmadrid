@@ -81,6 +81,12 @@ La definición va en un ⓘ (fórmula en una línea) que enlaza a la página **/
 - Metro, Carril bus y Bandas SER se quitan del front. Sus GeoJSON se guardan en el repo fuera de `public/` (y por tanto fuera de `dist/`).
 - Un solo fondo oscuro neutro; desaparece el selector de fondo.
 
+## Guía de bienvenida
+
+- 11 pasos, una funcionalidad por paso (`src/components/Tour.jsx`, animaciones en `TourAnims.jsx`): bienvenida, indicador, contexto temporal, filtro por valor, líneas, tabla, ficha y comparación, mapa y paradas, CSV, metodología y tema, cierre.
+- Se abre sola en la primera visita (`localStorage` `busmadrid-tour-done`). «Saltar» o Esc la cierran. El botón **?** de la barra la reabre.
+- Tono: título + una frase. Cada paso añade un elemento real y lleva una animación SVG del gesto.
+
 ## Entrega
 
 Todo en una rama. Revisión en local con `npm run dev`. Se publica de una vez tras el visto bueno.

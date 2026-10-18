@@ -148,7 +148,7 @@ export default function Ficha() {
             ))}
             <tr className="ficha-group"><td colSpan={fichaIds.length + 1}>Servicio</td></tr>
             <tr>
-              <td className="ficha-label">Primera – última</td>
+              <td className="ficha-label">Primera y última salida</td>
               {fichaIds.map((id) => {
                 const t = data.routeDepartureTimes?.byRoute?.[id]?.[ctx.dayType];
                 return <td key={id}>{t ? `${t.primera} – ${t.última}` : '—'}</td>;

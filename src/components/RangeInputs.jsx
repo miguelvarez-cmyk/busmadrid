@@ -21,7 +21,7 @@ function Bound({ ind, value, placeholder, label, onCommit }) {
     if (v === undefined) return setText(shown);
     if (v !== value) onCommit(v);
   };
-  const width = `${Math.max(3, (text || placeholder || '').length) + 1}ch`;
+  const width = `${Math.max(2, (text || placeholder || '').length) + 0.6}ch`;
   return (
     <input
       className="bound"

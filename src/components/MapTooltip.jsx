@@ -42,6 +42,7 @@ export default function MapTooltip({ cursor }) {
               <span className="tt-val">
                 <i className="dot" style={{ background: `rgb(${c.join(',')})` }} />
                 {formatValue(ind, v)}
+                {i === 0 && v != null && ind.unit && <span className="tt-unit"> {ind.unit}</span>}
               </span>
             )}
           </div>

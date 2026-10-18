@@ -5,7 +5,7 @@ import RangeInputs from './RangeInputs.jsx';
 
 export default function FilterChips() {
   const filters = useFilters();
-  const { passing, allIds, stats } = useNetwork();
+  const { stats } = useNetwork();
   const { setFilter, clearFilters } = useMapStore.getState();
   const entries = Object.entries(filters);
 
@@ -33,11 +33,6 @@ export default function FilterChips() {
         <button type="button" className="btn-link" onClick={clearFilters}>
           Quitar filtros
         </button>
-      )}
-      {passing.size < allIds.length && (
-        <span className="pass-count" title="Líneas que cumplen el ámbito y los filtros">
-          {passing.size} de {allIds.length} líneas
-        </span>
       )}
     </div>
   );

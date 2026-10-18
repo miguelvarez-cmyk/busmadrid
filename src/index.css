@@ -464,6 +464,7 @@ button.chip:hover { border-color: var(--border-strong); }
 
 .range-inputs { display: inline-flex; align-items: center; gap: 2px; }
 .bound {
+  text-align: center;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -479,6 +480,8 @@ button.chip:hover { border-color: var(--border-strong); }
 .bound::placeholder { color: var(--text-tertiary); font-weight: var(--weight-normal); }
 .legend-scale .bound { font-weight: var(--weight-normal); font-size: 11px; color: var(--text-secondary); }
 .chip-unit { color: var(--text-secondary); }
+.range-sep { color: var(--text-tertiary); }
+.tt-unit { color: var(--text-secondary); font-weight: var(--weight-normal); }
 .theme-toggle { font-size: 14px; }
 .topbar-link + .theme-toggle { margin-left: 0; }
 
@@ -657,6 +660,7 @@ button.chip:hover { border-color: var(--border-strong); }
 .lines-table th { position: sticky; }
 .lines-table th:hover .th-filter, .th-filter--on { opacity: 1; }
 .th-filter--on { color: var(--accent-hover); }
+.lines-table th .popover-anchor { position: absolute; top: 0; left: 0; }
 .th-filter-pop {
   width: 220px;
   min-width: 0;
