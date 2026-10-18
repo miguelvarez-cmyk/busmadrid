@@ -978,3 +978,142 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   .mobile-panel-toggle.is-up { bottom: calc(62dvh + 12px); }
   .method-page { margin: 0; border-radius: 0; padding: 20px 16px 32px; }
 }
+
+/* ── Guía de bienvenida ──────────────────────────────────── */
+
+.tour { position: fixed; inset: 0; z-index: 150; }
+.tour-spot {
+  position: fixed;
+  border-radius: var(--r-md);
+  box-shadow: 0 0 0 9999px rgba(8, 9, 11, 0.62);
+  outline: 2px solid var(--accent);
+  transition: left 420ms var(--ease-out), top 420ms var(--ease-out), width 420ms var(--ease-out), height 420ms var(--ease-out);
+  pointer-events: none;
+}
+.tour-spot--none { left: 50%; top: 50%; width: 0; height: 0; outline: none; }
+.tour-card {
+  position: fixed;
+  box-sizing: border-box;
+  padding: 16px 16px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-float);
+  animation: tour-in 320ms var(--ease-out);
+}
+@keyframes tour-in { from { opacity: 0; transform: translateY(6px); } }
+.tour-card h2 { margin: 6px 0 4px; font-size: var(--text-md); }
+.tour-card p { margin: 0 0 12px; color: var(--text-secondary); line-height: 1.45; }
+.tour-skip {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: 0;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+.tour-skip:hover { color: var(--text-primary); }
+.tour-foot { display: flex; align-items: center; gap: 6px; }
+.tour-dots { display: flex; gap: 4px; margin-right: auto; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--bg-surface-3); transition: width var(--dur-fast); }
+.tour-dots i.on { background: var(--accent); width: 14px; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+
+.tour-anim {
+  display: block;
+  width: 100%;
+  height: 76px;
+  background: var(--bg-surface);
+  border-radius: var(--r-md);
+  margin-top: 18px;
+}
+.tour-anim * { transform-box: view-box; }
+.ta-text { font: 600 8px var(--font-primary); fill: var(--text-secondary); }
+.ta-axis { stroke: var(--border-strong); stroke-width: 1; }
+
+.ta-draw { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 220; stroke-dashoffset: 220; animation: ta-draw 2.4s var(--ease-out) infinite; }
+.ta-d2 { stroke: #FF9F43; animation-delay: .3s; }
+.ta-d3 { stroke: #2ED573; animation-delay: .6s; }
+@keyframes ta-draw { 0% { stroke-dashoffset: 220; } 55%, 100% { stroke-dashoffset: 0; } }
+
+.ta-chip { fill: var(--bg-panel); stroke: var(--accent); }
+.ta-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke: rgb(50,200,50); animation: ta-recolor 3.6s ease-in-out infinite; }
+.ta-c2 { animation-delay: -1.2s; }
+.ta-c3 { animation-delay: -2.4s; }
+@keyframes ta-recolor { 0%, 100% { stroke: rgb(50,200,50); } 33% { stroke: rgb(220,200,50); } 66% { stroke: rgb(220,50,50); } }
+
+.ta-track { fill: var(--bg-panel); stroke: var(--border-normal); }
+.ta-pill { fill: var(--accent-dim); stroke: var(--accent); animation: ta-pill 3.6s ease-in-out infinite; }
+@keyframes ta-pill { 0%, 25% { transform: translateX(0); } 35%, 60% { transform: translateX(42px); } 70%, 95% { transform: translateX(84px); } 100% { transform: translateX(0); } }
+.ta-band { fill: var(--chart-band); stroke: var(--accent); stroke-dasharray: 3 2; animation: ta-band 3.6s ease-in-out infinite; }
+@keyframes ta-band { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(60px); } }
+
+.ta-bar { fill: rgb(220,200,50); }
+.ta-bar-out { animation: ta-out 3s ease-in-out infinite; }
+@keyframes ta-out { 0%, 20% { fill: rgb(220,200,50); } 45%, 85% { fill: var(--bg-surface-3); } 100% { fill: rgb(220,200,50); } }
+.ta-handle { fill: var(--text-primary); }
+.ta-h1 { animation: ta-h1 3s ease-in-out infinite; }
+.ta-h2 { animation: ta-h2 3s ease-in-out infinite; }
+@keyframes ta-h1 { 0%, 20% { transform: translateX(0); } 45%, 85% { transform: translateX(36px); } 100% { transform: translateX(0); } }
+@keyframes ta-h2 { 0%, 20% { transform: translateX(0); } 45%, 85% { transform: translateX(-38px); } 100% { transform: translateX(0); } }
+
+.ta-box { fill: var(--bg-panel); stroke: var(--border-strong); }
+.ta-check { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 14; animation: ta-check 3s ease-in-out infinite; }
+.ta-k1 { animation-delay: .5s; }
+.ta-k2 { animation-delay: 1s; }
+@keyframes ta-check { 0% { stroke-dashoffset: 14; } 20%, 70% { stroke-dashoffset: 0; } 90%, 100% { stroke-dashoffset: 14; } }
+.ta-label { fill: var(--bg-surface-3); }
+
+.ta-head { fill: var(--bg-surface-3); }
+.ta-rowbg { fill: var(--bg-panel); }
+.ta-dot-red { fill: rgb(220,50,50); }
+.ta-dot-yel { fill: rgb(220,200,50); }
+.ta-dot-grn { fill: rgb(50,200,50); }
+.ta-dot-acc { fill: var(--accent); }
+.ta-r1 { animation: ta-r1 3.6s ease-in-out infinite; }
+.ta-r3 { animation: ta-r3 3.6s ease-in-out infinite; }
+@keyframes ta-r1 { 0%, 30% { transform: translateY(0); } 50%, 80% { transform: translateY(34px); } 100% { transform: translateY(0); } }
+@keyframes ta-r3 { 0%, 30% { transform: translateY(0); } 50%, 80% { transform: translateY(-34px); } 100% { transform: translateY(0); } }
+
+.ta-cursor { fill: var(--text-primary); stroke: var(--bg-app); stroke-width: 1; animation: ta-cursor 3.6s ease-in-out infinite; }
+@keyframes ta-cursor { 0% { transform: translate(20px, 66px); } 25%, 100% { transform: translate(52px, 32px); } }
+.ta-panel { animation: ta-panel 3.6s ease-in-out infinite; }
+@keyframes ta-panel { 0%, 30% { opacity: 0; transform: translateX(14px); } 45%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.ta-card { fill: var(--bg-panel); stroke: var(--border-strong); }
+.ta-track-sm { fill: var(--bg-surface-3); }
+.ta-pin { font-size: 9px; animation: ta-pin 3.6s ease-in-out infinite; }
+@keyframes ta-pin { 0%, 55% { opacity: 0; transform: translateY(-6px); } 65%, 100% { opacity: 1; transform: none; } }
+
+.ta-base { stroke: var(--border-strong); opacity: 0; animation: ta-fade 4.5s infinite; }
+.ta-b1 { fill: #1a1c20; }
+.ta-b2 { fill: #e9eaec; animation-delay: 1.5s; }
+.ta-b3 { fill: #5d6b4a; animation-delay: 3s; }
+@keyframes ta-fade { 0%, 33% { opacity: 1; } 36%, 97% { opacity: 0; } 100% { opacity: 1; } }
+.ta-line-static { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.ta-stop { fill: #fff; stroke: #111; stroke-width: 1; }
+
+.ta-arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; animation: ta-drop 1.8s ease-in-out infinite; }
+@keyframes ta-drop { 0% { transform: translateY(-8px); opacity: 0; } 30% { opacity: 1; } 70%, 100% { transform: translateY(4px); opacity: 1; } }
+.ta-tray { fill: none; stroke: var(--text-secondary); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.ta-ring { fill: var(--accent-dim); stroke: var(--accent); stroke-width: 2; }
+.ta-tick { stroke-width: 3.5; stroke-dasharray: 40; stroke-dashoffset: 40; animation: ta-tick 2.4s var(--ease-out) infinite; }
+@keyframes ta-tick { 0%, 15% { stroke-dashoffset: 40; } 50%, 100% { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-anim *, .tour-spot, .tour-card { animation: none !important; transition: none !important; }
+  .ta-draw, .ta-check, .ta-tick { stroke-dashoffset: 0; }
+  .ta-b1 { opacity: 1; }
+}
+.ta-write { animation: ta-write 3.2s ease-out infinite; transform-box: fill-box; transform-origin: left; }
+.ta-w1 { animation-delay: .25s; }
+.ta-w2 { animation-delay: .5s; }
+.ta-w3 { animation-delay: .75s; }
+.ta-w4 { animation-delay: 1s; }
+@keyframes ta-write { 0% { transform: scaleX(0); } 30%, 100% { transform: scaleX(1); } }
+.ta-toggle { fill: var(--bg-surface-3); stroke: var(--border-strong); animation: ta-toggle 3.2s ease-in-out infinite; }
+.ta-knob { fill: var(--text-primary); animation: ta-knob 3.2s ease-in-out infinite; }
+@keyframes ta-toggle { 0%, 40% { fill: var(--bg-surface-3); } 55%, 90% { fill: var(--accent); } 100% { fill: var(--bg-surface-3); } }
+@keyframes ta-knob { 0%, 40% { transform: translateX(0); } 55%, 90% { transform: translateX(16px); } 100% { transform: translateX(0); } }

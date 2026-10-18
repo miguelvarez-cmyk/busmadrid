@@ -35,6 +35,7 @@ import MapLegend from './components/MapLegend.jsx';
 import LayersControl from './components/LayersControl.jsx';
 import MapTooltip from './components/MapTooltip.jsx';
 import Methodology from './components/Methodology.jsx';
+import Tour from './components/Tour.jsx';
 import BoxSelectOverlay from './components/BoxSelectOverlay.jsx';
 import { LoadingScreen } from './components/LoadingScreen.jsx';
 
@@ -272,6 +273,7 @@ export default function App() {
 
         {net && <RightPanel mobileOpen={mobilePanel} />}
         {net && <Methodology />}
+        <Tour ready={!showLoader && Boolean(net)} />
 
         {showLoader && <LoadingScreen loading={loading} progress={progress} />}
         {error && (

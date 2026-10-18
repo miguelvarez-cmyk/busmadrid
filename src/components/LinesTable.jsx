@@ -56,7 +56,7 @@ function CsvMenu({ rowIds }) {
   const profileIds = fichaIds.length ? fichaIds : rowIds;
   const run = (fn) => { fn(); setOpen(false); };
   return (
-    <div className="popover-anchor" ref={ref}>
+    <div className="popover-anchor csv-anchor" ref={ref}>
       <button type="button" className="btn-sm" onClick={() => setOpen((v) => !v)} aria-expanded={open}>↓ CSV ▾</button>
       {open && (
         <div className="popover popover--right csv-menu">

@@ -9,6 +9,7 @@ export default function TopBar({ onReset }) {
   const net = useNetwork();
   const theme = useTheme();
   const setTheme = useMapStore((s) => s.setTheme);
+  const setTourOpen = useMapStore((s) => s.setTourOpen);
   return (
     <header className="topbar">
       <button type="button" className="brand" onClick={onReset} title="Restablecer la vista">
@@ -29,6 +30,9 @@ export default function TopBar({ onReset }) {
       <a className="topbar-link" href="#metodologia">
         Metodología
       </a>
+      <button type="button" className="btn-sm btn-icon tour-btn" onClick={() => setTourOpen(true)} title="Guía" aria-label="Ver la guía">
+        ?
+      </button>
       <button
         type="button"
         className="btn-sm btn-icon theme-toggle"

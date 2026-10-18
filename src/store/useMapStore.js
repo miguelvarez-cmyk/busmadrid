@@ -110,6 +110,10 @@ export const useMapStore = create((set) => ({
   basemap: THEME_BASEMAP[INITIAL_THEME],
   setBasemap: (basemap) => set(BASEMAPS[basemap] ? { basemap } : {}),
 
+  // Guía de bienvenida
+  tourOpen: false,
+  setTourOpen: (tourOpen) => set({ tourOpen }),
+
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
 
@@ -146,6 +150,7 @@ export const useSort = () => useMapStore((s) => s.sort);
 export const usePanelWide = () => useMapStore((s) => s.panelWide);
 export const useTheme = () => useMapStore((s) => s.theme);
 export const useBasemap = () => useMapStore((s) => s.basemap);
+export const useTourOpen = () => useMapStore((s) => s.tourOpen);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);

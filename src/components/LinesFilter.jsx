@@ -53,7 +53,7 @@ export default function LinesFilter() {
   const searching = query.trim() !== '';
 
   return (
-    <div className="popover-anchor" ref={ref}>
+    <div className="popover-anchor lines-filter" ref={ref}>
       <button
         type="button"
         className={`chip ${all ? '' : 'chip--active'}`}
