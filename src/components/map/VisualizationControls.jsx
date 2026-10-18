@@ -26,7 +26,7 @@ import RangeSlider from './RangeSlider.jsx';
 const DAY_TYPES = [
   { id: 'LA', label: 'Laborable', dow: 0 },
   { id: 'SA', label: 'Sábado',    dow: 5 },
-  { id: 'FE', label: 'Domingo',   dow: 6 },
+  { id: 'FE', label: 'Dom./festivo', dow: 6 },
 ];
 
 const MODES = [
@@ -39,7 +39,7 @@ const MODES = [
 const FLEET_DAY_TYPES = [
   { id: 'LA', label: 'Laborable' },
   { id: 'SA', label: 'Sábado' },
-  { id: 'FE', label: 'Festivo' },
+  { id: 'FE', label: 'Dom./festivo' },
 ];
 
 function formatPax(v) {

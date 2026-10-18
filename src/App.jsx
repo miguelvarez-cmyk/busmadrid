@@ -123,7 +123,6 @@ export default function App() {
   const demandFilter = useDemandFilter();
   const setDemandFilter = useMapStore((s) => s.setDemandFilter);
   const demandYear = useDemandYear();
-  const setDemandYear = useMapStore((s) => s.setDemandYear);
   const fleetFilter = useFleetFilter();
   const setFleetFilter = useMapStore((s) => s.setFleetFilter);
   const fleetDayType = useFleetDayType();
@@ -193,6 +192,7 @@ export default function App() {
   useEffect(() => {
     if (routesMeta && !didInitRoutes.current) {
       didInitRoutes.current = true;
+      useMapStore.getState().setTotalRouteCount(routesMeta.length);
       const urlR = new URLSearchParams(window.location.search).get('r');
       const hasUrlRoutes = urlR?.split(',').filter(Boolean).length > 0;
       if (!hasUrlRoutes) selectAllRoutes(routesMeta.map((r) => r.id));
@@ -207,11 +207,15 @@ export default function App() {
     }
   }, [hoveredRouteIds, hoverActiveIdx, hoveredRouteId, setHoveredRouteId]);
 
-  // Tab / Shift+Tab cicla entre líneas superpuestas; Enter abre el drawer
+  // Tab / Shift+Tab cicla entre líneas superpuestas; Enter abre el drawer.
+  // Solo si el foco no está en un control (sidebar, buscador, drawer…), para no
+  // romper la navegación por teclado del resto de la página.
   useEffect(() => {
     if (!hoveredRouteIds.length) return;
     const len = hoveredRouteIds.length;
     const handleKeyDown = (e) => {
+      const active = document.activeElement;
+      if (active && active !== document.body) return;
       if (e.key === 'Tab') {
         e.preventDefault();
         setHoverActiveIdx((prev) =>
@@ -626,9 +630,9 @@ export default function App() {
 {showLoader && <LoadingScreen loading={loading} progress={progress} />}
       {error && (
         <div className="status-overlay error">
-          Error cargando datos: {error.message}
+          No se han podido cargar los datos de la red.
           <br />
-          <small>¿Has ejecutado <code>python scripts/process_gtfs.py</code> y <code>python scripts/compute_service.py</code>?</small>
+          <small>Comprueba tu conexión y recarga la página.</small>
         </div>
       )}
     </div>

@@ -954,9 +954,28 @@ html, body, #root {
   color: #fff;
 }
 
+/* Tooltip de parada: arriba a la derecha para no solapar el de línea */
 .hover-info.stop {
-  bottom: 60px;
-  background: rgba(255, 255, 255, 0.97);
+  top: 16px;
+  bottom: auto;
+  min-width: 220px;
+  gap: var(--sp-1);
+}
+
+.hover-info.stop b {
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.hover-info.stop .offer {
+  color: var(--text-secondary);
+}
+
+/* Con la ficha de línea abierta (escritorio), apartar los tooltips a su izquierda */
+@media (min-width: 721px) {
+  .app:has(.route-drawer.open) .hover-info {
+    right: calc(340px + 16px);
+  }
 }
 
 .box-select-overlay {

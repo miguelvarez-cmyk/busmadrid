@@ -23,21 +23,23 @@ function fmtDemand(v) {
 }
 
 const GRADIENT_STYLE = 'linear-gradient(to right, rgb(50,200,50), rgb(220,200,50), rgb(220,50,50))';
+// Métricas donde "más es mejor": el mínimo es rojo y el máximo verde
+const GRADIENT_STYLE_REVERSED = 'linear-gradient(to right, rgb(220,50,50), rgb(220,200,50), rgb(50,200,50))';
 
 const MODE_CONFIG = {
-  speed:     { title: 'Velocidad media', fmt: (v) => `${v.toFixed(1)} km/h` },
+  speed:     { title: 'Velocidad media', fmt: (v) => `${v.toFixed(1)} km/h`, reversed: true },
   demand:    { title: 'Demanda diaria',  fmt: (v) => `${fmtDemand(v)} pax` },
-  fleet:     { title: 'Flota',           fmt: (v) => `${Math.round(v)} buses` },
-  schedule:  { title: 'Horario de paso', fmt: (v) => formatSpanMinutes(Math.round(v)) },
+  fleet:     { title: 'Flota',           fmt: (v) => `${Math.round(v)} buses`, reversed: true },
+  schedule:  { title: 'Horario de paso', fmt: (v) => formatSpanMinutes(Math.round(v)), reversed: true },
   occupancy: { title: 'Ocupación media', fmt: (v) => `${Math.round(v)} pax` },
-  coverage:  { title: 'Cobertura poblacional', fmt: (v) => `${fmtDemand(v)} hab` },
+  coverage:  { title: 'Cobertura poblacional', fmt: (v) => `${fmtDemand(v)} hab`, reversed: true },
 };
 
-function GradientLegend({ title, filter, fmt }) {
+function GradientLegend({ title, filter, fmt, reversed }) {
   return (
     <div className="color-legend gradient-legend">
       <div className="cl-title">{title}</div>
-      <div className="cl-bar" style={{ background: GRADIENT_STYLE }} />
+      <div className="cl-bar" style={{ background: reversed ? GRADIENT_STYLE_REVERSED : GRADIENT_STYLE }} />
       <div className="cl-labels">
         <span>{fmt(filter[0])}</span>
         <span>{fmt(filter[1])}</span>
@@ -105,5 +107,5 @@ export default function ColorLegend() {
     ? `Cobertura a ${coverageDistance} m`
     : cfg.title;
 
-  return <GradientLegend title={title} filter={filter} fmt={cfg.fmt} />;
+  return <GradientLegend title={title} filter={filter} fmt={cfg.fmt} reversed={cfg.reversed} />;
 }

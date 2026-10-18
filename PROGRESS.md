@@ -189,6 +189,30 @@ scripts/adapt_coverage.py, compute_elementos_viales.py, descargar_*, generate_* 
 
 ---
 
+## Sesión 2026-05-17 (noche 7) — Pantalla de carga animada
+
+### Qué se hizo
+
+- **`LoadingScreen.jsx`** (nuevo): pantalla full-screen con bus SVG inline que avanza según el % real de carga, barra de progreso de 4 px con brillo, 10 textos rotativos (2,5 s, fade in/out) que presentan funcionalidades, fade-out suave (`opacity + scale`, 400 ms) al terminar
+- **`useGTFSData.js`**: función `track()` que envuelve cada uno de los 16 fetch y actualiza `progress` (0–100) conforme resuelven; `progress` exportado junto al resto del hook
+- **`App.jsx`**: `showLoader` con delay de 600 ms tras `loading=false` para que la animación de salida complete; `<LoadingScreen>` reemplaza el div `"Cargando datos GTFS..."`
+- **`index.css`**: ~130 líneas de estilos usando tokens del design system; media query `prefers-reduced-motion`
+
+### Archivos modificados
+```
+src/components/map/LoadingScreen.jsx   (nuevo)
+src/utils/useGTFSData.js               (añade track() y progress)
+src/App.jsx                            (showLoader + import LoadingScreen)
+src/index.css                          (~130 líneas nuevas de estilos)
+```
+
+### Commits
+```
+75e1909 añade pantalla de carga con bus animado, progreso real y tips rotativos
+```
+
+---
+
 ## Sesión 2026-05-17 (noche 6) — Afinar divergencia + eliminar SearchBar
 
 ### Qué se hizo

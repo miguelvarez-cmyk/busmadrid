@@ -1,5 +1,5 @@
 import { ScatterplotLayer } from '@deck.gl/layers';
-import { passesStopRoutesFilter } from '../utils/service.js';
+import { passesStopRoutesFilter, gradientColor } from '../utils/service.js';
 
 
 export function createStopsLayer({
@@ -14,13 +14,18 @@ export function createStopsLayer({
 }) {
   if (!geojson || !visible) return null;
 
+  // Sin líneas visibles (p. ej. "Ocultar líneas") se muestran todas las paradas
+  const filterByRoutes = visibleRouteIds.size > 0;
+
   const data = geojson.features.filter((f) => {
-    const routes = f.properties.routes;
-    let hasVisible = false;
-    for (let i = 0; i < routes.length; i++) {
-      if (visibleRouteIds.has(routes[i])) { hasVisible = true; break; }
+    if (filterByRoutes) {
+      const routes = f.properties.routes;
+      let hasVisible = false;
+      for (let i = 0; i < routes.length; i++) {
+        if (visibleRouteIds.has(routes[i])) { hasVisible = true; break; }
+      }
+      if (!hasVisible) return false;
     }
-    if (!hasVisible) return false;
 
     // Filter by stop color mode
     if (stopColorMode === 'routes' && stopRoutesFilter) {
@@ -34,45 +39,22 @@ export function createStopsLayer({
     return true;
   });
 
+  // Verde = parada mejor servida (más líneas / más expediciones)
   const getFillColor = (f) => {
     const stopId = f.properties.stop_id;
 
     if (stopColorMode === 'routes' && stopRoutesFilter) {
       const routeCount = f.properties.routes?.length ?? 0;
       const maxRoutes = stopRoutesFilter[1];
-      const t = maxRoutes > 0 ? routeCount / maxRoutes : 0;
-      let r, g, b;
-      if (t < 0.5) {
-        const k = t / 0.5;
-        r = Math.round(50 + 170 * k);
-        g = 200;
-        b = 50;
-      } else {
-        const k = (t - 0.5) / 0.5;
-        r = 220;
-        g = Math.round(200 - 150 * k);
-        b = 50;
-      }
-      return [r, g, b, 230];
+      const t = maxRoutes > 0 ? Math.min(1, routeCount / maxRoutes) : 0;
+      return [...gradientColor(1 - t), 230];
     }
 
     if (stopColorMode === 'expeditions' && stopExpeditionsFilter) {
       const peak = stopExpeditions?.byStop?.[stopId]?.peak ?? 0;
       const maxPeak = stopExpeditionsFilter[1];
-      const t = maxPeak > 0 ? peak / maxPeak : 0;
-      let r, g, b;
-      if (t < 0.5) {
-        const k = t / 0.5;
-        r = Math.round(50 + 170 * k);
-        g = 200;
-        b = 50;
-      } else {
-        const k = (t - 0.5) / 0.5;
-        r = 220;
-        g = Math.round(200 - 150 * k);
-        b = 50;
-      }
-      return [r, g, b, 230];
+      const t = maxPeak > 0 ? Math.min(1, peak / maxPeak) : 0;
+      return [...gradientColor(1 - t), 230];
     }
 
     // Default white

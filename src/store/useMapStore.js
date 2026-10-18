@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { INITIAL_VIEW_STATE, DEFAULT_BASEMAP } from '../config/mapConfig.js';
 
 export const useMapStore = create((set) => ({
@@ -24,6 +25,10 @@ export const useMapStore = create((set) => ({
       return { selectedRouteIds: next };
     }),
   selectAllRoutes: (ids) => set({ selectedRouteIds: new Set(ids) }),
+
+  // Nº total de líneas del feed (para no escribir todas en la URL)
+  totalRouteCount: 0,
+  setTotalRouteCount: (n) => set({ totalRouteCount: n }),
   clearRoutes: () => set({ selectedRouteIds: new Set() }),
 
   hoveredRouteId: null,
@@ -140,12 +145,14 @@ export const useHoveredRouteId = () => useMapStore((s) => s.hoveredRouteId);
 export const useHoveredRouteIds = () => useMapStore((s) => s.hoveredRouteIds);
 export const useClickedRouteId = () => useMapStore((s) => s.clickedRouteId);
 export const useColorMode = () => useMapStore((s) => s.colorMode);
+// useShallow: devuelve la misma referencia mientras no cambien los tres valores,
+// para no invalidar memos/capas en cada actualización del store (p. ej. hover)
 export const useTimeFilter = () =>
-  useMapStore((s) => ({
+  useMapStore(useShallow((s) => ({
     dayOfWeek: s.dayOfWeek,
     startHour: s.startHour,
     endHour: s.endHour,
-  }));
+  })));
 export const useFreqFilter = () => useMapStore((s) => s.freqFilter);
 export const useSpeedFilter = () => useMapStore((s) => s.speedFilter);
 export const useDemandFilter = () => useMapStore((s) => s.demandFilter);

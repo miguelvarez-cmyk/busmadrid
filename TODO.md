@@ -77,6 +77,7 @@
 | ✅ | **Filtro edificios por líneas seleccionadas** — `buildingCoverageMode` muestra solo los edificios cubiertos por las líneas activas; `filteredBuildingCoverage` en `App.jsx` con `useMemo` | 2026-05-18 |
 | ✅ | **Cobertura poblacional por línea** — slider distancia 50–800 m, histograma, coloración de rutas; edificios residenciales (FlatGeobuf por viewport, filtrado por buffers de ruta) | 2026-05-18 |
 | ✅ | **Elementos viales** — carriles bus exclusivos (naranja) + aparcamiento SER por zona/color | 2026-05-18 |
+| ✅ | **Pantalla de carga** — bus SVG animado + barra de progreso real (16 fetch) + 10 tips rotativos + fade-out suave | 2026-05-17 |
 | ✅ | Modo **Longitud media** en Análisis de itinerarios — histograma + slider, 7 tramos (< 5 km … > 18 km), reutiliza `lengthKm` de `route_tortuosity.json` | 2026-05-17 |
 | ✅ | **Rediseño UX/UI**: Dark theme + IBM Plex Sans + Opacidad dinámica + Filtros temporales visibles + Bottom sheet móvil | 2026-05-17 |
 | ✅ | Análisis de itinerarios: Tortuosidad + Divergencia ida/vuelta | 2026-05-17 |

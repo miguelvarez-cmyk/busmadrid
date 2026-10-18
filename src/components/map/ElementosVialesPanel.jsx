@@ -53,10 +53,7 @@ export default function ElementosVialesPanel({ busLanesGeojson, parkingBandsGeoj
 
       {!hasData && (
         <p className="muted" style={{ fontSize: '11px', margin: 0 }}>
-          Datos no disponibles. Ejecuta{' '}
-          <code style={{ background: 'rgba(0,0,0,0.15)', padding: '1px 4px', borderRadius: '3px', fontSize: '10px' }}>
-            python scripts/compute_elementos_viales.py
-          </code>
+          Los datos de elementos viales no están disponibles en este momento.
         </p>
       )}
     </div>

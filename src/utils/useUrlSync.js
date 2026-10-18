@@ -57,7 +57,14 @@ export function useUrlSync() {
       p.set('dow', dayOfWeek);
       p.set('sh', startHour);
       p.set('eh', endHour);
-      if (selectedRouteIds.size) p.set('r', [...selectedRouteIds].join(','));
+      // Todas las líneas → sin parámetro (es el estado por defecto al cargar).
+      // Ninguna → 'none', que no coincide con ningún route_id.
+      // Mientras no han cargado las líneas (total 0) se conserva el 'r' original.
+      const { totalRouteCount } = useMapStore.getState();
+      const prevR = new URLSearchParams(window.location.search).get('r');
+      if (totalRouteCount === 0) { if (prevR) p.set('r', prevR); }
+      else if (selectedRouteIds.size === 0) p.set('r', 'none');
+      else if (selectedRouteIds.size !== totalRouteCount) p.set('r', [...selectedRouteIds].join(','));
       p.set('bm', basemap);
       if (showStops)    p.set('ss', '1');
       if (stopColorMode) p.set('scm', stopColorMode);

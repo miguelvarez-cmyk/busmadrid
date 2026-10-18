@@ -16,7 +16,7 @@ export default function MetroCercaniasPanel({ metroCercaniasRoutes }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       {!hasData && (
         <p className="muted" style={{ marginBottom: 8 }}>
-          Ejecuta <code>download_gtfs_crtm.py</code> y <code>process_metro_cercanias.py</code> para activar esta capa.
+          Los datos de metro no están disponibles en este momento.
         </p>
       )}
 

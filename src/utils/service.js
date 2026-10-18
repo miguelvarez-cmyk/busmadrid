@@ -61,19 +61,28 @@ export function frequencyColorForRoute(metrics, routeId, dow, startHour, endHour
 }
 
 /**
- * Rampa verde → amarillo → rojo para velocidad media. Usa el rango global
- * (min, max) precalculado por compute_speed.py para mantener una escala estable
- * cuando el usuario cambia la selección.
+ * Gradiente universal (DESIGN.md): t=0 verde → t=0.5 amarillo → t=1 rojo.
+ * Para métricas donde "más es mejor" (velocidad, flota, horario, cobertura)
+ * se llama con 1 - t, de modo que verde siempre significa "mejor servicio".
  */
-export function speedColor(speedKmh, min, max) {
-  if (speedKmh == null || max <= min) return [50, 200, 50];
-  const t = Math.max(0, Math.min(1, (speedKmh - min) / (max - min)));
+export function gradientColor(t) {
   if (t < 0.5) {
     const k = t / 0.5;
     return [Math.round(50 + 170 * k), 200, 50];
   }
   const k = (t - 0.5) / 0.5;
   return [220, Math.round(200 - 150 * k), 50];
+}
+
+/**
+ * Velocidad media: rápida = verde, lenta = rojo. Usa el rango global
+ * (min, max) precalculado por compute_speed.py para mantener una escala estable
+ * cuando el usuario cambia la selección.
+ */
+export function speedColor(speedKmh, min, max) {
+  if (speedKmh == null || max <= min) return [50, 200, 50];
+  const t = Math.max(0, Math.min(1, (speedKmh - min) / (max - min)));
+  return gradientColor(1 - t);
 }
 
 export function speedColorForRoute(speeds, routeId) {
@@ -267,7 +276,7 @@ export function demandDowProfile(demand, routeId, year) {
 }
 
 /**
- * Gradiente verde → amarillo → rojo para tamaño de flota. Usa el rango global
+ * Tamaño de flota: grande = verde, pequeña = rojo. Usa el rango global
  * (min, max) precalculado por compute_fleet.py para mantener una escala
  * estable cuando el usuario cambia la selección o el tipo de día.
  */
@@ -275,12 +284,7 @@ export function fleetColor(buses, min, max) {
   if (buses == null || buses <= 0) return NO_SERVICE_COLOR;
   if (max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (buses - min) / (max - min)));
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [Math.round(50 + 170 * k), 200, 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [220, Math.round(200 - 150 * k), 50];
+  return gradientColor(1 - t);
 }
 
 export function fleetForRoute(fleet, routeId, dayType) {
@@ -445,19 +449,13 @@ export function scheduleSpanForRoute(schedule, routeId, dayType) {
 }
 
 /**
- * Rampa verde → amarillo → rojo para amplitud de horario.
- * Más horas de servicio = más verde.
+ * Amplitud de horario: más horas de servicio = verde, menos = rojo.
  */
 export function scheduleColor(spanMin, min, max) {
   if (spanMin == null || spanMin <= 0) return NO_SERVICE_COLOR;
   if (max <= min) return [50, 200, 50];
   const t = Math.max(0, Math.min(1, (spanMin - min) / (max - min)));
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [Math.round(50 + 170 * k), 200, 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [220, Math.round(200 - 150 * k), 50];
+  return gradientColor(1 - t);
 }
 
 export function scheduleColorForRoute(schedule, routeId, dayType) {
@@ -610,21 +608,8 @@ const STOP_ROUTES_BUCKETS = [
 function stopRoutesColor(count) {
   const STOP_ROUTES_MAX = 11;
   const t = Math.min(1, Math.max(0, (count - 1) / (STOP_ROUTES_MAX - 1)));
-
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [
-      Math.round(50 + 205 * k),
-      Math.round(200),
-      50,
-    ];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [
-    Math.round(255 - 35 * k),
-    Math.round(200 - 150 * k),
-    50,
-  ];
+  // Más líneas = verde (mejor servida)
+  return gradientColor(1 - t);
 }
 
 /**
@@ -658,13 +643,9 @@ export function passesStopRoutesFilter(stop, filter) {
 
 const NO_COVERAGE_COLOR = [150, 150, 150];
 
+// Más población cubierta = verde, menos = rojo.
 function coverageGradient(t) {
-  if (t < 0.5) {
-    const k = t / 0.5;
-    return [Math.round(50 + 170 * k), 200, 50];
-  }
-  const k = (t - 0.5) / 0.5;
-  return [220, Math.round(200 - 150 * k), 50];
+  return gradientColor(1 - t);
 }
 
 export function coverageColorForRoute(routeCoverage, routeId, distance) {
@@ -868,21 +849,4 @@ export function passesLengthFilter(tortuosity, routeId, filter) {
   const [fMin, fMax] = filter;
   if (v == null) return fMin <= 0;
   return v >= fMin && v <= fMax;
-}
-
-export function buildingLineHistogram(geojson) {
-  if (!geojson?.features?.length) return [];
-
-  return BUILDING_LINE_BUCKETS.map(({ label, min, max }) => {
-    const count = geojson.features.filter(
-      (f) => (f.properties.n_lineas ?? 0) >= min && (f.properties.n_lineas ?? 0) <= max
-    ).length;
-    const mid = min === max ? min : Math.round((min + Math.min(max, BUILDING_LINE_MAX_REF)) / 2);
-    return {
-      label,
-      count,
-      color: buildingLineBucketColor(mid, BUILDING_LINE_MAX_REF),
-      inRange: true,
-    };
-  });
 }

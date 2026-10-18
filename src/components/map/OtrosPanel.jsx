@@ -20,7 +20,7 @@ import RangeSlider from './RangeSlider.jsx';
 const FLEET_DAY_TYPES = [
   { id: 'LA', label: 'Laborable' },
   { id: 'SA', label: 'Sábado' },
-  { id: 'FE', label: 'Festivo' },
+  { id: 'FE', label: 'Dom./festivo' },
 ];
 
 const MONTH_LABELS = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];

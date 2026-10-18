@@ -111,6 +111,9 @@ export default function Sidebar({
 
   const handleTouchStart = useCallback((e) => {
     if (window.innerWidth > 720) return;
+    // Solo se redimensiona arrastrando el tirador o la cabecera; el scroll
+    // dentro del contenido no debe cambiar la altura de la hoja.
+    if (!e.target.closest('.sheet-handle, .sidebar-header')) return;
     dragRef.current.startY = e.touches[0].clientY;
     dragRef.current.startHeight = sidebarRef.current?.offsetHeight ?? 0;
     dragRef.current.dragging = true;

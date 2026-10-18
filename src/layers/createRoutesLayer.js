@@ -10,6 +10,7 @@ import {
   lengthColorForRoute,
   scheduleColorForRoute,
   coverageColorForRoute,
+  gradientColor,
   passesFrequencyFilter,
   passesSpeedFilter,
   passesDemandFilter,
@@ -137,23 +138,11 @@ export function applyModeFilter({
   return routeIds;
 }
 
-function occupancyColorForRoute(occupancyData, routeId) {
+// Más viajeros por expedición = rojo (líneas más cargadas)
+function occupancyColorForRoute(occupancyData, maxOcc, routeId) {
   const occ = occupancyData?.[routeId] ?? 0;
-  const maxOcc = Math.max(...Object.values(occupancyData || {}), 1);
   const t = maxOcc > 0 ? Math.min(occ / maxOcc, 1) : 0;
-  let r, g, b;
-  if (t < 0.5) {
-    const k = t / 0.5;
-    r = Math.round(50 + 170 * k);
-    g = 200;
-    b = 50;
-  } else {
-    const k = (t - 0.5) / 0.5;
-    r = 220;
-    g = Math.round(200 - 150 * k);
-    b = 50;
-  }
-  return [r, g, b];
+  return gradientColor(t);
 }
 
 export function createRoutesLayer({
@@ -232,7 +221,8 @@ export function createRoutesLayer({
   } else if (colorMode === 'schedule' && routeSchedule) {
     getBaseColor = (f) => scheduleColorForRoute(routeSchedule, f.properties.route_id, scheduleDayType);
   } else if (colorMode === 'occupancy' && occupancyData) {
-    getBaseColor = (f) => occupancyColorForRoute(occupancyData, f.properties.route_id);
+    const maxOcc = Math.max(...Object.values(occupancyData), 1);
+    getBaseColor = (f) => occupancyColorForRoute(occupancyData, maxOcc, f.properties.route_id);
   } else if (colorMode === 'coverage' && routeCoverage) {
     getBaseColor = (f) => coverageColorForRoute(routeCoverage, f.properties.route_id, coverageDistance);
   } else {

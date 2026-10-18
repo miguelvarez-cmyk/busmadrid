@@ -45,7 +45,7 @@ export default function DistrictsPanel({ routeDistricts }) {
 
   if (!routeDistricts) return (
     <div className="districts-empty">
-      <p>Ejecuta <code>python scripts/compute_districts.py</code> para generar el mapa de zonas.</p>
+      <p>Los datos de barrios no están disponibles en este momento.</p>
     </div>
   );
 
