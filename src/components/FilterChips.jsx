@@ -1,10 +1,11 @@
 import { useMapStore, useFilters } from '../store/useMapStore.js';
-import { INDICATOR_BY_ID, filterLabel } from '../utils/indicators.js';
+import { INDICATOR_BY_ID, formatValue } from '../utils/indicators.js';
 import { useNetwork } from '../utils/network.js';
+import RangeInputs from './RangeInputs.jsx';
 
 export default function FilterChips() {
   const filters = useFilters();
-  const { passing, allIds } = useNetwork();
+  const { passing, allIds, stats } = useNetwork();
   const { setFilter, clearFilters } = useMapStore.getState();
   const entries = Object.entries(filters);
 
@@ -14,7 +15,14 @@ export default function FilterChips() {
         const ind = INDICATOR_BY_ID[id];
         return (
           <span key={id} className="chip chip--filter">
-            {ind.label} <b>{filterLabel(ind, range)}</b>
+            {ind.label}
+            <RangeInputs
+              ind={ind}
+              range={range}
+              placeholders={[formatValue(ind, stats[id].min), formatValue(ind, stats[id].max)]}
+              onChange={(r) => setFilter(id, r)}
+            />
+            {ind.unit && <span className="chip-unit">{ind.unit}</span>}
             <button type="button" className="chip-x" onClick={() => setFilter(id, null)} aria-label={`Quitar filtro de ${ind.label}`}>
               ×
             </button>

@@ -1,6 +1,16 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import { INITIAL_VIEW_STATE } from '../config/mapConfig.js';
+import { INITIAL_VIEW_STATE, BASEMAPS, THEME_BASEMAP } from '../config/mapConfig.js';
+
+// El tema es una preferencia del visitante: se guarda en el navegador
+function storedTheme() {
+  try {
+    return localStorage.getItem('busmadrid-theme') === 'light' ? 'light' : 'dark';
+  } catch {
+    return 'dark';
+  }
+}
+const INITIAL_THEME = storedTheme();
 
 export const DEFAULT_COLUMNS = ['demand', 'interval', 'load', 'speed'];
 export const MAX_PINNED = 6;
@@ -88,6 +98,18 @@ export const useMapStore = create((set) => ({
   panelWide: false,
   setPanelWide: (panelWide) => set({ panelWide }),
 
+  // Tema de la interfaz y mapa base. Al cambiar de tema, el fondo lo
+  // acompaña si estaba en el fondo por defecto del otro tema.
+  theme: INITIAL_THEME,
+  setTheme: (theme) =>
+    set((state) => {
+      try { localStorage.setItem('busmadrid-theme', theme); } catch { /* sin almacenamiento */ }
+      const followBasemap = state.basemap === THEME_BASEMAP[state.theme];
+      return { theme, basemap: followBasemap ? THEME_BASEMAP[theme] : state.basemap };
+    }),
+  basemap: THEME_BASEMAP[INITIAL_THEME],
+  setBasemap: (basemap) => set(BASEMAPS[basemap] ? { basemap } : {}),
+
   boxSelectMode: false,
   setBoxSelectMode: (v) => set({ boxSelectMode: v }),
 
@@ -122,6 +144,8 @@ export const useCtx = () =>
 export const useTableColumns = () => useMapStore((s) => s.tableColumns);
 export const useSort = () => useMapStore((s) => s.sort);
 export const usePanelWide = () => useMapStore((s) => s.panelWide);
+export const useTheme = () => useMapStore((s) => s.theme);
+export const useBasemap = () => useMapStore((s) => s.basemap);
 export const useBoxSelectMode = () => useMapStore((s) => s.boxSelectMode);
 export const useShowStops = () => useMapStore((s) => s.showStops);
 export const useStopColorMode = () => useMapStore((s) => s.stopColorMode);

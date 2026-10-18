@@ -1,6 +1,6 @@
 import { GeoJsonLayer } from '@deck.gl/layers';
 
-const DIMMED = [125, 128, 135, 40];
+const DIMMED = { dark: [125, 128, 135, 40], light: [110, 112, 118, 55] };
 
 /**
  * Líneas EMT. Las que no pasan el ámbito/filtros se dibujan atenuadas en gris
@@ -9,7 +9,7 @@ const DIMMED = [125, 128, 135, 40];
  * colorOf(routeId) → [r,g,b] para las líneas que pasan.
  * colorKey: cualquier valor que cambie cuando cambian los colores.
  */
-export function createRoutesLayer({ features, passing, colorOf, colorKey, hoveredIds, focusIds }) {
+export function createRoutesLayer({ features, passing, colorOf, colorKey, hoveredIds, focusIds, tone = 'dark' }) {
   if (!features) return null;
   const hovered = new Set(hoveredIds);
   const hasFocus = focusIds.size > 0;
@@ -17,7 +17,7 @@ export function createRoutesLayer({ features, passing, colorOf, colorKey, hovere
 
   const getLineColor = (f) => {
     const id = f.properties.route_id;
-    if (!passing.has(id)) return DIMMED;
+    if (!passing.has(id)) return DIMMED[tone];
     const c = colorOf(id);
     if (focusIds.has(id) || hovered.has(id)) return [...c, 255];
     if (hasFocus || hasHover) return [...c, 70];
@@ -40,7 +40,7 @@ export function createRoutesLayer({ features, passing, colorOf, colorKey, hovere
     pickable: true,
     parameters: { depthTest: false },
     updateTriggers: {
-      getLineColor: [colorKey, passing, hoveredIds, focusIds],
+      getLineColor: [colorKey, passing, hoveredIds, focusIds, tone],
       getLineWidth: [passing, hoveredIds, focusIds],
     },
   });

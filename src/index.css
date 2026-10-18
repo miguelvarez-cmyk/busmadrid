@@ -65,6 +65,13 @@
   --warning:   #F5A623;
   --error:     #FF5A5A;
 
+  --card-bg:    rgba(26, 28, 32, 0.94);
+  --tooltip-bg: rgba(34, 36, 41, 0.97);
+  --chart-band: rgba(255, 255, 255, 0.06);
+  --chart-grid: rgba(255, 255, 255, 0.12);
+  --overlay-bg: rgba(10, 11, 13, 0.75);
+  color-scheme: dark;
+
   /* === MAPA — opacidades de líneas === */
   --line-opacity-all:      0.35;
   --line-opacity-hover:    0.85;
@@ -99,6 +106,34 @@
   --z-panel: 15;
   --z-drawer: 25;
   --z-search: 30;
+}
+
+:root[data-theme="light"] {
+  --bg-app:        #F4F5F7;
+  --bg-panel:      #FFFFFF;
+  --bg-surface:    #F2F3F5;
+  --bg-surface-2:  #E8EAED;
+  --bg-surface-3:  #DCDFE4;
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-normal: rgba(0,0,0,0.11);
+  --border-strong: rgba(0,0,0,0.20);
+  --text-primary:   #16181C;
+  --text-secondary: #555B66;
+  --text-tertiary:  #8A909B;
+  --text-disabled:  #B8BCC4;
+  --accent:         #1F6FE0;
+  --accent-hover:   #1A5FC2;
+  --accent-dim:     rgba(31,111,224,0.12);
+  --accent-text:    #1F6FE0;
+  --card-bg:    rgba(255, 255, 255, 0.95);
+  --tooltip-bg: rgba(255, 255, 255, 0.98);
+  --chart-band: rgba(0, 0, 0, 0.06);
+  --chart-grid: rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(30, 32, 36, 0.45);
+  --shadow-md:    0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:    0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-float: 0 16px 48px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.08);
+  color-scheme: light;
 }
 
 html, body, #root {
@@ -415,14 +450,38 @@ button.chip:hover { border-color: var(--border-strong); }
 .map-card {
   position: absolute;
   z-index: var(--z-panel);
-  background: rgba(26, 28, 32, 0.94);
+  background: var(--card-bg);
   border: 1px solid var(--border-normal);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
   font-size: var(--text-sm);
 }
 
-.legend { left: 12px; bottom: 12px; width: 260px; padding: 10px 12px 8px; }
+.legend { left: 12px; top: 12px; width: 260px; padding: 10px 12px 8px; }
+.legend-scale .range-inputs { display: flex; justify-content: space-between; width: 100%; }
+.legend-scale .range-sep { display: none; }
+.legend-scale .bound:last-child { text-align: right; }
+
+.range-inputs { display: inline-flex; align-items: center; gap: 2px; }
+.bound {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 1px 3px;
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  min-width: 0;
+}
+.bound:hover { border-color: var(--border-strong); }
+.bound:focus { border-color: var(--accent); background: var(--bg-surface); outline: none; }
+.bound::placeholder { color: var(--text-tertiary); font-weight: var(--weight-normal); }
+.legend-scale .bound { font-weight: var(--weight-normal); font-size: 11px; color: var(--text-secondary); }
+.chip-unit { color: var(--text-secondary); }
+.theme-toggle { font-size: 14px; }
+.topbar-link + .theme-toggle { margin-left: 0; }
+
 .legend--empty { width: 260px; color: var(--text-secondary); line-height: 1.45; }
 .legend-head { font-weight: var(--weight-medium); }
 .legend-ctx { font-size: 11px; margin-top: 1px; }
@@ -506,7 +565,7 @@ button.chip:hover { border-color: var(--border-strong); }
   min-width: 220px;
   max-width: 340px;
   padding: 7px 9px;
-  background: rgba(34, 36, 41, 0.97);
+  background: var(--tooltip-bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-sm);
   box-shadow: var(--shadow-lg);
@@ -721,8 +780,8 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   font-variant-numeric: tabular-nums;
 }
 .chart-svg { width: 100%; height: 80px; display: block; background: var(--bg-surface); border-radius: 2px; }
-.chart-band { fill: rgba(255, 255, 255, 0.06); }
-.chart-grid { stroke: rgba(255, 255, 255, 0.12); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.chart-band { fill: var(--chart-band); }
+.chart-grid { stroke: var(--chart-grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .chart-x {
   grid-column: 2;
   display: flex;
@@ -740,7 +799,7 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(10, 11, 13, 0.75);
+  background: var(--overlay-bg);
   overflow-y: auto;
 }
 .method-page {
@@ -897,7 +956,7 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   }
   .panel--mobile-open { transform: none; }
   .panel-toolbar .btn-icon, .input--small, td.col-line .line-name { display: none; }
-  .legend { left: 8px; right: 8px; bottom: calc(56px + env(safe-area-inset-bottom)); width: auto; }
+  .legend { left: 8px; right: 8px; top: auto; bottom: calc(56px + env(safe-area-inset-bottom)); width: auto; }
   .layers { top: 8px; right: 8px; }
   .map-tooltip { display: none; }
   .mobile-panel-toggle {

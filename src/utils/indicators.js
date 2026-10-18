@@ -435,7 +435,16 @@ export const NO_DATA_COLOR = [105, 108, 115];
 const GOOD = [50, 200, 50];
 const MID = [220, 200, 50];
 const BAD = [220, 50, 50];
-const NEUTRAL_RAMP = [[45, 85, 150], [90, 160, 230], [205, 235, 255]];
+// Rampa neutra: en fondo oscuro, claro = más; en fondo claro, oscuro = más
+const NEUTRAL_RAMPS = {
+  dark: [[45, 85, 150], [90, 160, 230], [205, 235, 255]],
+  light: [[165, 200, 235], [60, 125, 200], [15, 45, 110]],
+};
+let tone = 'dark';
+/** Fija el tono del mapa base ('dark' | 'light') para las escalas neutras. */
+export function setColorTone(t) {
+  tone = t === 'light' ? 'light' : 'dark';
+}
 const DIVERGING_MID = [175, 175, 175];
 
 function lerp(a, b, k) {
@@ -456,7 +465,7 @@ export function colorAt(ind, t) {
     case 'diverging':
       return t < 0.5 ? lerp(BAD, DIVERGING_MID, t / 0.5) : lerp(DIVERGING_MID, GOOD, (t - 0.5) / 0.5);
     default:
-      return ramp3(...NEUTRAL_RAMP, t);
+      return ramp3(...NEUTRAL_RAMPS[tone], t);
   }
 }
 

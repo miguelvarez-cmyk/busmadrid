@@ -16,14 +16,14 @@ export function stopColor(value, mode) {
   return colorAt(STOP_SCALE, t);
 }
 
-export function createStopsLayer({ geojson, passing, onHover, stopColorMode, stopExpeditions }) {
+export function createStopsLayer({ geojson, passing, onHover, stopColorMode, stopExpeditions, tone = 'dark' }) {
   if (!geojson) return null;
 
   // Solo paradas servidas por alguna línea que pasa el ámbito/filtros
   const data = geojson.features.filter((f) => f.properties.routes.some((r) => passing.has(r)));
 
   const getFillColor = (f) => {
-    if (!stopColorMode) return [240, 240, 238, 230];
+    if (!stopColorMode) return tone === 'light' ? [40, 42, 48, 230] : [240, 240, 238, 230];
     return [...stopColor(stopValue(f, stopColorMode, stopExpeditions), stopColorMode), 235];
   };
 
@@ -36,12 +36,12 @@ export function createStopsLayer({ geojson, passing, onHover, stopColorMode, sto
     radiusMinPixels: 2.5,
     radiusMaxPixels: 8,
     getFillColor,
-    getLineColor: [20, 20, 22, 255],
+    getLineColor: tone === 'light' ? [255, 255, 255, 255] : [20, 20, 22, 255],
     lineWidthMinPixels: 1,
     stroked: true,
     pickable: true,
     parameters: { depthTest: false },
-    updateTriggers: { getFillColor: [stopColorMode] },
+    updateTriggers: { getFillColor: [stopColorMode, tone], getLineColor: [tone] },
     onHover: (info) => onHover?.(info.object ?? null),
   });
 }

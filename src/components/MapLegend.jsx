@@ -10,6 +10,7 @@ import {
   passesFilters,
 } from '../utils/indicators.js';
 import { useNetwork } from '../utils/network.js';
+import RangeInputs from './RangeInputs.jsx';
 
 const STEPS = 200;
 const N_BINS = 20;
@@ -49,11 +50,9 @@ export default function MapLegend() {
   };
   const medianPos = stat.median != null ? normalize(ind, stat, stat.median) * 100 : null;
   const fmt = (v) => formatValue(ind, v);
-  const lo = range[0] ?? stat.domain[0];
-  const hi = range[1] ?? stat.domain[1];
 
   return (
-    <div className="map-card legend" title="Arrastra los extremos para filtrar">
+    <div className="map-card legend">
       <div className="legend-head">{labelWithUnit(ind, ctx)}</div>
       <div className="hist" aria-hidden="true">
         {hist.bins.map((b, i) => {
@@ -77,8 +76,7 @@ export default function MapLegend() {
         <input type="range" min={0} max={STEPS} value={tHi} aria-label="Máximo del filtro" onChange={(e) => apply(tLo, Math.max(+e.target.value, tLo + 1))} />
       </div>
       <div className="legend-scale">
-        <span>{fmt(lo)}</span>
-        <span>{fmt(hi)}</span>
+        <RangeInputs ind={ind} range={range} placeholders={[fmt(stat.domain[0]), fmt(stat.domain[1])]} onChange={(r) => setFilter(ind.id, r)} />
       </div>
     </div>
   );

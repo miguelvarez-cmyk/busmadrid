@@ -3,7 +3,7 @@ import DeckGL from '@deck.gl/react';
 import { Map as MapGL } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { BASEMAP_STYLE, INITIAL_VIEW_STATE } from './config/mapConfig.js';
+import { BASEMAPS, INITIAL_VIEW_STATE } from './config/mapConfig.js';
 import {
   useMapStore,
   useViewState,
@@ -19,11 +19,13 @@ import {
   useBoxSelectMode,
   useShowStops,
   useStopColorMode,
+  useTheme,
+  useBasemap,
 } from './store/useMapStore.js';
 import { useGTFSData } from './utils/useGTFSData.js';
 import { useUrlSync } from './utils/useUrlSync.js';
 import { NetworkContext } from './utils/network.js';
-import { computeIndicators, passesFilters, colorFor, INDICATOR_BY_ID, SERIES_COLORS } from './utils/indicators.js';
+import { computeIndicators, passesFilters, colorFor, INDICATOR_BY_ID, SERIES_COLORS, setColorTone } from './utils/indicators.js';
 import { hexToRgb } from './utils/color.js';
 import { createRoutesLayer, sortFeaturesForDraw } from './layers/createRoutesLayer.js';
 import { createStopsLayer } from './layers/createStopsLayer.js';
@@ -89,6 +91,14 @@ export default function App() {
   const showStops = useShowStops();
   const stopColorMode = useStopColorMode();
   const setHoveredStop = useMapStore((s) => s.setHoveredStop);
+  const theme = useTheme();
+  const basemap = useBasemap();
+  const tone = BASEMAPS[basemap].tone;
+  // Antes de calcular colores: las escalas neutras dependen del fondo
+  setColorTone(tone);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   const [cursor, setCursor] = useState(null);
   const [mobilePanel, setMobilePanel] = useState(false);
   const hoverTimeoutRef = useRef(null);
@@ -133,8 +143,8 @@ export default function App() {
   const focusIds = useMemo(() => new Set(fichaOpen ? fichaIds : []), [fichaOpen, fichaIds]);
 
   const net = useMemo(
-    () => (computed ? { data, metaById, allIds, values: computed.values, stats: computed.stats, passing, ctx, fichaIds } : null),
-    [data, metaById, allIds, computed, passing, ctx, fichaIds]
+    () => (computed ? { data, metaById, allIds, values: computed.values, stats: computed.stats, passing, ctx, fichaIds, tone } : null),
+    [data, metaById, allIds, computed, passing, ctx, fichaIds, tone]
   );
 
   const ind = indicator ? INDICATOR_BY_ID[indicator] : null;
@@ -149,7 +159,8 @@ export default function App() {
       if (!ind) return hexToRgb(metaById[id]?.color ?? '888888');
       return colorFor(ind, computed.stats[ind.id], computed.values[id]?.[ind.id]);
     },
-    [ind, metaById, computed, seriesColor]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ind, metaById, computed, seriesColor, tone]
   );
 
   const drawFeatures = useMemo(
@@ -169,6 +180,7 @@ export default function App() {
         colorKey: colorOf,
         hoveredIds: hoverHighlight,
         focusIds,
+        tone,
       }),
       showStops &&
         createStopsLayer({
@@ -177,9 +189,10 @@ export default function App() {
           stopColorMode,
           stopExpeditions: data?.stopExpeditions,
           onHover: setHoveredStop,
+          tone,
         }),
     ].filter(Boolean),
-    [drawFeatures, passing, colorOf, hoverHighlight, focusIds, showStops, data, stopColorMode, setHoveredStop]
+    [drawFeatures, passing, colorOf, hoverHighlight, focusIds, showStops, data, stopColorMode, setHoveredStop, tone]
   );
 
   // Esc cierra la ficha
@@ -245,7 +258,8 @@ export default function App() {
             onClick={handleClick}
             onHover={handleHover}
           >
-            <MapGL mapStyle={BASEMAP_STYLE} reuseMaps={false} />
+            {/* key: cambiar de estilo sobre el mismo mapa deja capas del anterior */}
+            <MapGL key={basemap} mapStyle={BASEMAPS[basemap].style} reuseMaps={false} />
           </DeckGL>
           <BoxSelectOverlay viewState={viewState} geojson={data?.routesGeojson} />
           {net && <MapLegend />}

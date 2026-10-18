@@ -1,4 +1,5 @@
-import { useMapStore, useShowStops, useStopColorMode } from '../store/useMapStore.js';
+import { useMapStore, useShowStops, useStopColorMode, useBasemap } from '../store/useMapStore.js';
+import { BASEMAPS, BASEMAP_ORDER } from '../config/mapConfig.js';
 
 const STOP_MODES = [
   { id: '', label: 'Sin color' },
@@ -9,10 +10,14 @@ const STOP_MODES = [
 export default function LayersControl() {
   const showStops = useShowStops();
   const stopColorMode = useStopColorMode();
-  const { setShowStops, setStopColorMode } = useMapStore.getState();
+  const basemap = useBasemap();
+  const { setShowStops, setStopColorMode, setBasemap } = useMapStore.getState();
 
   return (
     <div className="map-card layers">
+      <select className="ctl" aria-label="Mapa base" title="Mapa base" value={basemap} onChange={(e) => setBasemap(e.target.value)}>
+        {BASEMAP_ORDER.map((id) => <option key={id} value={id}>{BASEMAPS[id].label}</option>)}
+      </select>
       <label className="check">
         <input type="checkbox" checked={showStops} onChange={(e) => setShowStops(e.target.checked)} />
         Paradas

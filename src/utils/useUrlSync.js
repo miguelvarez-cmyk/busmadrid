@@ -30,7 +30,7 @@ function serializeFilters(filters) {
 const SNAPSHOT_KEYS = [
   'viewState', 'indicator', 'dayType', 'startHour', 'endHour', 'year', 'radius', 'filters',
   'selectedRouteIds', 'clickedRouteId', 'pinnedRouteIds', 'fichaOpen', 'tableColumns', 'sort',
-  'panelWide', 'showStops', 'stopColorMode', 'totalRouteCount',
+  'panelWide', 'basemap', 'showStops', 'stopColorMode', 'totalRouteCount',
 ];
 
 export function useUrlSync() {
@@ -71,6 +71,7 @@ export function useUrlSync() {
       if (key === 'line' || INDICATOR_BY_ID[key]) patch.sort = { key, dir: dir === 'desc' ? 'desc' : 'asc' };
     }
     if (p.get('w') === '1') patch.panelWide = true;
+    if (p.has('bm')) patch.basemap = p.get('bm');
     if (p.get('st') === '1') patch.showStops = true;
     if (p.has('stc')) patch.stopColorMode = p.get('stc');
 
@@ -116,6 +117,7 @@ function writeUrl(s) {
   p.set('cols', s.tableColumns.join(','));
   if (s.sort.key !== 'line' || s.sort.dir !== 'asc') p.set('s', `${s.sort.key}:${s.sort.dir}`);
   if (s.panelWide) p.set('w', '1');
+  if (s.basemap !== 'dark') p.set('bm', s.basemap);
   if (s.showStops) p.set('st', '1');
   if (s.stopColorMode) p.set('stc', s.stopColorMode);
   window.history.replaceState(null, '', '?' + p.toString() + window.location.hash);
