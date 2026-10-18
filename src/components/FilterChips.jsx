@@ -26,9 +26,11 @@ export default function FilterChips() {
           Quitar filtros
         </button>
       )}
-      <span className="pass-count" title="Líneas que cumplen el ámbito y los filtros">
-        <b>{passing.size}</b>/{allIds.length} líneas
-      </span>
+      {passing.size < allIds.length && (
+        <span className="pass-count" title="Líneas que cumplen el ámbito y los filtros">
+          {passing.size} de {allIds.length} líneas
+        </span>
+      )}
     </div>
   );
 }

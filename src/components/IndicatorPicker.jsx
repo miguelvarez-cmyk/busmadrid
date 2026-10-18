@@ -28,11 +28,7 @@ export default function IndicatorPicker() {
         aria-haspopup="listbox"
       >
         {current ? (
-          <>
-            <span className="muted">{GROUPS.find((g) => g.id === current.group).label} ·</span>
-            <b>{current.label}</b>
-            {current.unit && <span className="muted">({current.unit})</span>}
-          </>
+          <b>{current.label}</b>
         ) : (
           <span>Elegir indicador</span>
         )}
@@ -48,7 +44,7 @@ export default function IndicatorPicker() {
             className={`menu-item ${!indicator ? 'menu-item--on' : ''}`}
             onClick={() => choose(null)}
           >
-            Ninguno <span className="muted">· colores de línea</span>
+            Ninguno
           </button>
           {GROUPS.map((g) => (
             <div key={g.id} className="menu-group">
@@ -62,11 +58,7 @@ export default function IndicatorPicker() {
                   className={`menu-item ${indicator === i.id ? 'menu-item--on' : ''}`}
                   onClick={() => choose(i.id)}
                 >
-                  <span>
-                    {i.label}
-                    {i.unit && <span className="muted"> · {i.unit}</span>}
-                  </span>
-                  <span className="menu-item-def">{i.def}</span>
+                  {i.label}
                 </button>
               ))}
             </div>

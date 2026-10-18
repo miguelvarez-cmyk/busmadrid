@@ -94,14 +94,13 @@ export function PercentileBar({ ind, stat, v, showValue = true }) {
       {showValue && (
         <span className="pbar-val">
           {formatValue(ind, v)}
-          {v != null && ind.unit && <span className="muted"> {ind.unit}</span>}
+          {v != null && ind.unit && <span className="pbar-unit"> {ind.unit}</span>}
         </span>
       )}
       <span className="pbar-track" title={p != null ? `Percentil ${p} de la red · mediana ${formatValue(ind, stat.median)}` : 'Sin dato'}>
         {med != null && <span className="pbar-median" style={{ left: `${med}%` }} />}
         {pos != null && <span className="pbar-dot" style={{ left: `${pos}%`, background: `rgb(${color.join(',')})` }} />}
       </span>
-      <span className="pbar-p muted">{p != null ? `p${p}` : ''}</span>
     </div>
   );
 }

@@ -11,11 +11,10 @@ export function LoadingScreen({ loading, progress }) {
     <div className={`loading-screen${exiting ? ' loading-screen--exit' : ''}`}>
       <div className="loading-inner">
         <h1 className="loading-title">Bus Madrid</h1>
-        <p className="loading-subtitle">Diagnóstico de la red EMT · GTFS y demanda oficiales</p>
         <div className="loading-bar-track">
           <div className="loading-bar-fill" style={{ width: `${pct}%` }} />
         </div>
-        <span className="loading-bar-pct">Cargando datos · {pct}%</span>
+
       </div>
     </div>
   );

@@ -422,9 +422,9 @@ button.chip:hover { border-color: var(--border-strong); }
   font-size: var(--text-sm);
 }
 
-.legend { left: 12px; bottom: 12px; width: 300px; padding: 10px 12px; }
+.legend { left: 12px; bottom: 12px; width: 260px; padding: 10px 12px 8px; }
 .legend--empty { width: 260px; color: var(--text-secondary); line-height: 1.45; }
-.legend-head { display: flex; align-items: center; gap: 4px; }
+.legend-head { font-weight: var(--weight-medium); }
 .legend-ctx { font-size: 11px; margin-top: 1px; }
 .hist {
   position: relative;
@@ -626,8 +626,8 @@ button.chip:hover { border-color: var(--border-strong); }
 .col-line { max-width: 230px; }
 .col-line > * { vertical-align: middle; }
 td.col-line { display: flex; align-items: center; gap: 6px; }
-td.col-line .line-name { font-size: 11px; max-width: 96px; }
-.panel--wide td.col-line .line-name { max-width: 300px; }
+td.col-line .line-name { display: none; }
+.panel--wide td.col-line .line-name { display: inline; font-size: 12px; max-width: 320px; }
 
 .pin {
   border: 0;
@@ -677,9 +677,8 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
 .ficha-ctx { display: block; font-size: 10px; color: var(--text-tertiary); }
 .ficha-table tbody tr:not(.ficha-group):hover td { background: var(--bg-surface); }
 
-.pbar { display: grid; grid-template-columns: auto minmax(50px, 1fr) 30px; align-items: center; gap: 8px; }
+.pbar { display: grid; grid-template-columns: auto minmax(50px, 1fr); align-items: center; gap: 10px; }
 .ficha-table--multi .pbar { grid-template-columns: 1fr; gap: 2px; }
-.ficha-table--multi .pbar-p { display: none; }
 .pbar-val { white-space: nowrap; font-weight: var(--weight-medium); min-width: 74px; }
 .pbar-track {
   position: relative;
@@ -697,7 +696,11 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   transform: translate(-50%, -50%);
   border: 1px solid var(--bg-app);
 }
-.pbar-p { font-size: 11px; text-align: right; }
+.pbar-unit { color: var(--text-secondary); font-weight: var(--weight-normal); }
+.ficha-label-link { color: var(--text-primary); text-decoration: none; }
+.ficha-label-link:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
+.lines-count { color: var(--text-tertiary); margin-left: 6px; font-weight: var(--weight-normal); }
+.tt-stop-lines { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
 
 .ficha-hint { margin: 10px 10px 0; font-size: 11px; }
 .ficha-chart { padding: 14px 10px 0; }

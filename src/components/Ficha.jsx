@@ -3,7 +3,6 @@ import { useMapStore, usePinnedRouteIds, usePanelWide, useClickedRouteId, MAX_PI
 import {
   GROUPS,
   INDICATORS,
-  DAY_TYPES,
   DAY_TYPE_BY_ID,
   contextLabel,
   expeditionsByHourBoth,
@@ -17,7 +16,6 @@ import {
 import { useNetwork } from '../utils/network.js';
 import { exportHourlyCsv } from '../utils/csv.js';
 import { HourChart, MonthChart, PercentileBar } from './charts.jsx';
-import InfoTip from './InfoTip.jsx';
 
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
@@ -108,10 +106,9 @@ export default function Ficha() {
     <div className="ficha">
       <div className="panel-toolbar">
         <button type="button" className="btn-sm" onClick={closeFicha}>← Tabla</button>
-        <div className="panel-title">{multi ? `Comparación · ${fichaIds.length} líneas` : 'Ficha de línea'}</div>
         <span className="spacer" />
-        <button type="button" className="btn-sm" onClick={center}>Centrar en mapa</button>
-        <button type="button" className="btn-sm" onClick={() => exportHourlyCsv({ routeIds: fichaIds, metaById, data })} title="Perfiles horarios de estas líneas en CSV">↓ CSV horario</button>
+        <button type="button" className="btn-sm" onClick={center}>Centrar</button>
+        <button type="button" className="btn-sm" onClick={() => exportHourlyCsv({ routeIds: fichaIds, metaById, data })} title="Perfiles horarios en CSV">↓ CSV</button>
         {!multi && <button type="button" className="btn-sm btn-icon" onClick={() => setPanelWide(!wide)} title={wide ? 'Estrechar panel' : 'Ensanchar panel'} aria-label={wide ? 'Estrechar panel' : 'Ensanchar panel'}>
           {wide ? '⇥' : '⇤'}
         </button>}
@@ -153,9 +150,9 @@ export default function Ficha() {
             {GROUPS.map((g) => (
               <FichaGroup key={g.id} group={g} ids={fichaIds} values={values} stats={stats} ctx={ctx} demand={data.routeDemand} />
             ))}
-            <tr className="ficha-group"><td colSpan={fichaIds.length + 1}>Servicio · {day.label}</td></tr>
+            <tr className="ficha-group"><td colSpan={fichaIds.length + 1}>Servicio</td></tr>
             <tr>
-              <td className="ficha-label">Primera – última salida</td>
+              <td className="ficha-label">Primera – última</td>
               {fichaIds.map((id) => {
                 const t = data.routeDepartureTimes?.byRoute?.[id]?.[ctx.dayType];
                 return <td key={id}>{t ? `${t.primera} – ${t.última}` : '—'}</td>;
@@ -171,27 +168,21 @@ export default function Ficha() {
           </tbody>
         </table>
 
-        {!multi && pinned.length < MAX_PINNED && !pinned.includes(fichaIds[0]) && (
-          <p className="ficha-hint muted">📌 Fija esta línea y abre otra para compararlas en columnas.</p>
-        )}
-
         <section className="ficha-chart">
-          <h3>Expediciones por hora <span className="muted">· ambos sentidos · {day.label} · franja {hourRangeLabel(ctx.startHour, ctx.endHour)} sombreada</span></h3>
+          <h3 title={`Ambos sentidos · ${day.label} · franja ${hourRangeLabel(ctx.startHour, ctx.endHour)} sombreada`}>Expediciones por hora</h3>
           <HourChart series={expSeries} band={[ctx.startHour, ctx.endHour]} fmt={(v) => fmtNum(v, 0)} />
         </section>
 
         {loadSeries.length > 0 && (
           <section className="ficha-chart">
-            <h3>
-              Viajeros/expedición por hora <span className="muted">· {day.label}{loadMeta ? ` · demanda ${loadMeta.year}${loadMeta.excludedMonths?.length ? ' sin julio ni agosto' : ''}` : ''}</span>
-            </h3>
+            <h3 title={`${day.label}${loadMeta ? ` · demanda ${loadMeta.year}${loadMeta.excludedMonths?.length ? ' sin julio ni agosto' : ''}` : ''}`}>Viajeros por expedición</h3>
             <HourChart series={loadSeries} band={[ctx.startHour, ctx.endHour]} fmt={(v) => fmtNum(v, 0)} />
           </section>
         )}
 
         {monthSeries.length > 0 && (
           <section className="ficha-chart">
-            <h3>Viajeros/día por mes <span className="muted">· todos los días</span></h3>
+            <h3>Viajeros al día, por mes</h3>
             <MonthChart series={monthSeries} />
           </section>
         )}
@@ -204,10 +195,6 @@ export default function Ficha() {
           </div>
         )}
 
-        <p className="ficha-note muted">
-          Barras de percentil: posición de la línea en la red ({Object.keys(values).length} líneas) en el contexto activo; la marca vertical es la mediana.
-          {' '}Tipos de día: {DAY_TYPES.map((d) => d.label).join(', ')}.
-        </p>
       </div>
     </div>
   );
@@ -223,9 +210,8 @@ function FichaGroup({ group, ids, values, stats, ctx, demand }) {
         return (
           <tr key={ind.id}>
             <td className="ficha-label">
-              <span>{ind.label}</span>
-              <InfoTip id={ind.id} />
-              {c && <span className="ficha-ctx">{c}</span>}
+              <a className="ficha-label-link" href={`#metodologia-${ind.id}`} title={`${ind.def}${c ? `
+${c}` : ''}`}>{ind.label}</a>
             </td>
             {ids.map((id) => (
               <td key={id}>

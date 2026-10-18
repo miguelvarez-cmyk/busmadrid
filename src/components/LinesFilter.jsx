@@ -97,7 +97,7 @@ export default function LinesFilter() {
                     <button type="button" className="lines-group-toggle" onClick={() => toggleExpanded(key)}>
                       <span className="caret">{isOpen ? '▾' : '▸'}</span>
                       {GROUP_LABELS[key]}
-                      <span className="muted"> {n}/{items.length}</span>
+                      <span className="lines-count">{n}/{items.length}</span>
                     </button>
                     <button type="button" className="btn-xs" onClick={() => setRangeSelection(ids, true)} title="Añadir grupo">+</button>
                     <button type="button" className="btn-xs" onClick={() => setRangeSelection(ids, false)} title="Quitar grupo">−</button>
@@ -120,7 +120,6 @@ export default function LinesFilter() {
               );
             })}
           </div>
-          <div className="popover-foot muted">Mayús+clic selecciona un rango</div>
         </div>
       )}
     </div>

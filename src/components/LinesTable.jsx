@@ -61,13 +61,13 @@ function CsvMenu({ rowIds }) {
       {open && (
         <div className="popover popover--right csv-menu">
           <button type="button" className="menu-item" onClick={() => run(() => exportLinesCsv({ routeIds: rowIds, metaById, values, ctx, demand: data.routeDemand }))}>
-            Tabla visible <span className="menu-item-def">{rowIds.length} líneas · los 12 indicadores en el contexto activo</span>
+            Tabla ({rowIds.length} líneas)
           </button>
           <button type="button" className="menu-item" onClick={() => run(() => exportHourlyCsv({ routeIds: profileIds, metaById, data }))}>
-            Perfiles horarios <span className="menu-item-def">{fichaIds.length ? `${fichaIds.length} línea(s) de la ficha` : `${rowIds.length} líneas de la tabla`} · expediciones y viajeros por hora</span>
+            Perfiles horarios
           </button>
           <button type="button" className="menu-item" onClick={() => run(() => exportStopsCsv({ stopsGeojson: data.stopsGeojson, stopExpeditions: data.stopExpeditions, routeIdSet: passing, metaById }))}>
-            Paradas <span className="menu-item-def">servidas por las líneas visibles · líneas y expediciones</span>
+            Paradas
           </button>
         </div>
       )}
@@ -167,7 +167,7 @@ export default function LinesTable() {
     <div className="table-view">
       <div className="panel-toolbar">
         <div className="panel-title">
-          Líneas <span className="muted">{rowIds.length}{rowIds.length !== allIds.length && ` de ${allIds.length}`}</span>
+          {rowIds.length} líneas
         </div>
         <input type="search" className="input input--small" placeholder="Buscar en la tabla…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar línea en la tabla" />
         <ColumnPicker />
@@ -178,7 +178,7 @@ export default function LinesTable() {
       </div>
       {pinned.length > 0 && (
         <div className="pinned-bar">
-          <span>Fijadas: {pinned.map((id) => metaById[id]?.shortName).join(' · ')}</span>
+          <span>📌 {pinned.map((id) => metaById[id]?.shortName).join(' · ')}</span>
           <button type="button" className="btn-sm btn-sm--on" onClick={openFicha}>Comparar ({pinned.length})</button>
         </div>
       )}
@@ -201,7 +201,6 @@ export default function LinesTable() {
                     aria-sort={sort.key === ind.id ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
                   >
                     <span className="th-label">{ind.short}{arrow(ind.id)}</span>
-                    <span className="th-unit">{ind.id === 'coverage' ? `hab. ${ctx.radius} m` : ind.unit || ' '}</span>
                     <HeaderFilter ind={ind} />
                   </th>
                 );

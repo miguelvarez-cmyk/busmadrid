@@ -45,7 +45,7 @@ export default function TimeControls() {
         >
           {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{pad2(h)}</option>)}
         </select>
-        <span className="muted">–</span>
+        <span>–</span>
         <select
           aria-label="Hora de fin"
           value={endHour}
@@ -56,7 +56,6 @@ export default function TimeControls() {
         >
           {Array.from({ length: 24 }, (_, i) => i + 1).map((h) => <option key={h} value={h}>{pad2(h)}</option>)}
         </select>
-        <span className="muted">h</span>
         <button
           type="button"
           className={`btn-xs ${fullDay ? 'btn-xs--on' : ''}`}
