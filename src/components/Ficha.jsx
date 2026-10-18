@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMapStore, usePinnedRouteIds, usePanelWide, useClickedRouteId, MAX_PINNED } from '../store/useMapStore.js';
+import { useMapStore, usePinnedRouteIds, useClickedRouteId, MAX_PINNED } from '../store/useMapStore.js';
 import {
   GROUPS,
   INDICATORS,
@@ -51,8 +51,7 @@ export default function Ficha() {
   const { data, metaById, values, stats, ctx, fichaIds } = useNetwork();
   const pinned = usePinnedRouteIds();
   const clicked = useClickedRouteId();
-  const wide = usePanelWide();
-  const { togglePin, closeFicha, setClickedRouteId, setPinnedRouteIds, setPanelWide, setViewState } = useMapStore.getState();
+  const { togglePin, closeFicha, setClickedRouteId, setPinnedRouteIds, setViewState } = useMapStore.getState();
   const multi = fichaIds.length > 1;
   const colorOf = (i) => (multi ? SERIES_COLORS[i % SERIES_COLORS.length] : '#2D8EFF');
   const day = DAY_TYPE_BY_ID[ctx.dayType];
@@ -103,15 +102,12 @@ export default function Ficha() {
   const loadMeta = data.routeLoadHourly?.meta;
 
   return (
-    <div className="ficha">
+    <div className={`ficha ${multi ? 'ficha--multi' : ''}`} style={{ '--n': fichaIds.length }}>
       <div className="panel-toolbar">
         <button type="button" className="btn-sm" onClick={closeFicha}>← Tabla</button>
         <span className="spacer" />
         <button type="button" className="btn-sm" onClick={center}>Centrar</button>
         <button type="button" className="btn-sm" onClick={() => exportHourlyCsv({ routeIds: fichaIds, metaById, data })} title="Perfiles horarios en CSV">↓ CSV</button>
-        {!multi && <button type="button" className="btn-sm btn-icon" onClick={() => setPanelWide(!wide)} title={wide ? 'Estrechar panel' : 'Ensanchar panel'} aria-label={wide ? 'Estrechar panel' : 'Ensanchar panel'}>
-          {wide ? '⇥' : '⇤'}
-        </button>}
       </div>
 
       <div className="ficha-scroll">

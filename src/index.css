@@ -584,16 +584,16 @@ button.chip:hover { border-color: var(--border-strong); }
 .panel {
   grid-column: 2;
   grid-row: 2;
-  width: 520px;
-  min-width: 0;
+  /* El ancho lo marca el contenido (columnas de la tabla o ficha) */
+  width: fit-content;
+  min-width: 380px;
+  max-width: 85vw;
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);
   border-left: 1px solid var(--border-normal);
   overflow: hidden;
-  transition: width var(--dur-normal) var(--ease-out);
 }
-.panel--wide { width: min(1180px, 72vw); }
 .table-view, .ficha { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 
 .panel-toolbar {
@@ -619,7 +619,7 @@ button.chip:hover { border-color: var(--border-strong); }
 
 .table-scroll { flex: 1; overflow: auto; min-height: 0; }
 .lines-table {
-  width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
@@ -632,7 +632,7 @@ button.chip:hover { border-color: var(--border-strong); }
   text-align: left;
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
-  padding: 5px 6px;
+  padding: 5px 10px;
   border-bottom: 1px solid var(--border-strong);
   cursor: pointer;
   user-select: none;
@@ -672,7 +672,7 @@ button.chip:hover { border-color: var(--border-strong); }
 .th-filter-row label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text-secondary); }
 
 .lines-table td {
-  padding: 4px 6px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
 }
@@ -682,11 +682,10 @@ button.chip:hover { border-color: var(--border-strong); }
 .col-active { background: rgba(45, 142, 255, 0.06); color: var(--text-primary); font-weight: var(--weight-medium); }
 .lines-table th.col-active { color: var(--text-primary); box-shadow: inset 0 -2px 0 var(--accent); }
 .col-pin { width: 22px; padding-right: 0 !important; }
-.col-line { max-width: 230px; }
 .col-line > * { vertical-align: middle; }
-td.col-line { display: flex; align-items: center; gap: 6px; }
+td.col-line .swatch { margin-right: 6px; }
 td.col-line .line-name { display: none; }
-.panel--wide td.col-line .line-name { display: inline; font-size: 12px; max-width: 320px; }
+.panel--wide td.col-line .line-name { display: inline; margin-left: 8px; font-size: 12px; }
 
 .pin {
   border: 0;
@@ -716,8 +715,10 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   padding-bottom: 8px;
 }
 .ficha-label-col { width: 40%; }
-.ficha-table--multi .ficha-label-col { width: 190px; min-width: 170px; }
-.ficha-line-head { min-width: 150px; }
+.ficha-table--multi .ficha-label-col { width: 170px; min-width: 170px; }
+.ficha-line-head { min-width: 180px; }
+.ficha { width: 520px; max-width: 100%; }
+.ficha--multi { width: calc(190px + var(--n) * 230px); }
 .ficha-line-top { display: flex; align-items: center; gap: 6px; }
 .ficha-line-num { font-size: var(--text-lg); }
 .ficha-line-top .pin { margin-left: auto; }
@@ -927,8 +928,7 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
 /* ── Pantallas medianas ──────────────────────────────────── */
 
 @media (max-width: 1100px) {
-  .panel { width: 400px; }
-  .panel--wide { width: 80vw; }
+  .panel { max-width: 90vw; }
 }
 
 /* ── Móvil: modo consulta ────────────────────────────────── */
@@ -939,6 +939,7 @@ tr:hover .pin, .pin:hover { opacity: 0.7; }
   .bar-sep, .topbar-link, .filter-chips .chip--filter, .lines-popover .popover-foot { display: none; }
   .indicator-menu, .lines-popover { width: calc(100vw - 24px); max-width: 400px; }
   .picker-btn { font-size: var(--text-sm); height: 30px; }
+  .ficha, .ficha--multi { width: auto; }
   .panel, .panel--wide {
     position: fixed;
     left: 0;

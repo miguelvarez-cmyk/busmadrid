@@ -8,10 +8,9 @@ export default function RightPanel({ mobileOpen }) {
   const fichaOpen = useFichaOpen();
   const wide = usePanelWide();
   const showFicha = fichaOpen && fichaIds.length > 0;
-  // La comparación necesita ancho: el panel se ensancha solo
-  const isWide = wide || (showFicha && fichaIds.length > 1);
+  // El ancho lo marca el contenido; "ancho" solo muestra los nombres de línea
   return (
-    <aside className={`panel ${isWide ? 'panel--wide' : ''} ${mobileOpen ? 'panel--mobile-open' : ''}`}>
+    <aside className={`panel ${wide && !showFicha ? 'panel--wide' : ''} ${mobileOpen ? 'panel--mobile-open' : ''}`}>
       {showFicha ? <Ficha /> : <LinesTable />}
     </aside>
   );
